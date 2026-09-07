@@ -91,9 +91,9 @@ audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
 <p>Sus nombres son ocho guiones colgados de la tabla de punteros de <code>0x4487</code>, indexada por el escenario de la ronda; el que se maneja esta en <code>0x447B</code>.</p>
 <table><tr><th>ronda</th><th>rival</th><th>decorado</th></tr><tr><td>1</td><td>YEN-PEI</td><td>0</td></tr><tr><td>2</td><td>LAN-FANG</td><td>0</td></tr><tr><td>3</td><td>PO-CHIN</td><td>1</td></tr><tr><td>4</td><td>WEN-HU</td><td>1</td></tr><tr><td>5</td><td>WEI-CHIN</td><td>2</td></tr><tr><td>6</td><td>MEI-LING</td><td>2</td></tr><tr><td>7</td><td>HAN-CHEN</td><td>3</td></tr><tr><td>8</td><td>LI-JEN</td><td>3</td></tr></table>
 <p>Los ocho escenarios comparten <b>cuatro decorados</b>, de dos en dos: <code>0x4FB4</code> hace un <code>srl a</code> sobre el escenario y guarda el resultado en <code>(0xE2E0)</code>, que es lo que indexa todas las tablas de bandas y de decorado. El <b>suelo</b> no sigue esa regla -lo indexa el escenario entero, en <code>0x5A93</code>-, asi que dos rondas que comparten decorado pisan suelos distintos.</p>
-<p><img src="../imagenes/escenario1.png?v=f48496dc" alt="Escenario 1"></p>
+<p><img src="../imagenes/escenario1.png?v=b068c8ab" alt="Escenario 1"></p>
 <p><em>Ronda 1, contra YEN-PEI.</em></p>
-<p><img src="../imagenes/escenario7.png?v=5d15d6dd" alt="Escenario 7"></p>
+<p><img src="../imagenes/escenario7.png?v=7a3091fd" alt="Escenario 7"></p>
 <p><em>Ronda 7, contra HAN-CHEN: el nocturno.</em></p>
 <h2 id="los-rivales-son-casillas-no-sprites">Los rivales son casillas, no sprites</h2>
 <p>El muneco que se maneja esta hecho de sprites. El rival no: va escrito directamente en la <b>tabla de nombres</b>, con <code>pinta_la_figura</code> (<code>0x66D8</code>) descomprimiendo una figura en <code>0xE480</code> y subiendola fila a fila, recortando lo que se salga por los lados.</p>

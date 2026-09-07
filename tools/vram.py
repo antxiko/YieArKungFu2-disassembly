@@ -488,6 +488,22 @@ class Vram:
         self.pon_el_suelo_de_la_ronda(escenario)
         self.decorado_de_fondo(escenario)
         self.decorado_de_arriba(escenario >> 1)
+        self.limpia_la_banda_del_enemigo()
+        return self
+
+    def limpia_la_banda_del_enemigo(self):
+        """L_68BD (0x68BD): 0xA0 casillas a cero desde 0x3A00, o sea las filas
+        16 a 20.
+
+        Lo hace `mueve_al_enemigo` la primera vez que coloca al rival del
+        escenario 0 (el `cp 000h` de 0x68B1). Sin esto, la banda donde pelean
+        los dos se queda con lo que hubiera antes: viniendo del titulo, sus
+        rotulos -y ahi estaban los `1PLAYER` y `2PLAYERS` que se colaron en las
+        primeras laminas-. En las demas rondas la banda la va limpiando
+        `borra_la_figura` (0x66D5), que rellena de UNOS con FILVRM cada vez que
+        el rival se mueve.
+        """
+        self.rellena(NOMBRES + 0x200, 0xA0, 0x00)
         return self
 
     def pantalla_de_combate(self, escenario):

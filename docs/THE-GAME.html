@@ -91,9 +91,9 @@ audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
 <p>Their names are eight scripts hanging off the pointer table at <code>0x4487</code>, indexed by the scenery of the round; the one you play is at <code>0x447B</code>.</p>
 <table><tr><th>round</th><th>rival</th><th>backdrop</th></tr><tr><td>1</td><td>YEN-PEI</td><td>0</td></tr><tr><td>2</td><td>LAN-FANG</td><td>0</td></tr><tr><td>3</td><td>PO-CHIN</td><td>1</td></tr><tr><td>4</td><td>WEN-HU</td><td>1</td></tr><tr><td>5</td><td>WEI-CHIN</td><td>2</td></tr><tr><td>6</td><td>MEI-LING</td><td>2</td></tr><tr><td>7</td><td>HAN-CHEN</td><td>3</td></tr><tr><td>8</td><td>LI-JEN</td><td>3</td></tr></table>
 <p>Eight sceneries share <b>four backdrops</b>, two by two: <code>0x4FB4</code> does an <code>srl a</code> on the scenery and keeps the result in <code>(0xE2E0)</code>, and that is what indexes every band and scenery table. The <b>floor</b> does not follow that rule — it is indexed by the whole scenery at <code>0x5A93</code> — so two rounds that share a backdrop still stand on different ground.</p>
-<p><img src="imagenes/escenario1.png?v=f48496dc" alt="Scenery 1"></p>
+<p><img src="imagenes/escenario1.png?v=b068c8ab" alt="Scenery 1"></p>
 <p><em>Round 1, against YEN-PEI.</em></p>
-<p><img src="imagenes/escenario7.png?v=5d15d6dd" alt="Scenery 7"></p>
+<p><img src="imagenes/escenario7.png?v=7a3091fd" alt="Scenery 7"></p>
 <p><em>Round 7, against HAN-CHEN: the night one.</em></p>
 <h2 id="the-rivals-are-tiles-not-sprites">The rivals are tiles, not sprites</h2>
 <p>The fighter you control is made of sprites. The rival is not: it is written straight into the <b>name table</b>, <code>pinta_la_figura</code> (<code>0x66D8</code>) unpacking a figure into <code>0xE480</code> and sending it up row by row, clipping whatever falls off the sides.</p>
