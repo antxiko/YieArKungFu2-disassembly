@@ -185,28 +185,28 @@ L_410D:
 	ld hl,0e004h		;410f   ; La espera de la presentacion
 	dec (hl)			;4112
 	ret nz			;4113
-	call L_4D06		;4114   ; Montar la pantalla del titulo
+	call monta_la_pantalla_del_titulo		;4114   ; Montar la pantalla del titulo
 	xor a			;4117
 	jp L_41FB		;4118
 L_411B:
 	ld a,025h		;411b   ; Callar la musica
 	call pide_pieza		;411d
-	call L_43AA		;4120
+	call borra_lo_apuntado_del_truco		;4120
 	call pon_los_registros_del_vdp		;4123   ; Los registros del VDP
 	call limpia_la_pantalla		;4126   ; Limpiar la pantalla...
 	call monta_la_fuente		;4129   ; ...y subir la fuente
 	call arranca_la_presentacion		;412c   ; Y arrancar la presentacion
 	jr L_4166		;412f
 L_4131:
-	call L_43B8		;4131   ; Ir apuntando el codigo secreto
+	call apunta_la_pulsacion_del_truco		;4131   ; Ir apuntando el codigo secreto
 	ld hl,0e004h		;4134   ; La espera
 	dec (hl)			;4137
 	jp nz,L_4D1F		;4138   ; Todavia no: seguir animando
 	jp escena_siguiente		;413b   ; Se acabo: a la escena siguiente
 L_413E:
 	djnz L_4157		;413e
-	call L_57B4		;4140   ; Preparar la partida
-	call L_57B0		;4143
+	call lee_la_orden_grabada_de_la_demostracion		;4140   ; Preparar la partida
+	call haz_un_cuadro_de_combate		;4143
 	ld a,(0e059h)		;4146   ; Hay demostracion en marcha?
 	or a			;4149
 	ret nz			;414a
@@ -218,10 +218,10 @@ L_414C:
 	ld (0e004h),a		;4151
 	jp subescena_cero		;4154
 L_4157:
-	call L_4699		;4157   ; Mirar si hay que empezar
+	call barre_la_pantalla_desde_la_fila_2		;4157   ; Mirar si hay que empezar
 	ret p			;415a   ; Todavia no
-	call L_43AA		;415b
-	call L_5776		;415e   ; Montar la pantalla de la partida
+	call borra_lo_apuntado_del_truco		;415b
+	call monta_la_partida_de_la_demostracion		;415e   ; Montar la pantalla de la partida
 	ld a,020h		;4161
 L_4163:
 	ld (0e004h),a		;4163   ; Dejar la espera que traiga A
@@ -249,28 +249,28 @@ L_4187:
 	jp borra_guion		;418c   ; ...o borrarlo
 L_418F:
 	djnz L_41A7		;418f
-	call L_4699		;4191   ; Ha pulsado?
+	call barre_la_pantalla_desde_la_fila_2		;4191   ; Ha pulsado?
 	ret p			;4194   ; Todavia no
 	call partida_nueva		;4195   ; Preparar la partida
-	call L_5ABA		;4198   ; Y subir los sprites del muneco
+	call sube_los_sprites_del_muneco		;4198   ; Y subir los sprites del muneco
 	ld a,(0e002h)		;419b   ; Con dos jugadores...
 	bit 5,a		;419e
 	jr z,L_4166		;41a0
-	call L_44EF		;41a2   ; ...hay que montar ademas la pantalla de presentacion
+	call monta_la_pantalla_de_dos_jugadores		;41a2   ; ...hay que montar ademas la pantalla de presentacion
 	jr L_4166		;41a5
 L_41A7:
 	djnz L_41B5		;41a7
-	call L_43F7		;41a9   ; Mirar si toca demostracion
+	call toca_demostracion		;41a9   ; Mirar si toca demostracion
 	ret z			;41ac   ; No toca
-	call L_44D9		;41ad
-	call L_5ABA		;41b0
+	call pon_la_tira_de_escenarios		;41ad
+	call sube_los_sprites_del_muneco		;41b0
 	jr escena_siguiente		;41b3
 L_41B5:
 	ld a,(0e002h)		;41b5   ; Con un jugador...
 	bit 5,a		;41b8
 	jr nz,L_41C1		;41ba
 	ld a,09fh		;41bc   ; ...suena la musica del titulo
-	call L_B8D3		;41be
+	call pide_pieza_si_la_escena_lo_permite		;41be
 L_41C1:
 	ld a,030h		;41c1   ; Y 0x30 cuadros de espera
 	jr L_4163		;41c3
@@ -282,12 +282,12 @@ L_41C5:
 	ld a,020h		;41cc   ; 0x20 cuadros
 	ld (0e004h),a		;41ce
 L_41D1:
-	call L_4699		;41d1   ; Esperar a que suelte el boton
+	call barre_la_pantalla_desde_la_fila_2		;41d1   ; Esperar a que suelte el boton
 	jp p,L_41D1		;41d4
 	call prepara_el_marcador		;41d7   ; Montar el marcador
-	call L_5AE1		;41da   ; Y los sprites
+	call sube_el_guion_de_sprite_suelto		;41da   ; Y los sprites
 	call monta_la_pantalla_de_combate		;41dd   ; La pantalla de combate entera
-	call L_5B42		;41e0   ; Y la fila del decorado
+	call pinta_la_fila_3_y_los_dos_nombres		;41e0   ; Y la fila del decorado
 	ld a,001h		;41e3   ; Los dos jugadores, vivos
 	ld (0e059h),a		;41e5
 	ld (0e069h),a		;41e8
@@ -296,7 +296,7 @@ L_41D1:
 	cp 003h		;41f0   ; ...suena una musica u otra
 	jr z,escena_siguiente		;41f2
 	ld a,093h		;41f4
-	call L_B8D3		;41f6
+	call pide_pieza_si_la_escena_lo_permite		;41f6
 escena_siguiente:		; Deja 0x20 cuadros de espera, sube (0xE000) y pone la subescena a cero
 	ld a,020h		;41f9   ; 0x20 cuadros de espera
 L_41FB:
@@ -309,7 +309,7 @@ pon_subescena:
 	ld (0e001h),a		;4203
 	ret			;4206
 L_4207:
-	call L_4699		;4207   ; Esperar al boton
+	call barre_la_pantalla_desde_la_fila_2		;4207   ; Esperar al boton
 	ret p			;420a
 	ld hl,0e055h		;420b   ; Las vidas del jugador 1...
 	ld a,(hl)			;420e
@@ -321,7 +321,7 @@ L_4207:
 	sub 001h		;4217
 	daa			;4219
 	ld (hl),a			;421a
-	call L_472F		;421b   ; Repintar el marcador
+	call pinta_el_marcador		;421b   ; Repintar el marcador
 	ld de,04a32h		;421e   ; El rotulo de dos jugadores...
 	ld a,(0e002h)		;4221
 	bit 5,a		;4224
@@ -330,12 +330,12 @@ L_4207:
 L_422B:
 	call pinta_guion		;422b
 	inc l			;422e
-	call L_4771		;422f   ; Poner el numero de vidas
+	call escribe_el_nivel_donde_diga_hl		;422f   ; Poner el numero de vidas
 	ld a,(0e012h)		;4232   ; Si no suena nada...
 	and a			;4235
 	jr nz,L_423D		;4236
 	ld a,09fh		;4238   ; ...arrancar la musica
-	call L_B8D3		;423a
+	call pide_pieza_si_la_escena_lo_permite		;423a
 L_423D:
 	jp L_4166		;423d
 L_4240:
@@ -349,9 +349,9 @@ L_424D:
 	ld a,(0e058h)		;424d   ; Le queda alguna vida a alguien?
 	ld hl,0e068h		;4250
 	or (hl)			;4253
-	call z,L_432C		;4254   ; A nadie: fin de la partida
+	call z,baja_el_nivel_en_bcd		;4254   ; A nadie: fin de la partida
 	ld a,0a2h		;4257   ; La musica de "se acabo"
-	call L_B8D3		;4259
+	call pide_pieza_si_la_escena_lo_permite		;4259
 	jr escena_siguiente		;425c
 L_425E:
 	djnz L_4281		;425e
@@ -366,7 +366,7 @@ L_425E:
 	call 0004dh		;4274   ; BIOS WRTVRM - Writes data in VRAM
 L_4277:
 	ld a,011h		;4277   ; La musica de ronda superada
-	call L_B8D3		;4279
+	call pide_pieza_si_la_escena_lo_permite		;4279
 	ld a,060h		;427c   ; 0x60 cuadros para leerlo
 	jp L_4163		;427e
 L_4281:
@@ -377,7 +377,7 @@ L_4281:
 	jr L_424D		;4288   ; Se acabo el descanso
 L_428A:
 	djnz L_4297		;428a
-	call L_5826		;428c   ; Animar el paso de ronda
+	call haz_un_cuadro_del_final		;428c   ; Animar el paso de ronda
 	ld a,(0e17ah)		;428f   ; Ha terminado?
 	and a			;4292
 	ret z			;4293
@@ -398,10 +398,10 @@ L_42AB:
 	jr c,L_42BC		;42ae
 	ex de,hl			;42b0   ; Si: le toca al otro
 	ld a,(hl)			;42b1
-	add a,001h		;42b2   ; Y a este se le suma una ronda, en BCD
+	add a,001h		;42b2   ; Y a este se le suma una vida, en BCD
 	daa			;42b4
 	ld (hl),a			;42b5
-	call L_4321		;42b6   ; Subir el marcador
+	call sube_el_nivel_en_bcd		;42b6   ; Subir el marcador
 	jp L_4335		;42b9
 L_42BC:
 	dec (hl)			;42bc   ; Una vida menos y a seguir
@@ -420,11 +420,11 @@ L_42C0:
 	xor a			;42d4
 L_42D5:
 	ld (hl),a			;42d5
-	call L_42FC		;42d6   ; Y una ronda mas
+	call da_una_vida_al_jugador_2		;42d6   ; Y una vida mas
 	jp L_4335		;42d9
 L_42DC:
-	call L_42F4		;42dc   ; Subir el marcador del que gano
-	call L_42FC		;42df   ; Y la ronda
+	call sube_el_nivel_y_da_una_vida_al_1		;42dc   ; Subir el marcador del que gano
+	call da_una_vida_al_jugador_2		;42df   ; Y la vida
 	xor a			;42e2   ; Empezar de cero la tanda...
 	ld (0e060h),a		;42e3
 	ld (0e061h),a		;42e6   ; ...y el paso
@@ -433,20 +433,20 @@ L_42DC:
 	jr nz,L_4335		;42ed
 	ld a,003h		;42ef   ; ...toca la subescena 3
 	jp pon_subescena		;42f1
-L_42F4:
-	call L_4305		;42f4   ; Subir el marcador del jugador 1
+sube_el_nivel_y_da_una_vida_al_1:
+	call sube_el_nivel_la_ronda_y_la_vuelta		;42f4   ; Subir el marcador del jugador 1
 	ld de,0e055h		;42f7
-	jr L_42FF		;42fa
-L_42FC:
+	jr suma_una_vida_en_bcd		;42fa
+da_una_vida_al_jugador_2:
 	ld de,0e065h		;42fc   ; El del jugador 2
-L_42FF:
+suma_una_vida_en_bcd:
 	ld a,(de)			;42ff
-	add a,001h		;4300   ; Una ronda mas, en BCD
+	add a,001h		;4300   ; Una VIDA mas, en BCD: 0xE055 y 0xE065 son los contadores de REST, medido metiendoles un valor y mirando que casilla lo pinta
 	daa			;4302
 	ld (de),a			;4303
 	ret			;4304
-L_4305:
-	call L_4321		;4305   ; Subir el nivel
+sube_el_nivel_la_ronda_y_la_vuelta:
+	call sube_el_nivel_en_bcd		;4305   ; Subir el nivel
 	ret z			;4308   ; No habia que subirlo
 	ld hl,0e066h		;4309   ; La ronda...
 	ld de,0e06ah		;430c   ; ...y la vuelta
@@ -465,7 +465,7 @@ L_4305:
 L_431F:
 	ld (hl),a			;431f
 	ret			;4320
-L_4321:
+sube_el_nivel_en_bcd:
 	ld hl,0e053h		;4321   ; El nivel, en BCD
 	ld a,(hl)			;4324
 	add a,001h		;4325
@@ -473,7 +473,7 @@ L_4321:
 	ld (hl),a			;4328
 	or 001h		;4329   ; Devolver "no cero"
 	ret			;432b
-L_432C:
+baja_el_nivel_en_bcd:
 	ld hl,0e053h		;432c   ; El nivel, uno menos
 	ld a,(hl)			;432f
 	sub 001h		;4330
@@ -494,7 +494,7 @@ L_433A:
 	ld (hl),a			;4347
 	jp L_414B		;4348
 L_434B:
-	call L_4699		;434b   ; Esperar al boton
+	call barre_la_pantalla_desde_la_fila_2		;434b   ; Esperar al boton
 	ret p			;434e
 	ld de,04a6fh		;434f   ; El rotulo de "continuar"
 	call pinta_guion		;4352
@@ -507,10 +507,10 @@ L_4358:
 	jr nz,L_4386		;4362
 	call lee_mando_y_teclado		;4364   ; El mando y el teclado
 	ld d,a			;4367
-	call L_4997		;4368   ; Y el segundo mando
+	call lee_las_filas_7_y_8_del_teclado		;4368   ; Y el segundo mando
 	or d			;436b
 	ld hl,0e046h		;436c   ; Quedarse solo con lo que se acaba de pulsar
-	call L_497E		;436f
+	call guarda_lo_pulsado_y_lo_recien_pulsado		;436f
 	or a			;4372
 	and 033h		;4373   ; Solo interesan el disparo y algunas teclas
 	ret z			;4375
@@ -540,20 +540,20 @@ L_439B:
 	ld (hl),001h		;439b   ; Subescena 1
 	ld a,025h		;439d   ; Callar la musica
 	call pide_pieza		;439f
-	jp L_4D06		;43a2   ; Y montar el titulo
+	jp monta_la_pantalla_del_titulo		;43a2   ; Y montar el titulo
 L_43A5:
 	ld a,(de)			;43a5   ; Cambiar de uno a dos jugadores
 	xor 001h		;43a6
 	ld (de),a			;43a8
 	ret			;43a9
-L_43AA:
+borra_lo_apuntado_del_truco:
 	ld hl,0e410h		;43aa   ; Los 0x20 bytes del truco...
 	ld de,0e411h		;43ad
 	ld bc,00020h		;43b0
 	ld (hl),000h		;43b3   ; ...todos a cero
 	ldir		;43b5
 	ret			;43b7
-L_43B8:
+apunta_la_pulsacion_del_truco:
 	ld hl,0e411h		;43b8   ; Cuantas pulsaciones lleva apuntadas
 	ld a,(hl)			;43bb
 	cp 00ah		;43bc   ; Ya son diez: no se apunta mas
@@ -599,7 +599,7 @@ DATA_la_secuencia_del_truco:
 ; ======================================================================
 
 
-L_43F7:
+toca_demostracion:
 	ld a,(0e002h)		;43f7   ; Con dos jugadores no hay demostracion
 	bit 5,a		;43fa
 	jr nz,L_4401		;43fc
@@ -609,12 +609,12 @@ L_4401:
 	ld ix,0e2c0h		;4401   ; La tira de escenarios por ronda
 	ld de,0e051h		;4405   ; Lo que se acaba de pulsar
 	ld hl,0e06eh		;4408   ; La opcion en la que esta el cursor
-	call L_4416		;440b   ; Mover el cursor
-	call L_4445		;440e   ; Y repintarlo
+	call mueve_el_cursor_del_menu		;440b   ; Mover el cursor
+	call pinta_el_cursor_del_menu		;440e   ; Y repintarlo
 	ld a,(0e06fh)		;4411   ; Se ha elegido algo?
 	and a			;4414
 	ret			;4415
-L_4416:
+mueve_el_cursor_del_menu:
 	ld a,(de)			;4416   ; El mando...
 	ld b,a			;4417
 	ld a,(0e008h)		;4418   ; ...y el teclado
@@ -651,7 +651,7 @@ L_4437:
 	ld (hl),a			;4442
 	dec hl			;4443
 	ret			;4444
-L_4445:
+pinta_el_cursor_del_menu:
 	ld c,(hl)			;4445   ; En que opcion esta el cursor
 	ld b,003h		;4446   ; Las tres opciones
 	ld hl,038c5h		;4448   ; Donde va la primera
@@ -677,7 +677,7 @@ L_445E:
 	call suma_a_a_hl		;446d   ; ...dice que escenario toca
 	ex de,hl			;4470
 	ld a,(de)			;4471   ; Y el escenario, que rival
-	call L_4830		;4472
+	call lee_la_entrada_de_la_tabla		;4472
 	ld hl,03885h		;4475   ; Su nombre va en la VRAM 0x3885
 	jp L_48C2		;4478   ; Se pinta sin palabra de destino delante
 
@@ -715,7 +715,7 @@ DATA_nombres_de_los_rivales:
 ; ======================================================================
 
 
-L_44D9:
+pon_la_tira_de_escenarios:
 	xor a			;44d9   ; Escenario 0 para empezar
 	ld (0e2e0h),a		;44da
 	ld a,(0e002h)		;44dd   ; Con dos jugadores no se toca la tira
@@ -730,21 +730,21 @@ L_44E9:
 	inc a			;44eb
 	djnz L_44E9		;44ec
 	ret			;44ee
-L_44EF:
+monta_la_pantalla_de_dos_jugadores:
 	ld de,0454ah		;44ef   ; Los patrones de la presentacion
 	ld hl,02200h		;44f2   ; A 0x2200, y L_48AE repite en 0x2A00
-	call L_48AE		;44f5
+	call vuelca_el_guion_en_dos_tercios		;44f5
 	ld de,045c9h		;44f8   ; Los colores
 	push de			;44fb
 	ld hl,00200h		;44fc
-	call L_48AE		;44ff
+	call vuelca_el_guion_en_dos_tercios		;44ff
 	pop de			;4502
 	push de			;4503   ; Y otras dos veces mas a mano...
 	ld hl,00500h		;4504
-	call L_48E7		;4507
+	call vuelca_el_guion_con_destino_en_hl		;4507
 	pop de			;450a
 	ld hl,00dc0h		;450b   ; ...en 0x0500 y 0x0DC0, que es donde caera el espejo
-	call L_48E7		;450e
+	call vuelca_el_guion_con_destino_en_hl		;450e
 	call espeja_el_decorado		;4511   ; Espejar los patrones
 	ld de,045d2h		;4514   ; El decorado de la presentacion
 	call guion_rle		;4517
@@ -762,8 +762,8 @@ L_44EF:
 	call monta_al_jugador		;453c   ; Montarlo
 	ld a,0e0h		;453f
 	ld (0e080h),a		;4541
-	call L_4801		;4544
-	jp L_480E		;4547
+	call sube_los_cuatro_primeros_sprites		;4544
+	jp sube_los_demas_sprites		;4547
 
 ; ----------------------------------------------------------------------
 ; DATOS patrones_de_la_presentacion: un guion RLE de 152 bytes de VRAM que
@@ -849,15 +849,15 @@ DATA_los_valores_de_partida:
 ; ======================================================================
 
 
-L_4699:
+barre_la_pantalla_desde_la_fila_2:
 	ld c,040h		;4699   ; Desde la columna 0x40...
 	ld b,016h		;469b   ; ...y 22 filas
 	jr cortina		;469d
-L_469F:
+barre_la_pantalla_desde_la_fila_5:
 	ld c,0a0h		;469f   ; Desde 0xA0 y 18 filas
 	ld b,012h		;46a1
 	jr cortina		;46a3
-L_46A5:
+barre_la_pantalla_entera:
 	ld c,000h		;46a5   ; Desde 0 y las 24
 	ld b,018h		;46a7
 cortina:		; Barre la pantalla fila a fila y aparca los sprites en 0x3B00
@@ -875,13 +875,13 @@ L_46B9:
 	call 0004dh		;46b9   ; BIOS WRTVRM - Writes data in VRAM | Casilla vacia
 	add hl,de			;46bc
 	djnz L_46B9		;46bd
-L_46BF:
+aparca_los_sprites:
 	ld hl,03b00h		;46bf   ; El primer atributo de sprite...
 	ld a,0d0h		;46c2   ; ...con 0xD0 en la y aparca todos los demas
 	call 0004dh		;46c4   ; BIOS WRTVRM - Writes data in VRAM
 	xor a			;46c7
 	ret			;46c8
-L_46C9:
+suma_puntos_en_bcd:
 	ld e,000h		;46c9   ; DE = lo que se suma
 	ld hl,0e04eh		;46cb   ; Los puntos del jugador que juega
 	ld c,000h		;46ce
@@ -926,8 +926,8 @@ L_4701:
 	daa			;4709
 	ld (hl),a			;470a
 	ld a,010h		;470b   ; Y la musica del premio
-	call L_B8D3		;470d
-	call L_4778		;4710   ; Repintar las vidas
+	call pide_pieza_si_la_escena_lo_permite		;470d
+	call pinta_las_vidas		;4710   ; Repintar las vidas
 	pop de			;4713
 L_4714:
 	ld b,003h		;4714   ; Comparar tres bytes
@@ -948,7 +948,7 @@ L_4725:
 	ld e,04ah		;4729
 	lddr		;472b
 	jr pinta_los_puntos		;472d
-L_472F:
+pinta_el_marcador:
 	ld de,04a06h		;472f   ; El armazon del marcador
 	call pinta_guion		;4732
 	ld a,(0e002h)		;4735   ; Con dos jugadores...
@@ -960,29 +960,29 @@ L_472F:
 	ld hl,03836h		;4745   ; Y limpiar cinco casillas
 	ld c,005h		;4748
 	xor a			;474a
-	call L_4885		;474b
+	call rellena_c_bytes_con_filvrm		;474b
 L_474E:
-	call L_476E		;474e   ; Pintar el nivel
+	call pinta_el_nivel		;474e   ; Pintar el nivel
 	ld a,(0e002h)		;4751   ; Con un jugador...
 	bit 5,a		;4754
 	jr nz,pinta_los_puntos		;4756
-	call L_4778		;4758   ; ...pintar tambien las vidas
+	call pinta_las_vidas		;4758   ; ...pintar tambien las vidas
 pinta_los_puntos:		; Los cuatro marcadores, cada uno con su direccion de VRAM
 	ld de,0e04ah		;475b   ; Los puntos del jugador 1...
 	ld hl,0382dh		;475e   ; ...en la VRAM 0x382D
-	call L_476A		;4761
+	call escribe_tres_bytes_de_bcd		;4761
 	ld hl,03823h		;4764   ; Los del 2, en 0x3823
 	ld de,0e050h		;4767
-L_476A:
+escribe_tres_bytes_de_bcd:
 	ld b,003h		;476a   ; Tres bytes de BCD
 	jr L_4780		;476c
-L_476E:
+pinta_el_nivel:
 	ld hl,0381ch		;476e   ; El nivel va en 0x381C
-L_4771:
+escribe_el_nivel_donde_diga_hl:
 	ld de,0e053h		;4771   ; Un solo byte
 	ld b,001h		;4774
 	jr L_4780		;4776
-L_4778:
+pinta_las_vidas:
 	ld hl,0383bh		;4778   ; Las vidas, en 0x383B
 	ld de,0e055h		;477b
 	ld b,001h		;477e
@@ -1034,7 +1034,7 @@ L_47B0:
 	inc de			;47b6
 	djnz L_47B0		;47b7
 	ret			;47b9
-L_47BA:
+copia_los_atributos_del_muneco:
 	ld a,(0e107h)		;47ba   ; Que modo de juego es
 	and 003h		;47bd
 	dec a			;47bf
@@ -1045,13 +1045,13 @@ L_47BA:
 	ldir		;47ca
 	ld hl,0e1e4h		;47cc   ; Y los tres que le siguen
 	ld de,0e084h		;47cf
-	call L_47E4		;47d2
+	call copia_el_sprite_si_no_esta_aparcado		;47d2
 	ld hl,0e1e8h		;47d5
 	ld de,0e088h		;47d8
-	call L_47E4		;47db
+	call copia_el_sprite_si_no_esta_aparcado		;47db
 	ld hl,0e1ech		;47de
 	ld de,0e08ch		;47e1
-L_47E4:
+copia_el_sprite_si_no_esta_aparcado:
 	ld a,(hl)			;47e4   ; Este sprite esta aparcado?
 	cp 0e0h		;47e5
 	ret z			;47e7
@@ -1071,20 +1071,20 @@ L_47F0:
 L_47FD:
 	ld (0e080h),a		;47fd
 	ret			;4800
-L_4801:
-	call L_481C		;4801
+sube_los_cuatro_primeros_sprites:
+	call aparca_los_sprites_si_el_jugador_no_esta		;4801
 	ld hl,03b00h		;4804
 	ld de,0e080h		;4807
 	ld c,010h		;480a
 	jr L_4819		;480c
-L_480E:
-	call L_481C		;480e
+sube_los_demas_sprites:
+	call aparca_los_sprites_si_el_jugador_no_esta		;480e
 	ld hl,03b10h		;4811
 	ld de,0e090h		;4814
 	ld c,070h		;4817
 L_4819:
-	jp L_487F		;4819
-L_481C:
+	jp vuelca_c_bytes_con_ldirvm		;4819
+aparca_los_sprites_si_el_jugador_no_esta:
 	ld a,(0e10bh)		;481c   ; El jugador esta a lo suyo?
 	cp 002h		;481f
 	ret c			;4821
@@ -1094,23 +1094,23 @@ L_481C:
 	ld bc,0001bh		;482a
 	ldir		;482d
 	ret			;482f
-L_4830:
+lee_la_entrada_de_la_tabla:
 	add a,a			;4830   ; Dos bytes por entrada
 	call suma_a_a_hl		;4831   ; Avanzar hasta la que toca
 	ld e,(hl)			;4834   ; Y devolverla en DE
 	inc hl			;4835
 	ld d,(hl)			;4836
 	ret			;4837
-L_4838:
+pinta_los_contadores_de_vidas:
 	ld a,(0e002h)		;4838   ; La marca de escena
 	bit 5,a		;483b   ; Con un jugador no hay segundo contador
 	ret z			;483d
 	ld hl,03855h		;483e   ; El contador del jugador 2...
 	ld de,0e065h		;4841   ; ...con sus vidas
-	call L_484D		;4844
+	call pinta_un_contador_de_vidas		;4844
 	ld hl,0384ah		;4847   ; Y el del 1
 	ld de,0e055h		;484a
-L_484D:
+pinta_un_contador_de_vidas:
 	ld a,(de)			;484d   ; Las vidas
 	ld de,0485ah		;484e   ; Las dos casillas
 	dec a			;4851   ; Le queda mas de una?
@@ -1134,7 +1134,7 @@ DATA_casillas_del_contador_de_vidas:
 
 
 limpia_la_pantalla:
-	call L_46BF		;485c
+	call aparca_los_sprites		;485c
 	ld hl,03800h		;485f
 	ld bc,00300h		;4862
 	xor a			;4865
@@ -1155,12 +1155,12 @@ L_4875:
 	ld c,a			;487c
 	exx			;487d
 	ret			;487e
-L_487F:
+vuelca_c_bytes_con_ldirvm:
 	ld b,000h		;487f
-L_4881:
+vuelca_con_ldirvm:
 	ex de,hl			;4881
 	jp 0005ch		;4882   ; BIOS LDIRVM - Block transfers to VRAM from memory
-L_4885:
+rellena_c_bytes_con_filvrm:
 	ld b,000h		;4885
 	jp 00056h		;4887   ; BIOS FILVRM - Fills VRAM with value
 L_488A:
@@ -1170,7 +1170,7 @@ L_488D:
 	exx			;488d   ; Guardar la cuenta
 	push bc			;488e
 	push de			;488f
-	call L_4881		;4890   ; Volcar
+	call vuelca_con_ldirvm		;4890   ; Volcar
 	ld de,00800h		;4893   ; Y subir un tercio
 	add hl,de			;4896
 	pop de			;4897
@@ -1191,15 +1191,15 @@ L_489F:
 	dec d			;48aa
 	jr nz,L_489F		;48ab
 	ret			;48ad
-L_48AE:
+vuelca_el_guion_en_dos_tercios:
 	ld b,002h		;48ae   ; Dos veces: los dos primeros tercios
 	jr L_48B4		;48b0
-L_48B2:
+vuelca_el_guion_en_los_tres_tercios:
 	ld b,003h		;48b2   ; Tres veces: la pantalla entera
 L_48B4:
 	push bc			;48b4
 	push de			;48b5
-	call L_48E7		;48b6   ; Volcar el guion
+	call vuelca_el_guion_con_destino_en_hl		;48b6   ; Volcar el guion
 	ld de,00800h		;48b9   ; Y subir un tercio en la VRAM
 	add hl,de			;48bc
 	pop de			;48bd
@@ -1240,7 +1240,7 @@ guion_rle:
 	ld d,(hl)			;48e4
 	ex de,hl			;48e5
 	inc de			;48e6
-L_48E7:
+vuelca_el_guion_con_destino_en_hl:
 	call abre_para_escribir		;48e7   ; Aqui el destino ya viene en HL
 orden_del_rle:
 	ld a,(de)			;48ea   ; Una orden
@@ -1342,18 +1342,18 @@ DATA_registros_del_vdp:
 ; ======================================================================
 
 
-L_496B:
+pon_el_color_del_borde:
 	ld c,007h		;496b   ; El registro 7, el del borde
 	jp pon_registro_del_vdp		;496d
 lee_los_mandos:
-	call L_49BC		;4970   ; Leer el teclado
+	call lee_el_mando_y_las_teclas_del_2		;4970   ; Leer el teclado
 	call lee_mando_y_teclado		;4973   ; El mando y las teclas
 	ld d,a			;4976
-	call L_4997		;4977   ; El segundo mando
+	call lee_las_filas_7_y_8_del_teclado		;4977   ; El segundo mando
 	or d			;497a
 mete_estos_mandos:
 	ld hl,0e009h		;497b   ; Donde se guarda lo pulsado
-L_497E:
+guarda_lo_pulsado_y_lo_recien_pulsado:
 	ld c,(hl)			;497e   ; Lo que habia
 	ld (hl),a			;497f   ; Guardar lo de ahora
 	xor c			;4980   ; Lo que ha cambiado...
@@ -1363,7 +1363,7 @@ L_497E:
 	ret			;4984
 lee_mando_y_teclado:
 	ld e,08fh		;4985   ; E = 0x8F: el mando 1
-L_4987:
+lee_un_mando_del_psg:
 	ld a,00fh		;4987   ; El registro 15 del PSG...
 	call 00093h		;4989   ; BIOS WRTPSG - Writes data to PSG-register | ...elige que mando se lee
 	ld a,00eh		;498c   ; Y el 14 trae el estado
@@ -1373,7 +1373,7 @@ L_4987:
 	cpl			;4993   ; Los bits vienen al reves
 	and 03fh		;4994
 	ret			;4996
-L_4997:
+lee_las_filas_7_y_8_del_teclado:
 	ld a,007h		;4997   ; La fila 7 del teclado
 	call 00141h		;4999   ; BIOS SNSMAT - Returns the value of the specified line from the keyboard matrix
 	cpl			;499c   ; Los bits vienen al reves
@@ -1401,15 +1401,15 @@ L_4997:
 	and 003h		;49b8
 	or c			;49ba
 	ret			;49bb
-L_49BC:
+lee_el_mando_y_las_teclas_del_2:
 	ld e,0cfh		;49bc   ; E = 0xCF: el mando 2
-	call L_4987		;49be   ; Leerlo
+	call lee_un_mando_del_psg		;49be   ; Leerlo
 	ld d,a			;49c1
-	call L_49CB		;49c2   ; Y las teclas del segundo
+	call lee_las_teclas_del_segundo_jugador		;49c2   ; Y las teclas del segundo
 	or d			;49c5
 	ld hl,0e052h		;49c6   ; Todo junto en (0xE052)
-	jr L_497E		;49c9
-L_49CB:
+	jr guarda_lo_pulsado_y_lo_recien_pulsado		;49c9
+lee_las_teclas_del_segundo_jugador:
 	ld a,006h		;49cb   ; La fila 6
 	call 00141h		;49cd   ; BIOS SNSMAT - Returns the value of the specified line from the keyboard matrix
 	ld b,a			;49d0
@@ -1508,7 +1508,7 @@ monta_la_fuente:
 	call limpia_la_fuente		;4a8d   ; Limpiar la fuente
 	ld de,04ac5h		;4a90   ; Los patrones de la fuente...
 	ld hl,02080h		;4a93   ; ...a 0x2080, y L_48B2 los repite en los tres tercios
-	call L_48B2		;4a96
+	call vuelca_el_guion_en_los_tres_tercios		;4a96
 	ld a,0f0h		;4a99   ; Color 0xF0
 	ld hl,00080h		;4a9b   ; Desde 0x0080...
 	ld bc,00160h		;4a9e   ; ...0x160 bytes
@@ -1555,7 +1555,7 @@ arranca_la_presentacion:
 monta_el_cartel:
 	ld de,04c52h		;4c0c   ; Los patrones del cartel...
 	ld hl,02200h		;4c0f   ; ...a 0x2200, repetidos en los tres tercios
-	call L_48B2		;4c12
+	call vuelca_el_guion_en_los_tres_tercios		;4c12
 	ld hl,00200h		;4c15   ; Y su color, desde 0x0200
 	ld bc,000d8h		;4c18
 	ld a,0f0h		;4c1b
@@ -1603,16 +1603,16 @@ DATA_guion_del_cartel:
 
 monta_el_titulo:
 	ld b,0e0h		;4ce9   ; El borde, negro
-	call L_496B		;4ceb
+	call pon_el_color_del_borde		;4ceb
 	call limpia_la_pantalla		;4cee   ; Limpiar la pantalla
 	call monta_la_fuente		;4cf1   ; Y subir la fuente
 	ld de,04d43h		;4cf4   ; Los patrones del logotipo...
 	ld hl,02400h		;4cf7   ; ...a 0x2400, y L_48AE los repite en 0x2C00
-	call L_48AE		;4cfa
+	call vuelca_el_guion_en_dos_tercios		;4cfa
 	ld de,04f4eh		;4cfd   ; Y su color, a 0x0400 y 0x0C00
 	ld hl,00400h		;4d00
-	jp L_48AE		;4d03
-L_4D06:
+	jp vuelca_el_guion_en_dos_tercios		;4d03
+monta_la_pantalla_del_titulo:
 	call monta_el_titulo		;4d06   ; Montar el titulo
 	ld bc,00704h		;4d09   ; Fila 4, columna 7: C va a 0xE170 -la fila- y B a 0xE171 -la columna-, y 0x66FB baja una menos, asi que aterriza en la fila 3
 	ld (0e170h),bc		;4d0c
@@ -1636,10 +1636,10 @@ L_4D29:
 	ex de,hl			;4d35   ; Cambiarlas si toca
 L_4D36:
 	push de			;4d36
-	call L_4D3D		;4d37
+	call pinta_el_cursor_donde_diga_hl		;4d37
 	pop hl			;4d3a
 	ld c,000h		;4d3b
-L_4D3D:
+pinta_el_cursor_donde_diga_hl:
 	ld de,04a6ch		;4d3d
 	jp byte_del_guion		;4d40
 
@@ -1689,7 +1689,7 @@ L_4FAD:
 	ld (hl),a			;4fad
 	inc hl			;4fae
 	djnz L_4FAD		;4faf
-	call L_7EA0		;4fb1   ; El escenario de esta ronda
+	call el_escenario_de_la_ronda		;4fb1   ; El escenario de esta ronda
 	srl a		;4fb4   ; Partido por dos: cada decorado sirve para dos escenarios
 	ld (0e2e0h),a		;4fb6   ; Ese es el decorado
 	ld a,(0e002h)		;4fb9   ; Con dos jugadores...
@@ -1698,14 +1698,14 @@ L_4FAD:
 	ld a,003h		;4fc0   ; ...el modo de juego es el 3
 	ld (0e060h),a		;4fc2
 L_4FC5:
-	jp L_5048		;4fc5   ; Y pasarlo a (0xE107)
+	jp elige_el_modo_de_juego		;4fc5   ; Y pasarlo a (0xE107)
 
 ; ----------------------------------------------------------------------
 ; ---------------------------------------------------------------------
 ; Partida nueva: se borra toda la RAM del combate y se colocan los dos
 ; munecos en su sitio de salida.
 ; ----------------------------------------------------------------------
-L_4FC8:
+prepara_la_partida:
 	ld hl,0e10bh		;4fc8   ; De 0xE10B en adelante...
 	ld de,0e10ch		;4fcb
 	ld bc,00194h		;4fce   ; ...0x194 bytes...
@@ -1727,7 +1727,7 @@ L_4FC8:
 	ld (0e153h),a		;4ffa
 	ld a,(0e06ah)		;4ffd   ; Que vuelta es
 	ld hl,05056h		;5000   ; Los ajustes de esa vuelta...
-	call L_4830		;5003
+	call lee_la_entrada_de_la_tabla		;5003
 	ex de,hl			;5006
 	ld de,0e160h		;5007   ; ...los diez bytes van a 0xE160
 	ld bc,0000ah		;500a
@@ -1756,7 +1756,7 @@ L_501F:
 	inc de			;5033
 	ld a,(hl)			;5034
 	ld (de),a			;5035
-	call L_5048		;5036   ; Poner el modo de juego
+	call elige_el_modo_de_juego		;5036   ; Poner el modo de juego
 	and 003h		;5039   ; Es el modo 3?
 	cp 003h		;503b
 	ld a,001h		;503d
@@ -1765,7 +1765,7 @@ L_501F:
 L_5044:
 	ld (0e159h),a		;5044   ; Y el jugador 1 empieza vivo
 	ret			;5047
-L_5048:
+elige_el_modo_de_juego:
 	ld de,0508ah		;5048   ; Los cuatro modos
 	ld a,(0e060h)		;504b   ; El que este elegido
 	call suma_a_a_de		;504e
@@ -1824,9 +1824,9 @@ DATA_cuatro_por_0xe060:
 ; Es la escena 5, y va por tres subescenas: montar, pelear y recoger.
 ; ----------------------------------------------------------------------
 el_combate:
-	call L_517A		;508e   ; El reloj
-	call L_73B7		;5091   ; Los golpes en marcha
-	call L_51AB		;5094   ; El indicador
+	call pinta_la_barra_de_fase		;508e   ; El reloj
+	call pinta_el_marcador_de_vidas		;5091   ; Los golpes en marcha
+	call pinta_el_indicador_que_parpadea		;5094   ; El indicador
 	ld a,(0e104h)		;5097   ; Y repartir por la subescena
 	call reparte_por_tabla		;509a
 
@@ -1843,7 +1843,7 @@ DATA_tabla_de_subescenas_509d:
 
 
 L_50A3:
-	call L_4FC8		;50a3   ; Poner la RAM del combate a cero
+	call prepara_la_partida		;50a3   ; Poner la RAM del combate a cero
 	ld de,0e10ah		;50a6   ; El paso de la coreografia
 	ld a,(de)			;50a9
 	and a			;50aa   ; Venia a mitad de tira?
@@ -1863,21 +1863,21 @@ L_50B9:
 	cp 003h		;50c0   ; En el modo 3...
 	jr nz,L_50D6		;50c2
 	call pon_el_suelo_de_la_ronda		;50c4   ; ...el suelo lo pone la ronda
-	call L_5AE6		;50c7
+	call sube_el_guion_del_pozo_de_la_ronda		;50c7
 	ld a,(0e101h)		;50ca   ; Si ya se ha llegado lejos...
 	cp 00dh		;50cd
 	jr c,L_50D6		;50cf
 	ld a,095h		;50d1   ; ...suena otra musica
-	call L_B8D3		;50d3
+	call pide_pieza_si_la_escena_lo_permite		;50d3
 L_50D6:
-	call L_5B4E		;50d6   ; Montar el decorado
-	call L_5157		;50d9   ; Y guardar las casillas que tapa el marcador
+	call monta_el_decorado_o_la_oleada		;50d6   ; Montar el decorado
+	call guarda_las_casillas_que_tapa_el_marcador		;50d9   ; Y guardar las casillas que tapa el marcador
 L_50DC:
 	ld hl,0e104h		;50dc   ; Subescena siguiente
 	inc (hl)			;50df
 	ret			;50e0
 L_50E1:
-	call L_5103		;50e1   ; Un cuadro de combate
+	call haz_un_cuadro_del_jugador_y_del_enemigo		;50e1   ; Un cuadro de combate
 	ld a,(0e187h)		;50e4   ; Se acabo?
 	and a			;50e7
 	ret nz			;50e8
@@ -1888,51 +1888,51 @@ L_50E1:
 	ld (0e004h),a		;50f1
 	jr L_50DC		;50f4
 L_50F6:
-	call L_469F		;50f6   ; Bajar la cortina
+	call barre_la_pantalla_desde_la_fila_5		;50f6   ; Bajar la cortina
 	ret p			;50f9   ; Todavia no ha acabado
 	ld hl,0e060h		;50fa   ; Una fase mas
 	inc (hl)			;50fd
 	xor a			;50fe   ; Y vuelta a la primera subescena
 	ld (0e104h),a		;50ff
 	ret			;5102
-L_5103:
+haz_un_cuadro_del_jugador_y_del_enemigo:
 	call pinta_las_barras		;5103   ; Los golpes del jugador
-	call L_6680		;5106   ; El reloj
-	call L_6699		;5109
+	call mira_si_alguna_barra_llego_a_cero		;5106   ; El reloj
+	call anima_el_destello		;5109
 	ld a,(0e003h)		;510c   ; Un cuadro si y otro no
 	and 001h		;510f
 	jr z,L_511E		;5111
-	call L_6464		;5113   ; Los cuadros pares: el jugador
+	call reparte_la_subescena_del_enemigo		;5113   ; Los cuadros pares: el jugador
 	call monta_al_jugador		;5116   ; Montarlo
-	call L_480E		;5119   ; Y subir sus sprites
+	call sube_los_demas_sprites		;5119   ; Y subir sus sprites
 	jr L_5143		;511c
 L_511E:
 	ld a,(0e107h)		;511e   ; Los impares: segun el modo...
 	and 003h		;5121
 	jr z,L_5143		;5123
-	call L_64D5		;5125   ; ...mover lo que haya
+	call reparte_la_subescena_de_0xe130		;5125   ; ...mover lo que haya
 	ld a,(0e107h)		;5128
 	and 003h		;512b
 	dec a			;512d   ; Modo 1: nada mas
 	jr z,L_5143		;512e
 	dec a			;5130
 	jr nz,L_5138		;5131
-	call L_922B		;5133   ; Modo 2: los seis enemigos de golpe
+	call limpia_la_ultima_banda_y_repasa_las_ranuras		;5133   ; Modo 2: los seis enemigos de golpe
 	jr L_5143		;5136
 L_5138:
 	call mueve_al_enemigo		;5138   ; Y si no, el enemigo del escenario
-	call L_7EA0		;513b   ; En el escenario 0...
+	call el_escenario_de_la_ronda		;513b   ; En el escenario 0...
 	cp 000h		;513e
-	call z,L_72C8		;5140   ; ...hay ademas algo que mover
+	call z,pinta_el_agarre_en_la_ultima_fila		;5140   ; ...hay ademas algo que mover
 L_5143:
-	call L_732F		;5143   ; Los proyectiles
-	call L_7EA0		;5146   ; En el escenario 3...
+	call haz_lo_que_solo_hay_con_un_jugador		;5143   ; Los proyectiles
+	call el_escenario_de_la_ronda		;5146   ; En el escenario 3...
 	cp 003h		;5149
-	call z,L_7A39		;514b   ; ...tambien
-	call L_47BA		;514e   ; Aparcar los sprites que se solapen
-	call L_4801		;5151   ; Y subirlo todo a la VRAM
+	call z,haz_lo_del_escenario_que_toque		;514b   ; ...tambien
+	call copia_los_atributos_del_muneco		;514e   ; Aparcar los sprites que se solapen
+	call sube_los_cuatro_primeros_sprites		;5151   ; Y subirlo todo a la VRAM
 	jp L_5201		;5154
-L_5157:
+guarda_las_casillas_que_tapa_el_marcador:
 	ld bc,00403h		;5157   ; Tres filas de cuatro casillas
 	ld (0e460h),bc		;515a
 	ld de,0e462h		;515e   ; Donde se guardan
@@ -1952,14 +1952,14 @@ L_5169:
 	pop bc			;5176
 	djnz L_5166		;5177
 	ret			;5179
-L_517A:
+pinta_la_barra_de_fase:
 	ld a,(0e002h)		;517a   ; Con dos jugadores no hay barra
 	bit 5,a		;517d
 	ret nz			;517f
 	ld hl,03af3h		;5180   ; Donde va la barra
 	ld c,008h		;5183   ; Ocho casillas
 	ld de,051a3h		;5185
-	call L_487F		;5188
+	call vuelca_c_bytes_con_ldirvm		;5188
 	ld a,(0e003h)		;518b   ; El bit 2 del cuadro...
 	bit 2,a		;518e
 	ret nz			;5190   ; ...la hace parpadear
@@ -1985,7 +1985,7 @@ DATA_casillas_de_la_barra:
 ; ======================================================================
 
 
-L_51AB:
+pinta_el_indicador_que_parpadea:
 	ld a,(0e107h)		;51ab   ; Con dos jugadores no hay indicador
 	cp 003h		;51ae
 	ret z			;51b0
@@ -2029,7 +2029,7 @@ L_5201:
 	push bc			;5206
 	and a			;5207   ; Si no es la cero...
 	ld b,0e0h		;5208   ; ...el borde se pone negro
-	call nz,L_496B		;520a
+	call nz,pon_el_color_del_borde		;520a
 	pop bc			;520d
 	ld a,c			;520e   ; Y repartir por la subescena
 	call reparte_por_tabla		;520f
@@ -2059,8 +2059,8 @@ L_521A:
 	dec a			;522a
 	jp z,L_5465		;522b   ; El modo 2 va por otro lado
 	call alcanza_el_enemigo		;522e   ; Leer lo que se pide
-	call L_53F4		;5231   ; Y moverlo
-	call L_7EA0		;5234   ; En que escenario
+	call mira_si_el_enemigo_esta_tocado		;5231   ; Y moverlo
+	call el_escenario_de_la_ronda		;5234   ; En que escenario
 	cp 003h		;5237   ; El 3 tiene lo suyo
 	jp z,L_5588		;5239
 	cp 000h		;523c   ; Los escenarios 0, 6 y 7...
@@ -2069,26 +2069,26 @@ L_521A:
 	jr z,L_524E		;5242
 	cp 007h		;5244
 	jr z,L_524E		;5246
-	call L_55CC		;5248   ; ...no llegan aqui: mirar los choques
-	call L_568D		;524b   ; Y el agarre
+	call mira_el_toque_de_lo_que_vuela		;5248   ; ...no llegan aqui: mirar los choques
+	call mueve_las_tres_cosas_que_vuelan		;524b   ; Y el agarre
 L_524E:
 	ld hl,0e181h		;524e   ; Le queda invulnerabilidad?
 	ld a,(hl)			;5251
 	and a			;5252
 	ret z			;5253   ; No
-	call L_5266		;5254   ; Bajarla un punto
+	call baja_la_invulnerabilidad		;5254   ; Bajarla un punto
 	ld a,001h		;5257   ; Y apuntar si sigue
 	jr nz,L_525C		;5259
 	dec a			;525b
 L_525C:
 	ld (0e110h),a		;525c
 	ret			;525f
-L_5260:
+mira_la_invulnerabilidad:
 	ld hl,0e181h		;5260   ; Otra vez la invulnerabilidad
 	ld a,(hl)			;5263
 	and a			;5264
 	ret z			;5265
-L_5266:
+baja_la_invulnerabilidad:
 	ld a,(0e008h)		;5266   ; Se esta pulsando el disparo?
 	and 010h		;5269
 	jr z,L_5273		;526b
@@ -2116,9 +2116,9 @@ L_5283:
 L_5284:
 	ld (0e10bh),a		;5284
 	ret			;5287
-L_5288:
+pon_la_espera:
 	ld (0e004h),a		;5288
-L_528B:
+pon_las_escenas_del_jugador_y_del_enemigo:
 	ld a,b			;528b
 	ld (0e110h),a		;528c
 	ld a,c			;528f
@@ -2131,7 +2131,7 @@ L_528B:
 ; levantarse. Lo que se quita depende de la ronda y del modo.
 ; ----------------------------------------------------------------------
 encaja_el_golpe:
-	call L_5260		;5294   ; Ir gastando la invulnerabilidad
+	call mira_la_invulnerabilidad		;5294   ; Ir gastando la invulnerabilidad
 	ld hl,0e004h		;5297   ; La espera
 	dec (hl)			;529a
 	ret nz			;529b
@@ -2169,11 +2169,11 @@ L_52D1:
 	xor a			;52d1
 	ld b,a			;52d2
 	ld c,a			;52d3
-	call L_528B		;52d4   ; A levantarse
+	call pon_las_escenas_del_jugador_y_del_enemigo		;52d4   ; A levantarse
 	ld a,001h		;52d7   ; Y los dos contadores de golpe...
 	ld (0e117h),a		;52d9
 	ld (0e137h),a		;52dc   ; ...a uno
-	call L_55E7		;52df   ; Repintar la barra
+	call devuelve_al_jugador_a_su_sitio		;52df   ; Repintar la barra
 	ld a,(0e002h)		;52e2   ; Con un jugador...
 	bit 5,a		;52e5
 	jr nz,L_52F9		;52e7
@@ -2186,7 +2186,7 @@ L_52D1:
 	and a			;52f6
 	jr nz,L_52FC		;52f7
 L_52F9:
-	call L_5739		;52f9   ; Pasar el turno
+	call acerca_al_enemigo_al_jugador		;52f9   ; Pasar el turno
 L_52FC:
 	jr L_5283		;52fc
 L_52FE:
@@ -2219,9 +2219,9 @@ L_5328:
 	jp L_527E		;532b   ; Y a la subescena siguiente
 L_532E:
 	djnz L_533A		;532e
-	call L_56D5		;5330   ; Levantarse
+	call descuenta_la_barra_a_tanteo		;5330   ; Levantarse
 	ret nz			;5333   ; Todavia no
-	call L_56FA		;5334   ; Ya de pie
+	call mira_si_la_fase_fue_perfecta		;5334   ; Ya de pie
 	jp L_527E		;5337
 L_533A:
 	djnz L_5346		;533a
@@ -2242,7 +2242,7 @@ L_5346:
 L_5355:
 	ld bc,00402h		;5355   ; El fotograma y su duracion
 L_5358:
-	call L_5288		;5358   ; Ponerlos
+	call pon_la_espera		;5358   ; Ponerlos
 	jp L_527E		;535b
 L_535E:
 	djnz L_5371		;535e   ; Reparto
@@ -2250,7 +2250,7 @@ L_535E:
 	dec (hl)			;5363
 	ret nz			;5364
 	ld a,00eh		;5365   ; La musica de caerse
-	call L_B8D3		;5367
+	call pide_pieza_si_la_escena_lo_permite		;5367
 	ld a,070h		;536a   ; El fotograma 0x70
 	ld bc,00203h		;536c
 	jr L_5358		;536f
@@ -2271,7 +2271,7 @@ L_537F:
 	ld (0e059h),a		;5387
 	ret			;538a
 L_538B:
-	call L_74EC		;538b   ; Aparcar los sprites
+	call apunta_a_las_casillas_guardadas		;538b   ; Aparcar los sprites
 	ld a,05ch		;538e   ; El pitido
 	call pide_pieza		;5390
 	ld a,030h		;5393   ; Y el fotograma 0x30
@@ -2308,11 +2308,11 @@ L_53B3:
 	inc a			;53ca   ; Marcarlo
 	ld (de),a			;53cb
 	ld bc,00401h		;53cc   ; El fotograma de encajar y su duracion
-	call L_528B		;53cf
-	call L_5620		;53d2   ; Restar la energia
+	call pon_las_escenas_del_jugador_y_del_enemigo		;53cf
+	call da_tres_puntos_de_tanteo		;53d2   ; Restar la energia
 	ld a,001h		;53d5
-	call L_55F6		;53d7   ; Y sumar el tanteo
-	call L_7EA0		;53da   ; En el escenario 3...
+	call elige_la_caja_del_que_toca		;53d7   ; Y sumar el tanteo
+	call el_escenario_de_la_ronda		;53da   ; En el escenario 3...
 	cp 003h		;53dd
 	jr nz,L_53E5		;53df
 	xor a			;53e1   ; ...ademas se suelta lo que hubiera agarrado
@@ -2327,7 +2327,7 @@ L_53F1:
 	xor a			;53f1
 	ld (de),a			;53f2   ; No hay toque: limpiar la marca
 	ret			;53f3
-L_53F4:
+mira_si_el_enemigo_esta_tocado:
 	ld a,(0e29eh)		;53f4   ; Hay algo que lo impida?
 	and a			;53f7
 	ret nz			;53f8
@@ -2335,7 +2335,7 @@ L_53F4:
 	and a			;53fc
 	ret nz			;53fd
 	ld de,0e158h		;53fe   ; La marca de "tocado" del enemigo
-	call L_7EA0		;5401   ; En el escenario 3...
+	call el_escenario_de_la_ronda		;5401   ; En el escenario 3...
 	cp 003h		;5404
 	jr nz,L_540E		;5406
 	ld a,(0e1c6h)		;5408   ; ...manda otra cosa
@@ -2366,12 +2366,12 @@ L_542A:
 	ld (de),a			;5435   ; Marcarlo
 L_5436:
 	ld bc,00104h		;5436   ; El fotograma de encajar
-	call L_528B		;5439
+	call pon_las_escenas_del_jugador_y_del_enemigo		;5439
 	pop bc			;543c
 	ld a,b			;543d   ; Si viene del camino corto...
 	and a			;543e
 	jr nz,L_5444		;543f
-	call L_55F6		;5441   ; ...sumar el tanteo
+	call elige_la_caja_del_que_toca		;5441   ; ...sumar el tanteo
 L_5444:
 	ld a,00ch		;5444   ; El pitido de acertar
 	jr L_5454		;5446
@@ -2396,18 +2396,18 @@ L_5457:
 	ld (0e116h),a		;545f
 	jp L_5275		;5462   ; A la escena siguiente del jugador
 L_5465:
-	call L_54E8		;5465   ; Mover la tanda entera
+	call recorre_las_cinco_ranuras		;5465   ; Mover la tanda entera
 	ld b,005h		;5468   ; Las seis ranuras...
 	ld iy,0e200h		;546a   ; ...que empiezan en 0xE200
 L_546E:
 	push bc			;546e
-	call L_547E		;546f
+	call monta_la_caja_en_0xe140		;546f
 	ld de,0000ch		;5472   ; Cada una son doce bytes
 	add iy,de		;5475
 	pop bc			;5477
 	djnz L_546E		;5478
 	ld iy,0e20ch		;547a
-L_547E:
+monta_la_caja_en_0xe140:
 	ld a,(iy+002h)		;547e   ; Por donde va este
 	cp 01fh		;5481   ; Ya paso de largo
 	ret nc			;5483
@@ -2467,21 +2467,21 @@ L_54DE:
 	ld (0e117h),a		;54e0
 	ld d,001h		;54e3
 	jp L_55C4		;54e5
-L_54E8:
+recorre_las_cinco_ranuras:
 	ld hl,0e201h		;54e8   ; La primera ranura
 	ld iy,0e200h		;54eb   ; Y su cabecera
 	ld b,005h		;54ef   ; Cinco de las seis
 L_54F1:
 	push bc			;54f1
 	push hl			;54f2
-	call L_5500		;54f3
+	call monta_la_caja_en_0xe14c		;54f3
 	pop hl			;54f6
 	ld de,0000ch		;54f7   ; Doce bytes por ranura
 	add hl,de			;54fa
 	add iy,de		;54fb
 	pop bc			;54fd
 	djnz L_54F1		;54fe
-L_5500:
+monta_la_caja_en_0xe14c:
 	ld a,(iy+000h)		;5500   ; Esta ranura vale?
 	dec a			;5503
 	ret nz			;5504
@@ -2535,17 +2535,17 @@ L_554E:
 	ld (0e158h),a		;554f   ; Y la del enemigo
 	pop af			;5552
 	ret			;5553
-L_5554:
+mira_el_toque_de_la_coordenada_siguiente:
 	push hl			;5554
 	inc hl			;5555   ; La coordenada siguiente
 	ld c,000h		;5556
-	call L_5560		;5558   ; Montar la caja
+	call monta_la_caja_de_altura_dos		;5558   ; Montar la caja
 	call se_tocan		;555b   ; Y mirar el toque
 	pop hl			;555e
 	ret			;555f
-L_5560:
+monta_la_caja_de_altura_dos:
 	ld b,002h		;5560   ; Altura dos
-L_5562:
+monta_la_caja_en_0xe19d:
 	ld ix,0e19dh		;5562   ; Donde se monta la caja
 	ld a,(hl)			;5566   ; La columna...
 	add a,008h		;5567   ; ...mas media casilla
@@ -2562,12 +2562,12 @@ L_5571:
 	ld hl,0e120h		;5578   ; Contra la caja del jugador
 	ld (ix+002h),b		;557b   ; Y la altura que se pidio
 	ret			;557e
-L_557F:
+mira_si_la_coordenada_esta_a_tiro:
 	push hl			;557f
 	inc hl			;5580   ; La coordenada
 	ld d,(hl)			;5581
 	inc hl			;5582
-	call L_65A6		;5583   ; Mirar si esta a tiro
+	call mira_si_esta_dentro_de_la_caja_de_once		;5583   ; Mirar si esta a tiro
 	pop hl			;5586
 	ret			;5587
 L_5588:
@@ -2577,9 +2577,9 @@ L_5588:
 	ld a,(0e1b0h)		;558d   ; Ya hay cuatro cosas volando?
 	cp 004h		;5590
 	ret nc			;5592
-	call L_55B1		;5593   ; Lanzar
+	call lanza_lo_que_sale_del_enemigo		;5593   ; Lanzar
 	ld hl,0e1b1h		;5596   ; La coordenada del proyectil
-	call L_5554		;5599   ; Toca al jugador?
+	call mira_el_toque_de_la_coordenada_siguiente		;5599   ; Toca al jugador?
 	ret z			;559c   ; No
 	ld hl,0e1b2h		;559d   ; La caja del proyectil
 	ld de,0e14ch		;55a0
@@ -2593,9 +2593,9 @@ L_5588:
 	add a,006h		;55ab   ; Y la fila igual
 	ld (de),a			;55ad
 	jp L_544B		;55ae   ; Al camino de encajar, sin tanteo
-L_55B1:
+lanza_lo_que_sale_del_enemigo:
 	ld hl,0e1b1h		;55b1
-	call L_557F		;55b4   ; Esta a tiro?
+	call mira_si_la_coordenada_esta_a_tiro		;55b4   ; Esta a tiro?
 	ret z			;55b7
 	ld a,004h		;55b8   ; Cuatro cuadros
 	ld (0e1b0h),a		;55ba
@@ -2603,17 +2603,17 @@ L_55B1:
 	ld (0e1c4h),a		;55bf
 	ld d,010h		;55c2
 L_55C4:
-	call L_46C9		;55c4   ; Sumar el tanteo
+	call suma_puntos_en_bcd		;55c4   ; Sumar el tanteo
 	ld a,00bh		;55c7   ; Y el pitido
 	jp pide_pieza		;55c9
-L_55CC:
+mira_el_toque_de_lo_que_vuela:
 	ld a,(0e10bh)		;55cc   ; El jugador esta a lo suyo?
 	and a			;55cf
 	ret nz			;55d0
-	call L_562B		;55d1   ; Mirar el toque
+	call mira_si_toca_algo_de_lo_que_vuela		;55d1   ; Mirar el toque
 	ld b,001h		;55d4
 	ld c,a			;55d6
-	call L_7EA0		;55d7   ; En el escenario 2...
+	call el_escenario_de_la_ronda		;55d7   ; En el escenario 2...
 	cp 002h		;55da
 	ld a,c			;55dc
 	jp nz,L_542A		;55dd
@@ -2621,14 +2621,14 @@ L_55CC:
 	ret z			;55e1
 	ld a,0b0h		;55e2   ; ...el agarre dura 0xB0 cuadros
 	ld (0e181h),a		;55e4
-L_55E7:
+devuelve_al_jugador_a_su_sitio:
 	xor a			;55e7   ; El salto, a cero
 	ld (0e11ch),a		;55e8
 	ld (0e11dh),a		;55eb
 	ld a,087h		;55ee   ; Y el jugador vuelve a 0x87
 	ld (0e112h),a		;55f0
 	jp L_6B6D		;55f3
-L_55F6:
+elige_la_caja_del_que_toca:
 	ld hl,0e12ch		;55f6   ; La caja del jugador
 	ld b,00fh		;55f9   ; 0x0F de ancho
 	and a			;55fb   ; De quien es
@@ -2655,13 +2655,13 @@ L_5603:
 	ld a,03ah		;561a
 	ld (0e183h),a		;561c
 	ret			;561f
-L_5620:
+da_tres_puntos_de_tanteo:
 	ld a,(0e002h)		;5620   ; Con dos jugadores no hay tanteo aqui
 	bit 5,a		;5623
 	ret nz			;5625
 	ld d,003h		;5626   ; Tres puntos
-	jp L_46C9		;5628
-L_562B:
+	jp suma_puntos_en_bcd		;5628
+mira_si_toca_algo_de_lo_que_vuela:
 	ld b,000h		;562b   ; B = 0: todavia no ha tocado nada
 	ld c,b			;562d
 	ld a,(0e158h)		;562e   ; El enemigo ya esta tocado?
@@ -2670,18 +2670,18 @@ L_562B:
 	ld hl,0e1e4h		;5634   ; La primera de las tres cosas que vuelan
 	ld de,0e1a7h		;5637   ; Su estado
 	ld iy,0e1b2h		;563a   ; Y donde se apunta
-	call L_5658		;563e
+	call mira_el_toque_de_una_de_las_que_vuelan		;563e
 	ld hl,0e1e8h		;5641   ; La segunda
 	ld de,0e1a8h		;5644
 	ld iy,0e1b5h		;5647
-	call L_5658		;564b
+	call mira_el_toque_de_una_de_las_que_vuelan		;564b
 	ld hl,0e1ech		;564e   ; Y la tercera
 	ld de,0e1a9h		;5651
 	ld iy,0e1b8h		;5654
-L_5658:
+mira_el_toque_de_una_de_las_que_vuelan:
 	push bc			;5658
 	ld c,001h		;5659   ; Con la coordenada de al lado
-	call L_5560		;565b   ; Montar la caja
+	call monta_la_caja_de_altura_dos		;565b   ; Montar la caja
 	pop bc			;565e
 	ld a,(de)			;565f   ; En que estado esta
 	cp 001h		;5660   ; Solo cuentan las que estan sueltas
@@ -2715,24 +2715,24 @@ L_5689:
 	or b			;568a
 	ld b,a			;568b
 	ret			;568c
-L_568D:
+mueve_las_tres_cosas_que_vuelan:
 	ld hl,0e1e4h		;568d   ; La primera
 	ld de,0e1a7h		;5690
 	ld iy,0e1b2h		;5693
-	call L_56B1		;5697
+	call mueve_una_de_las_que_vuelan		;5697
 	ld hl,0e1e8h		;569a   ; La segunda
 	ld de,0e1a8h		;569d
 	ld iy,0e1b5h		;56a0
-	call L_56B1		;56a4
+	call mueve_una_de_las_que_vuelan		;56a4
 	ld hl,0e1ech		;56a7   ; Y la tercera
 	ld de,0e1a9h		;56aa
 	ld iy,0e1b8h		;56ad
-L_56B1:
+mueve_una_de_las_que_vuelan:
 	ld a,(de)			;56b1   ; Solo las sueltas
 	cp 001h		;56b2
 	ret nz			;56b4
 	push de			;56b5
-	call L_65A5		;56b6   ; Ha llegado a su sitio?
+	call mira_si_llego_a_su_sitio		;56b6   ; Ha llegado a su sitio?
 	pop de			;56b9
 	and a			;56ba
 	ret z			;56bb   ; Todavia no
@@ -2741,7 +2741,7 @@ L_56B1:
 	jr nz,L_56CA		;56c1
 	push de			;56c3
 	ld d,001h		;56c4   ; ...un punto de tanteo
-	call L_46C9		;56c6
+	call suma_puntos_en_bcd		;56c6
 	pop de			;56c9
 L_56CA:
 	ld a,00bh		;56ca   ; El pitido
@@ -2749,7 +2749,7 @@ L_56CA:
 	ld a,006h		;56cf   ; Estado 6, y 0x13 cuadros
 	ld b,013h		;56d1
 	jr L_5685		;56d3
-L_56D5:
+descuenta_la_barra_a_tanteo:
 	ld a,(0e002h)		;56d5   ; Con dos jugadores no hay recuento
 	bit 5,a		;56d8
 	jr nz,L_56F7		;56da
@@ -2762,15 +2762,15 @@ L_56D5:
 	jr z,L_56F7		;56e7
 	dec (hl)			;56e9   ; Un punto menos de barra...
 	ld d,002h		;56ea   ; ...y dos de tanteo
-	call L_46C9		;56ec
+	call suma_puntos_en_bcd		;56ec
 	ld a,00fh		;56ef   ; El pitido de la cuenta
-	call L_B8D3		;56f1
+	call pide_pieza_si_la_escena_lo_permite		;56f1
 	or 001h		;56f4   ; Devolver "todavia queda"
 	ret			;56f6
 L_56F7:
 	and 000h		;56f7   ; Devolver "se acabo"
 	ret			;56f9
-L_56FA:
+mira_si_la_fase_fue_perfecta:
 	ld a,(0e002h)		;56fa   ; Con dos jugadores no hay perfecto
 	bit 5,a		;56fd
 	jr nz,L_5724		;56ff
@@ -2780,13 +2780,13 @@ L_56FA:
 	ld hl,03880h		;5707   ; Limpiar la fila
 	ld c,020h		;570a
 	xor a			;570c
-	call L_4885		;570d
+	call rellena_c_bytes_con_filvrm		;570d
 	ld de,0572ah		;5710   ; Y pintar "PERFECT 5000"
 	call pinta_guion		;5713
 	ld a,012h		;5716   ; La musica del perfecto
-	call L_B8D3		;5718
+	call pide_pieza_si_la_escena_lo_permite		;5718
 	ld d,050h		;571b   ; 0x50 de tanteo, que son los 5000
-	call L_46C9		;571d
+	call suma_puntos_en_bcd		;571d
 	ld a,050h		;5720   ; Y 0x50 cuadros para leerlo
 	jr L_5726		;5722
 L_5724:
@@ -2809,7 +2809,7 @@ DATA_rotulo_del_perfecto:
 ; ======================================================================
 
 
-L_5739:
+acerca_al_enemigo_al_jugador:
 	call mide_la_distancia		;5739   ; A que distancia esta
 	ld a,b			;573c
 	cp 004h		;573d   ; De cerca no se acerca mas
@@ -2849,7 +2849,7 @@ L_5769:
 	ret c			;5773
 	ld (hl),a			;5774
 	ret			;5775
-L_5776:
+monta_la_partida_de_la_demostracion:
 	ld hl,00100h		;5776   ; El reloj a 0x0100
 	ld (0e00bh),hl		;5779
 	ld a,000h		;577c   ; La ronda, a cero
@@ -2868,15 +2868,15 @@ L_5776:
 	ld a,003h		;5799   ; Modo 3
 	ld (0e060h),a		;579b
 	call prepara_el_marcador		;579e   ; Preparar el marcador
-	call L_5ABA		;57a1   ; Subir los sprites
-	call L_5AE1		;57a4   ; Montar el decorado
+	call sube_los_sprites_del_muneco		;57a1   ; Subir los sprites
+	call sube_el_guion_de_sprite_suelto		;57a4   ; Montar el decorado
 	call monta_la_pantalla_de_combate		;57a7   ; La pantalla de combate
-	call L_5B42		;57aa   ; La fila del decorado
-	jp L_472F		;57ad   ; Y el marcador
-L_57B0:
+	call pinta_la_fila_3_y_los_dos_nombres		;57aa   ; La fila del decorado
+	jp pinta_el_marcador		;57ad   ; Y el marcador
+haz_un_cuadro_de_combate:
 	call el_combate		;57b0
 	ret			;57b3
-L_57B4:
+lee_la_orden_grabada_de_la_demostracion:
 	ld a,(0e10bh)		;57b4   ; El jugador esta a lo suyo?
 	dec a			;57b7
 	ret z			;57b8
@@ -2925,9 +2925,9 @@ DATA_la_otra_tira_de_la_demostracion:
 ; ======================================================================
 
 
-L_5826:
+haz_un_cuadro_del_final:
 	call monta_al_jugador		;5826   ; Montar al muneco
-	call L_480E		;5829   ; Y subir sus sprites
+	call sube_los_demas_sprites		;5829   ; Y subir sus sprites
 	ld bc,(0e178h)		;582c   ; La escena y la subescena del final
 	ld a,c			;5830
 	call reparte_por_tabla		;5831   ; Repartir
@@ -2946,7 +2946,7 @@ DATA_tabla_de_subescenas_5834:
 
 L_583E:
 	djnz L_585F		;583e
-	call L_46A5		;5840   ; Bajar la cortina
+	call barre_la_pantalla_entera		;5840   ; Bajar la cortina
 	ret p			;5843   ; Todavia no
 	ld bc,0e077h		;5844   ; El muneco, en 0x77
 	ld (0e112h),bc		;5847
@@ -2955,7 +2955,7 @@ L_583E:
 	ld (0e156h),a		;584f
 	ld (0e10eh),a		;5852
 	call monta_la_fuente		;5855   ; Subir la fuente
-	call L_4801		;5858   ; Y los sprites
+	call sube_los_cuatro_primeros_sprites		;5858   ; Y los sprites
 	ld a,030h		;585b   ; 0x30 cuadros
 	jr L_588E		;585d
 L_585F:
@@ -2973,16 +2973,16 @@ L_586E:
 	and 001h		;5871
 	ret nz			;5873
 	push bc			;5874
-	call L_58DC		;5875   ; Parpadear las cuatro casillas
+	call pinta_o_borra_las_cuatro_casillas		;5875   ; Parpadear las cuatro casillas
 	pop bc			;5878
 	djnz L_5899		;5879
 	ld a,004h		;587b   ; El fotograma 4
 	ld (0e11dh),a		;587d
-	call L_6976		;5880   ; Andar
+	call arranca_la_orden_pedida		;5880   ; Andar
 	ld a,(0e113h)		;5883   ; Donde va el otro
 	cp 0a0h		;5886   ; Todavia no ha llegado
 	ret nc			;5888
-	call L_58EA		;5889   ; Pintar las cuatro casillas fijas
+	call pinta_las_cuatro_casillas		;5889   ; Pintar las cuatro casillas fijas
 	ld a,040h		;588c   ; 0x40 cuadros
 L_588E:
 	ld (0e004h),a		;588e   ; La espera
@@ -3011,14 +3011,14 @@ L_58AB:
 	ld de,058f9h		;58b0   ; Los rotulos del final
 	call pinta_guion		;58b3
 	ld a,011h		;58b6   ; Y la musica
-	call L_B8D3		;58b8
+	call pide_pieza_si_la_escena_lo_permite		;58b8
 	ld a,050h		;58bb   ; 0x50 cuadros
 	jr L_5866		;58bd
 L_58BF:
 	ld a,(0e003h)		;58bf
 	and 001h		;58c2
 	ret nz			;58c4
-	call L_649C		;58c5   ; Animar
+	call avanza_la_caida_del_jugador		;58c5   ; Animar
 	ld hl,0e004h		;58c8
 	dec (hl)			;58cb
 	ret nz			;58cc
@@ -3031,14 +3031,14 @@ L_58D1:
 	ld a,001h		;58d6   ; Y marcar que se acabo
 	ld (0e17ah),a		;58d8
 	ret			;58db
-L_58DC:
+pinta_o_borra_las_cuatro_casillas:
 	ld de,058efh		;58dc   ; Las cuatro casillas
 	ld a,(0e003h)		;58df
 	bit 2,a		;58e2   ; El bit 2 del cuadro...
 	jp nz,borra_guion		;58e4   ; ...las borra...
 L_58E7:
 	jp pinta_guion		;58e7   ; ...o las pinta: parpadean
-L_58EA:
+pinta_las_cuatro_casillas:
 	ld de,058efh		;58ea   ; Aqui siempre se pintan
 	jr L_58E7		;58ed
 
@@ -3140,85 +3140,85 @@ monta_la_pantalla_de_combate:
 	ld hl,001f0h		;597f   ; Los colores del marco, en el primer tercio
 	ld de,0943bh		;5982   ; El mismo guion se usa dos veces: por eso se guarda
 	push de			;5985
-	call L_48E7		;5986   ; Volcar con el destino ya en HL
+	call vuelca_el_guion_con_destino_en_hl		;5986   ; Volcar con el destino ya en HL
 	ld hl,004f0h		;5989   ; Y otra vez, medio tercio mas abajo
 	pop de			;598c
-	call L_48E7		;598d
+	call vuelca_el_guion_con_destino_en_hl		;598d
 	ld hl,021f0h		;5990   ; Ahora los patrones del marco, mismo offset pero banco de 0x2000
 	ld de,093e4h		;5993
-	call L_48E7		;5996
+	call vuelca_el_guion_con_destino_en_hl		;5996
 	ld hl,00480h		;5999   ; El segundo trozo del marco: color...
 	ld de,094b0h		;599c
-	call L_48E7		;599f
+	call vuelca_el_guion_con_destino_en_hl		;599f
 	ld hl,02480h		;59a2   ; ...y patron
 	ld de,09464h		;59a5
-	call L_48E7		;59a8
+	call vuelca_el_guion_con_destino_en_hl		;59a8
 	ld hl,01400h		;59ab   ; Los iconos, dos veces en color
 	ld de,051f2h		;59ae
-	call L_48E7		;59b1
+	call vuelca_el_guion_con_destino_en_hl		;59b1
 	ld hl,017c0h		;59b4
 	ld de,051f2h		;59b7
-	call L_48E7		;59ba
+	call vuelca_el_guion_con_destino_en_hl		;59ba
 	ld hl,03400h		;59bd   ; Y una en patron
 	ld de,051cch		;59c0
-	call L_48E7		;59c3
+	call vuelca_el_guion_con_destino_en_hl		;59c3
 	ld a,(0e2e0h)		;59c6   ; El escenario que toca; se usa cinco veces, de ahi el `push`
 	push af			;59c9
 	ld hl,05957h		;59ca   ; Colores de la banda de arriba
-	call L_4830		;59cd
+	call lee_la_entrada_de_la_tabla		;59cd
 	push de			;59d0
 	ld hl,00260h		;59d1   ; Van a 0x0260...
-	call L_48E7		;59d4
+	call vuelca_el_guion_con_destino_en_hl		;59d4
 	pop de			;59d7
 	ld hl,00560h		;59d8   ; ...y a 0x0560, que es donde caera el espejo
-	call L_48E7		;59db
+	call vuelca_el_guion_con_destino_en_hl		;59db
 	pop af			;59de
 	push af			;59df
 	ld hl,0594fh		;59e0   ; Patrones de la banda de arriba
-	call L_4830		;59e3
+	call lee_la_entrada_de_la_tabla		;59e3
 	ld hl,02260h		;59e6   ; Solo una vez: al reflejo lo copia 0x5A4D
-	call L_48E7		;59e9
+	call vuelca_el_guion_con_destino_en_hl		;59e9
 	pop af			;59ec
 	push af			;59ed
 	ld hl,05967h		;59ee   ; Colores de la banda del medio
-	call L_4830		;59f1
+	call lee_la_entrada_de_la_tabla		;59f1
 	push de			;59f4
 	ld hl,00880h		;59f5   ; 0x0880 y 0x0C40: la misma distancia que la copia, 0x3C0
-	call L_48E7		;59f8
+	call vuelca_el_guion_con_destino_en_hl		;59f8
 	pop de			;59fb
 	ld hl,00c40h		;59fc
-	call L_48E7		;59ff
+	call vuelca_el_guion_con_destino_en_hl		;59ff
 	pop af			;5a02
 	push af			;5a03
 	ld hl,0595fh		;5a04   ; Patrones de la banda del medio
-	call L_4830		;5a07
+	call lee_la_entrada_de_la_tabla		;5a07
 	ld hl,02880h		;5a0a
-	call L_48E7		;5a0d
+	call vuelca_el_guion_con_destino_en_hl		;5a0d
 	pop af			;5a10
 	push af			;5a11
 	ld hl,05977h		;5a12   ; Colores de la banda de abajo
-	call L_4830		;5a15
+	call lee_la_entrada_de_la_tabla		;5a15
 	push de			;5a18
 	ld hl,013c0h		;5a19   ; 0x13C0 y 0x1780, otra vez 0x3C0
-	call L_48E7		;5a1c
+	call vuelca_el_guion_con_destino_en_hl		;5a1c
 	pop de			;5a1f
 	ld hl,01780h		;5a20
-	call L_48E7		;5a23
+	call vuelca_el_guion_con_destino_en_hl		;5a23
 	pop af			;5a26
 	ld hl,0596fh		;5a27   ; Patrones de la banda de abajo
-	call L_4830		;5a2a
+	call lee_la_entrada_de_la_tabla		;5a2a
 	ld hl,033c0h		;5a2d
-	call L_48E7		;5a30
+	call vuelca_el_guion_con_destino_en_hl		;5a30
 	ld de,0b898h		;5a33   ; El suelo de serie; 0x5A93 lo cambia por el de la ronda
 	push de			;5a36
 	ld hl,01080h		;5a37   ; Su color, las dos veces
-	call L_48E7		;5a3a
+	call vuelca_el_guion_con_destino_en_hl		;5a3a
 	pop de			;5a3d
 	ld hl,01440h		;5a3e
-	call L_48E7		;5a41
+	call vuelca_el_guion_con_destino_en_hl		;5a41
 	ld de,0b819h		;5a44   ; Y su patron, una
 	ld hl,03080h		;5a47
-	call L_48E7		;5a4a
+	call vuelca_el_guion_con_destino_en_hl		;5a4a
 
 ; ----------------------------------------------------------------------
 ; ---------------------------------------------------------------------
@@ -3245,7 +3245,7 @@ L_5A65:
 	ld a,(0e002h)		;5a71   ; Con dos jugadores no hay nada mas que hacer
 	bit 5,a		;5a74
 	ret nz			;5a76
-	call L_7EA0		;5a77   ; Escenario 3: ademas hay que poner el marcador de fase
+	call el_escenario_de_la_ronda		;5a77   ; Escenario 3: ademas hay que poner el marcador de fase
 	cp 003h		;5a7a
 	ret nz			;5a7c
 	jp L_7C76		;5a7d
@@ -3263,51 +3263,51 @@ copia_dando_la_vuelta:
 	jr nz,copia_dando_la_vuelta		;5a90
 	ret			;5a92
 pon_el_suelo_de_la_ronda:
-	call L_7EA0		;5a93   ; A = el escenario de esta ronda
+	call el_escenario_de_la_ronda		;5a93   ; A = el escenario de esta ronda
 	push af			;5a96
 	ld hl,0593fh		;5a97   ; Su suelo en color...
-	call L_4830		;5a9a
+	call lee_la_entrada_de_la_tabla		;5a9a
 	push de			;5a9d
 	ld hl,01080h		;5a9e   ; ...a 0x1080 y a 0x1440
-	call L_48E7		;5aa1
+	call vuelca_el_guion_con_destino_en_hl		;5aa1
 	pop de			;5aa4
 	ld hl,01440h		;5aa5
-	call L_48E7		;5aa8
+	call vuelca_el_guion_con_destino_en_hl		;5aa8
 	pop af			;5aab
 	ld hl,0592fh		;5aac   ; ...y en patron
-	call L_4830		;5aaf
+	call lee_la_entrada_de_la_tabla		;5aaf
 	ld hl,03080h		;5ab2   ; A 0x3080, que 0x5A65 reflejara a 0x3440
-	call L_48E7		;5ab5
+	call vuelca_el_guion_con_destino_en_hl		;5ab5
 	jr L_5A65		;5ab8   ; Y a reflejar
-L_5ABA:
+sube_los_sprites_del_muneco:
 	ld b,010h		;5aba   ; Los dieciseis guiones de sprite
 L_5ABC:
 	push bc			;5abc
 	ld hl,05b02h		;5abd   ; La tabla de guiones...
 	ld a,b			;5ac0
 	dec a			;5ac1   ; ...que va de 0 a 15
-	call L_4830		;5ac2
+	call lee_la_entrada_de_la_tabla		;5ac2
 	push de			;5ac5
 	ld hl,05b22h		;5ac6   ; Y la de destinos, en paralelo
 	ld a,b			;5ac9
 	dec a			;5aca
-	call L_4830		;5acb
+	call lee_la_entrada_de_la_tabla		;5acb
 	ex de,hl			;5ace
 	pop de			;5acf
-	call L_48E7		;5ad0   ; Volcar con el destino en HL
+	call vuelca_el_guion_con_destino_en_hl		;5ad0   ; Volcar con el destino en HL
 	pop bc			;5ad3
 	djnz L_5ABC		;5ad4
 	ld hl,01a00h		;5ad6   ; Los patrones de 0x1A00...
 	ld de,01910h		;5ad9   ; ...se espejan sobre 0x1910
 	ld c,030h		;5adc   ; 0x30 sprites
 	jp espeja_sprites		;5ade
-L_5AE1:
+sube_el_guion_de_sprite_suelto:
 	ld de,0a7d1h		;5ae1   ; El guion suelto, el que no pasa por tabla
 	jr L_5AEF		;5ae4
-L_5AE6:
-	call L_7EA0		;5ae6   ; El escenario de la ronda...
+sube_el_guion_del_pozo_de_la_ronda:
+	call el_escenario_de_la_ronda		;5ae6   ; El escenario de la ronda...
 	ld hl,05af2h		;5ae9   ; ...elige uno de los siete del pozo
-	call L_4830		;5aec
+	call lee_la_entrada_de_la_tabla		;5aec
 L_5AEF:
 	jp guion_rle		;5aef   ; Se vuelca con el destino metido dentro
 
@@ -3340,12 +3340,12 @@ DATA_destinos_de_los_sprites:
 ; ======================================================================
 
 
-L_5B42:
+pinta_la_fila_3_y_los_dos_nombres:
 	ld de,06006h		;5b42   ; La fila 3 del decorado
 	call guion_rle		;5b45
-	call L_4838		;5b48   ; El contador de vidas
+	call pinta_los_contadores_de_vidas		;5b48   ; El contador de vidas
 	jp L_445E		;5b4b   ; Y los nombres de los dos que pelean
-L_5B4E:
+monta_el_decorado_o_la_oleada:
 	ld a,(0e107h)		;5b4e   ; El modo de juego
 	and 003h		;5b51
 	cp 003h		;5b53
@@ -3353,9 +3353,9 @@ L_5B4E:
 	jr nz,monta_la_oleada		;5b58   ; Fuera del modo 3 son las oleadas
 	push af			;5b5a
 	ld hl,05ffeh		;5b5b   ; El decorado de arriba
-	call L_4830		;5b5e
+	call lee_la_entrada_de_la_tabla		;5b5e
 	ld hl,038a0h		;5b61   ; De la fila 5 para abajo
-	call L_48E7		;5b64
+	call vuelca_el_guion_con_destino_en_hl		;5b64
 	pop af			;5b67
 	and a			;5b68   ; Los decorados 0 y 3...
 	jr z,L_5BD5		;5b69
@@ -3372,7 +3372,7 @@ L_5B4E:
 monta_la_oleada:
 	push af			;5b70
 	ld hl,05be8h		;5b71   ; Las cuatro tiras
-	call L_4830		;5b74   ; La que toque por decorado
+	call lee_la_entrada_de_la_tabla		;5b74   ; La que toque por decorado
 	ld a,(0e060h)		;5b77   ; La fase...
 	add a,a			;5b7a   ; ...por cuatro: cada fase son cuatro bytes
 	add a,a			;5b7b
@@ -3381,7 +3381,7 @@ monta_la_oleada:
 	push af			;5b80
 	push de			;5b81
 	ld hl,05c20h		;5b82   ; Y la tabla de figuras
-	call L_4830		;5b85
+	call lee_la_entrada_de_la_tabla		;5b85
 	ex de,hl			;5b88
 	pop de			;5b89
 	pop af			;5b8a
@@ -3407,7 +3407,7 @@ L_5B9B:
 	rra			;5ba6
 L_5BA7:
 	and 00fh		;5ba7   ; Ese nibble elige la figura
-	call L_4830		;5ba9
+	call lee_la_entrada_de_la_tabla		;5ba9
 	ld a,c			;5bac
 	ld (0e171h),a		;5bad   ; La columna
 	call pinta_figura_sin_sprites		;5bb0   ; Y a pintarla
@@ -3430,13 +3430,13 @@ L_5BBA:
 	ld a,(hl)			;5bcc
 	ld hl,038a0h		;5bcd
 	ld c,020h		;5bd0
-	call L_4885		;5bd2
+	call rellena_c_bytes_con_filvrm		;5bd2
 L_5BD5:
 	ld hl,05f38h		;5bd5
 	ld a,(0e2e0h)		;5bd8
-	call L_4830		;5bdb
+	call lee_la_entrada_de_la_tabla		;5bdb
 	ld hl,03aa0h		;5bde
-	jp L_48E7		;5be1
+	jp vuelca_el_guion_con_destino_en_hl		;5be1
 
 ; ----------------------------------------------------------------------
 ; DATOS cabecera_de_las_oleadas: cuatro bytes que carga 0x5BC6
@@ -3561,7 +3561,7 @@ DATA_guiones_del_decorado_de_arriba:
 ; ======================================================================
 
 
-L_6464:
+reparte_la_subescena_del_enemigo:
 	ld bc,(0e110h)		;6464   ; La escena y la subescena del enemigo
 	ld a,c			;6468
 	call reparte_por_tabla		;6469   ; Repartir
@@ -3602,10 +3602,10 @@ L_648E:
 	jr z,$+56		;6496
 	ld b,012h		;6498
 	jr $+52		;649a
-L_649C:
+avanza_la_caida_del_jugador:
 	ld a,(0e117h)		;649c   ; Hay un golpe en marcha?
 	and a			;649f
-	jp nz,L_6976		;64a0
+	jp nz,arranca_la_orden_pedida		;64a0
 	ld hl,0e10eh		;64a3   ; Por que paso va la caida
 	ld a,(hl)			;64a6
 	cp 006h		;64a7   ; Pasado el sexto se acabo
@@ -3634,15 +3634,15 @@ DATA_seis_por_0xe10e:
 
 
 L_64C4:
-	call L_6502		;64c4   ; Aparcar los sprites
+	call aparca_los_dieciseis_sprites_si_no_vuela_nada		;64c4   ; Aparcar los sprites
 	ld a,087h		;64c7   ; El muneco vuelve a 0x87
 	ld (0e112h),a		;64c9
 	ld b,010h		;64cc
 L_64CE:
-	call L_6B4C		;64ce   ; Que fotograma le toca
+	call elige_el_fotograma_segun_el_lado		;64ce   ; Que fotograma le toca
 	ld (0e118h),a		;64d1
 	ret			;64d4
-L_64D5:
+reparte_la_subescena_de_0xe130:
 	ld bc,(0e130h)		;64d5   ; La escena y la subescena
 	ld a,c			;64d9
 	call reparte_por_tabla		;64da   ; Repartir
@@ -3665,7 +3665,7 @@ L_64E7:
 	dec a			;64ec
 	dec a			;64ed
 	jp z,decide_el_siguiente		;64ee   ; El modo 2: la coreografia
-	call L_7D17		;64f1   ; Si no, mover al enemigo
+	call mueve_lo_agarrado_o_reparte		;64f1   ; Si no, mover al enemigo
 	jp L_7F8B		;64f4
 L_64F7:
 	ld hl,0e133h		;64f7   ; Su fila
@@ -3673,7 +3673,7 @@ L_64F7:
 L_64FD:
 	ld a,014h		;64fd   ; El fotograma 0x14
 	ld (0e138h),a		;64ff
-L_6502:
+aparca_los_dieciseis_sprites_si_no_vuela_nada:
 	ld a,(0e180h)		;6502   ; Hay algo volando?
 	and a			;6505
 	ret nz			;6506
@@ -3708,7 +3708,7 @@ L_6538:
 	ld (0e134h),a		;6538   ; Es la orden
 	ld a,(de)			;653b   ; Y el nibble bajo...
 	and 00fh		;653c
-	call L_7E6E		;653e   ; ...la mueve
+	call arranca_el_golpe_de_siete_cuadros		;653e   ; ...la mueve
 	inc (hl)			;6541   ; Un paso mas
 	ret			;6542
 
@@ -3795,9 +3795,9 @@ L_65A0:
 L_65A2:
 	or 001h		;65a2
 	ret			;65a4
-L_65A5:
+mira_si_llego_a_su_sitio:
 	ld d,(hl)			;65a5
-L_65A6:
+mira_si_esta_dentro_de_la_caja_de_once:
 	inc hl			;65a6   ; La otra coordenada
 	ld e,(hl)			;65a7
 	ld a,(0e10bh)		;65a8   ; Hay algo que lo impida?
@@ -3843,27 +3843,27 @@ L_65A6:
 pinta_las_barras:
 	ld de,0e101h		;65d8   ; La barra del jugador 1
 	ld hl,0e108h		;65db   ; Y su aviso
-	call L_666E		;65de   ; Pitar si esta a punto de acabarse
+	call pita_si_queda_poca_barra		;65de   ; Pitar si esta a punto de acabarse
 	ld hl,0e100h		;65e1   ; Lo que hay que pintar
-	call L_6656		;65e4   ; Ha cambiado?
+	call recorta_la_barra_al_tope		;65e4   ; Ha cambiado?
 	jr c,L_65F1		;65e7   ; No: nada que hacer
 	ld hl,03872h		;65e9   ; Donde va la barra
 	ld b,000h		;65ec   ; B = 0: hacia un lado
-	call L_660D		;65ee
+	call elige_las_casillas_de_la_barra		;65ee
 L_65F1:
 	ld de,0e103h		;65f1   ; La del jugador 2
 	ld hl,0e109h		;65f4
 	ld a,(0e002h)		;65f7   ; Solo si hay dos jugadores
 	bit 5,a		;65fa
 	jr z,L_6601		;65fc
-	call L_666E		;65fe
+	call pita_si_queda_poca_barra		;65fe
 L_6601:
 	ld hl,0e102h		;6601
-	call L_6656		;6604
+	call recorta_la_barra_al_tope		;6604
 	ret c			;6607
 	ld b,001h		;6608   ; B = 1: hacia el otro
 	ld hl,0386dh		;660a   ; Y en otra fila
-L_660D:
+elige_las_casillas_de_la_barra:
 	cp 00dh		;660d   ; Menos de 13 puntos...
 	ld de,06669h		;660f   ; ...casillas de cifra alta...
 	jr nc,L_6617		;6612
@@ -3890,7 +3890,7 @@ L_6622:
 	ld l,a			;662f
 L_6630:
 	ld a,(de)			;6630   ; La casilla de "lleno"
-	call L_4885		;6631   ; C veces
+	call rellena_c_bytes_con_filvrm		;6631   ; C veces
 	pop bc			;6634
 L_6635:
 	pop af			;6635
@@ -3915,7 +3915,7 @@ L_664C:
 	add a,060h		;6651   ; En el lado de la derecha las casillas van 0x60 mas alla
 L_6653:
 	jp 0004dh		;6653   ; BIOS WRTVRM - Writes data in VRAM | Escribirla
-L_6656:
+recorta_la_barra_al_tope:
 	ld a,(de)			;6656   ; La barra
 	cp 024h		;6657   ; El tope son 0x24 puntos
 	jr c,L_665E		;6659
@@ -3947,7 +3947,7 @@ DATA_casillas_de_una_cifra_alta:
 ; ======================================================================
 
 
-L_666E:
+pita_si_queda_poca_barra:
 	ld a,(de)			;666e   ; Le queda poca?
 	cp 00dh		;666f
 	ret nc			;6671   ; Todavia no
@@ -3959,23 +3959,23 @@ L_666E:
 	ret nz			;6679
 	ld a,097h		;667a   ; Marcar que ya se aviso
 	ld (hl),a			;667c
-	jp L_B8D3		;667d   ; Y pitar
-L_6680:
+	jp pide_pieza_si_la_escena_lo_permite		;667d   ; Y pitar
+mira_si_alguna_barra_llego_a_cero:
 	ld a,(0e10bh)		;6680   ; Hay algo que lo impida?
 	and a			;6683
 	ret nz			;6684
 	ld de,0e101h		;6685   ; La barra del jugador 1
 	ld b,003h		;6688   ; Su escena de "muerto"
-	call L_6692		;668a
+	call tira_al_suelo_si_la_barra_esta_a_cero		;668a
 	ld de,0e103h		;668d   ; La del 2
 	ld b,002h		;6690
-L_6692:
+tira_al_suelo_si_la_barra_esta_a_cero:
 	ld a,(de)			;6692   ; Le queda algo?
 	and a			;6693
 	ret nz			;6694   ; Si: sigue vivo
 	ld a,b			;6695
 	jp L_5284		;6696   ; Y si no, a la escena de caerse
-L_6699:
+anima_el_destello:
 	ld hl,0e183h		;6699   ; La cuenta del destello
 	ld a,(hl)			;669c
 	and a			;669d   ; No hay
@@ -4094,11 +4094,11 @@ vuelca_una_fila:
 	ld a,(0e176h)		;6733   ; Pintar o borrar?
 	and a			;6736
 	jr z,L_673E		;6737
-	call L_487F		;6739   ; Pintar: subir C casillas con LDIRVM
+	call vuelca_c_bytes_con_ldirvm		;6739   ; Pintar: subir C casillas con LDIRVM
 	jr L_6743		;673c
 L_673E:
 	ld a,001h		;673e   ; Borrar: rellenar de unos con FILVRM
-	call L_4885		;6740
+	call rellena_c_bytes_con_filvrm		;6740
 L_6743:
 	pop bc			;6743
 	ld a,(0e173h)		;6744   ; Una fila menos
@@ -4124,7 +4124,7 @@ pinta_figura_sin_sprites:
 	ld hl,0e480h		;676c   ; El descomprimido va a 0xE480
 	push bc			;676f
 	push hl			;6770
-	call L_67F5		;6771   ; Con el lector que REPITE el byte, no el que pone ceros
+	call cuenta_las_casillas_y_lee_repitiendo		;6771   ; Con el lector que REPITE el byte, no el que pone ceros
 	pop de			;6774
 	pop bc			;6775
 	jp pon_la_figura_en_la_pantalla		;6776   ; Y a pintar por el camino de siempre
@@ -4145,7 +4145,7 @@ sigue_la_remision:
 descomprime_la_figura:
 	push bc			;6784
 	ld hl,0e480h		;6785   ; El buffer de la figura
-	call L_67A2		;6788   ; Descomprimir alto*ancho casillas
+	call cuenta_las_casillas_y_lee_a_ceros		;6788   ; Descomprimir alto*ancho casillas
 	pop bc			;678b
 	push bc			;678c
 	ld a,(ix+000h)		;678d   ; Otra vez el indice
@@ -4153,12 +4153,12 @@ descomprime_la_figura:
 	ld de,0e480h		;6792
 	ld hl,0e500h		;6795
 	jr z,L_67A0		;6798
-	call L_67D5		;679a   ; Espejarla en 0xE500
+	call espeja_la_figura		;679a   ; Espejarla en 0xE500
 	ld de,0e500h		;679d   ; Y pintar la espejada
 L_67A0:
 	pop bc			;67a0
 	ret			;67a1
-L_67A2:
+cuenta_las_casillas_y_lee_a_ceros:
 	xor a			;67a2
 L_67A3:
 	add a,c			;67a3
@@ -4210,7 +4210,7 @@ L_67CE:
 	inc hl			;67d1
 	djnz lee_figura_a_ceros		;67d2   ; Hasta agotar el total
 	ret			;67d4
-L_67D5:
+espeja_la_figura:
 	ld a,c			;67d5   ; Al final de la fila
 	dec a			;67d6
 	call suma_a_a_de		;67d7   ; Retroceder hasta ahi
@@ -4234,13 +4234,13 @@ L_67E9:
 	pop bc			;67ef
 	pop de			;67f0
 	inc de			;67f1   ; Y a la fila siguiente
-	djnz L_67D5		;67f2   ; Todas
+	djnz espeja_la_figura		;67f2   ; Todas
 	ret			;67f4
 
 ; ----------------------------------------------------------------------
 ; es igual salvo en el 0xE0..0xEF: alli repite el byte de detras
 ; ----------------------------------------------------------------------
-L_67F5:
+cuenta_las_casillas_y_lee_repitiendo:
 	xor a			;67f5
 L_67F6:
 	add a,c			;67f6
@@ -4387,10 +4387,10 @@ L_6890:
 ; dibujos salen del bloque que le corresponda al escenario.
 ; ----------------------------------------------------------------------
 mueve_al_enemigo:
-	call L_7EA0		;68a4   ; El escenario de la ronda
+	call el_escenario_de_la_ronda		;68a4   ; El escenario de la ronda
 	push af			;68a7
 	ld hl,06922h		;68a8   ; Su bloque de fotogramas
-	call L_4830		;68ab
+	call lee_la_entrada_de_la_tabla		;68ab
 	ex de,hl			;68ae
 	pop af			;68af
 	push hl			;68b0   ; Hara falta otra vez para pintar
@@ -4405,12 +4405,12 @@ L_68BD:
 	ld hl,03a00h		;68bd   ; Si no, limpiar la ultima banda de la pantalla
 	ld c,0a0h		;68c0
 	xor a			;68c2
-	call L_4885		;68c3   ; 0xA0 casillas a cero
+	call rellena_c_bytes_con_filvrm		;68c3   ; 0xA0 casillas a cero
 	jr ahora_pintalo_donde_toca		;68c6
 borralo_donde_estaba:
 	ld ix,0e153h		;68c8   ; El fotograma VIEJO
 	ld a,(ix+000h)		;68cc
-	call L_4830		;68cf   ; Su entrada en el bloque
+	call lee_la_entrada_de_la_tabla		;68cf   ; Su entrada en el bloque
 	ld hl,0e152h		;68d2
 	ex de,hl			;68d5
 	ld a,(de)			;68d6   ; La columna vieja...
@@ -4435,7 +4435,7 @@ ahora_pintalo_donde_toca:
 	pop hl			;68fd   ; El bloque que se habia guardado
 	ld ix,0e138h		;68fe   ; Ahora se indexa por el fotograma NUEVO
 	ld a,(ix+000h)		;6902
-	call L_4830		;6905
+	call lee_la_entrada_de_la_tabla		;6905
 	ld hl,0e133h		;6908
 	ex de,hl			;690b
 	ld a,(de)			;690c
@@ -4475,25 +4475,25 @@ DATA_tabla_de_los_enemigos:
 lee_lo_que_pide:
 	ld a,(0e117h)		;6932   ; Hay algo en marcha?
 	and a			;6935
-	jr nz,L_6976		;6936
-	call L_6959		;6938   ; Apuntar lo que se pide
+	jr nz,arranca_la_orden_pedida		;6936
+	call guarda_lo_pulsado_del_cuadro		;6938   ; Apuntar lo que se pide
 	ld hl,0e11dh		;693b   ; Lo que se acaba de pedir
 	ld a,(hl)			;693e
 	and a			;693f   ; Nada
-	jr z,L_6976		;6940
+	jr z,arranca_la_orden_pedida		;6940
 	cp 002h		;6942   ; Las cuatro direcciones solas...
-	jr z,L_6976		;6944
+	jr z,arranca_la_orden_pedida		;6944
 	cp 004h		;6946
-	jr z,L_6976		;6948
+	jr z,arranca_la_orden_pedida		;6948
 	cp 008h		;694a
-	jr z,L_6976		;694c   ; ...no interrumpen lo que haya
+	jr z,arranca_la_orden_pedida		;694c   ; ...no interrumpen lo que haya
 	inc hl			;694e
 	xor (hl)			;694f   ; Lo mismo que antes?
-	jr nz,L_6976		;6950
+	jr nz,arranca_la_orden_pedida		;6950
 	ld (0e117h),a		;6952   ; Entonces se para
 	ld (0e115h),a		;6955
 	ret			;6958
-L_6959:
+guarda_lo_pulsado_del_cuadro:
 	ld hl,0e11dh		;6959   ; Lo que se pedia
 	ld a,(hl)			;695c
 	inc hl			;695d
@@ -4513,7 +4513,7 @@ L_696E:
 	xor a			;6971
 	ld (0e11ch),a		;6972   ; Y el paso, a cero
 	ret			;6975
-L_6976:
+arranca_la_orden_pedida:
 	xor a			;6976   ; Ya no se pide nada nuevo
 	ld (0e115h),a		;6977
 	ld a,(0e117h)		;697a
@@ -4598,7 +4598,7 @@ L_6A2F:
 	inc (hl)			;6a2f   ; Dos columnas a la derecha
 	inc (hl)			;6a30
 	jr L_6A67		;6a31
-L_6A33:
+alterna_las_dos_piernas_al_andar:
 	ld hl,0e119h		;6a33   ; El fotograma de andar
 	ld a,(0e003h)		;6a36   ; Cada cuatro cuadros...
 	and 006h		;6a39
@@ -4634,7 +4634,7 @@ L_6A65:
 	dec (hl)			;6a65   ; Dos columnas a la izquierda
 	dec (hl)			;6a66
 L_6A67:
-	call L_6A33		;6a67
+	call alterna_las_dos_piernas_al_andar		;6a67
 	jp L_6B47		;6a6a
 L_6A6D:
 	ld c,000h		;6a6d   ; C = 0: salto con carrera
@@ -4778,9 +4778,9 @@ L_6B3C:
 L_6B44:
 	ld (0e117h),a		;6b44   ; La orden
 L_6B47:
-	call L_6B4C		;6b47   ; Y el fotograma que le toca
+	call elige_el_fotograma_segun_el_lado		;6b47   ; Y el fotograma que le toca
 	jr L_6B75		;6b4a
-L_6B4C:
+elige_el_fotograma_segun_el_lado:
 	ld a,(0e114h)		;6b4c   ; Mirando a un lado o al otro
 	and a			;6b4f
 	ld a,b			;6b50   ; B es el de base...
@@ -4791,7 +4791,7 @@ L_6B54:
 	ld (0e114h),a		;6b54   ; Poner el lado
 	ld a,c			;6b57   ; Y el tipo de golpe
 	ld (0e115h),a		;6b58
-	call L_6B4C		;6b5b
+	call elige_el_fotograma_segun_el_lado		;6b5b
 	ld b,a			;6b5e
 	ld a,(0e117h)		;6b5f
 	cp 007h		;6b62
@@ -4947,7 +4947,7 @@ L_6C34:
 	ld hl,06c51h		;6c34   ; Sin parpadeo, siempre los mismos
 L_6C37:
 	pop af			;6c37
-	call L_4830		;6c38   ; La tira de ocho que toque
+	call lee_la_entrada_de_la_tabla		;6c38   ; La tira de ocho que toque
 	ld hl,0e09fh		;6c3b   ; Al cuarto byte de cada atributo
 	call reparte_de_cuatro_en_cuatro		;6c3e
 	pop hl			;6c41
@@ -5064,9 +5064,9 @@ L_6E2E:
 	sub (hl)			;6e2e   ; Y por el otro lado igual
 clasifica_la_distancia:
 	push af			;6e2f
-	call L_7EA0		;6e30   ; El escenario de la ronda
+	call el_escenario_de_la_ronda		;6e30   ; El escenario de la ronda
 	ld hl,06e5fh		;6e33   ; Su tira de tres cortes
-	call L_4830		;6e36
+	call lee_la_entrada_de_la_tabla		;6e36
 	ex de,hl			;6e39
 	pop af			;6e3a
 	ld b,000h		;6e3b   ; B = el tramo, de 0 a 6
@@ -5122,7 +5122,7 @@ DATA_tiras_del_alcance:
 
 L_6E84:
 	ld a,(0e135h)		;6e84   ; Cual de los tres golpes
-	call L_4830		;6e87   ; Su tira de fotogramas
+	call lee_la_entrada_de_la_tabla		;6e87   ; Su tira de fotogramas
 	ld b,000h		;6e8a
 	ld hl,0e137h		;6e8c   ; Por que cuadro va
 	dec (hl)			;6e8f   ; Uno menos
@@ -5194,8 +5194,8 @@ DATA_tres_variables:
 ; ======================================================================
 
 
-L_6ED6:
-	call L_7EA0		;6ed6   ; En que escenario
+lanza_algo_si_el_escenario_lo_lleva:
+	call el_escenario_de_la_ronda		;6ed6   ; En que escenario
 	cp 001h		;6ed9
 	jr z,L_6EE8		;6edb
 	cp 002h		;6edd
@@ -5213,7 +5213,7 @@ L_6EE8:
 	ret nc			;6ef3
 	ld b,a			;6ef4
 	ld hl,06ed0h		;6ef5   ; Su estado
-	call L_4830		;6ef8
+	call lee_la_entrada_de_la_tabla		;6ef8
 	ld a,(de)			;6efb   ; Ocupada?
 	and a			;6efc
 	ret nz			;6efd
@@ -5223,7 +5223,7 @@ L_6EE8:
 	ld a,(0e1a3h)		;6f03
 	push af			;6f06
 	ld hl,06f9bh		;6f07   ; Su sitio
-	call L_4830		;6f0a
+	call lee_la_entrada_de_la_tabla		;6f0a
 	ex de,hl			;6f0d
 	pop af			;6f0e
 	ld de,06fa1h		;6f0f   ; Y su casilla
@@ -5259,7 +5259,7 @@ L_6F3E:
 	pop hl			;6f3f
 	inc hl			;6f40
 	ld (hl),a			;6f41   ; Ahi arranca
-	call L_7EA0		;6f42   ; Segun el escenario...
+	call el_escenario_de_la_ronda		;6f42   ; Segun el escenario...
 	cp 005h		;6f45
 	jr z,L_6F5D		;6f47
 	cp 002h		;6f49
@@ -5297,12 +5297,12 @@ L_6F7B:
 	ld (hl),a			;6f7c
 	inc hl			;6f7d
 	ld (hl),b			;6f7e   ; Y el ancho
-	call L_7EA0		;6f7f
+	call el_escenario_de_la_ronda		;6f7f
 	cp 004h		;6f82
 	ret nz			;6f84
 	ld a,(0e1a3h)		;6f85
 	ld hl,06f95h		;6f88
-	call L_4830		;6f8b
+	call lee_la_entrada_de_la_tabla		;6f8b
 	ld a,006h		;6f8e
 	ld (de),a			;6f90
 	xor a			;6f91
@@ -5344,7 +5344,7 @@ DATA_tres_casillas:
 ; casilla, el color y lo que avanza.
 ; ----------------------------------------------------------------------
 mueve_lo_que_vuela:
-	call L_7EA0		;6fa4   ; En que escenario
+	call el_escenario_de_la_ronda		;6fa4   ; En que escenario
 	cp 007h		;6fa7
 	jp z,L_78EA		;6fa9   ; El 7 tiene lo suyo
 	cp 006h		;6fac
@@ -5358,19 +5358,19 @@ mueve_lo_que_vuela:
 	ld de,0e1a7h		;6fbd   ; Su estado
 	ld ix,0e1abh		;6fc0   ; Su sitio
 	ld iy,0e1b1h		;6fc4   ; Y su coordenada
-	call L_6FF0		;6fc8
+	call baja_la_espera_de_lo_que_vuela		;6fc8
 	ld hl,0e1e9h		;6fcb   ; La segunda
 	ld a,(0e1a5h)		;6fce
 	ld de,0e1a8h		;6fd1
 	ld ix,0e1adh		;6fd4
 	ld iy,0e1b4h		;6fd8
-	call L_6FF0		;6fdc
+	call baja_la_espera_de_lo_que_vuela		;6fdc
 	ld hl,0e1edh		;6fdf   ; Y la tercera
 	ld a,(0e1a6h)		;6fe2
 	ld de,0e1a9h		;6fe5
 	ld ix,0e1afh		;6fe8
 	ld iy,0e1b7h		;6fec
-L_6FF0:
+baja_la_espera_de_lo_que_vuela:
 	ld b,a			;6ff0
 	ld a,(iy+001h)		;6ff1   ; La espera
 	and a			;6ff4
@@ -5431,12 +5431,12 @@ L_7035:
 	ld (hl),a			;7041
 	ret			;7042
 L_7043:
-	call L_7EA0		;7043   ; En que escenario
+	call el_escenario_de_la_ronda		;7043   ; En que escenario
 	cp 004h		;7046   ; El 4 va por otro lado
 	jr z,$+129		;7048
 	cp 001h		;704a
 	push af			;704c
-	call z,L_707F		;704d   ; En el 1, ademas, ondea
+	call z,sube_o_baja_una_fila		;704d   ; En el 1, ademas, ondea
 	pop af			;7050
 	cp 005h		;7051   ; El escenario 5 va mas deprisa
 	push af			;7053
@@ -5478,7 +5478,7 @@ L_7079:
 	ret nc			;707c
 L_707D:
 	jr L_7035		;707d
-L_707F:
+sube_o_baja_una_fila:
 	dec hl			;707f   ; La fila
 	ld a,(iy+000h)		;7080   ; Hacia arriba o hacia abajo?
 	and a			;7083
@@ -5504,7 +5504,7 @@ L_70A0:
 	and 00eh		;70a5
 	jr nz,L_70AE		;70a7
 	ld b,042h		;70a9   ; ...suena el silbido
-	call L_71A2		;70ab
+	call pide_la_pieza_si_nada_lo_impide		;70ab
 L_70AE:
 	ld a,(0e003h)		;70ae   ; El contador de cuadros...
 	rra			;70b1
@@ -5543,7 +5543,7 @@ L_70C9:
 	and 00eh		;70cd
 	jr nz,L_70D6		;70cf
 	ld b,043h		;70d1   ; Otro silbido
-	call L_71A2		;70d3
+	call pide_la_pieza_si_nada_lo_impide		;70d3
 L_70D6:
 	ld a,(0e003h)		;70d6
 	rra			;70d9
@@ -5675,14 +5675,14 @@ L_7191:
 	xor a			;719f   ; ...y apagar el estado
 	ld (de),a			;71a0
 	ret			;71a1
-L_71A2:
+pide_la_pieza_si_nada_lo_impide:
 	ld a,(0e10bh)		;71a2   ; Hay algo que lo impida?
 	and a			;71a5
 	ret nz			;71a6
 	ld a,b			;71a7   ; Y pedir la pieza
 	jp pide_pieza		;71a8
-L_71AB:
-	call L_7EA0		;71ab   ; En que escenario
+suelta_una_de_las_tres_del_escenario_0:
+	call el_escenario_de_la_ronda		;71ab   ; En que escenario
 	cp 000h		;71ae
 	ret nz			;71b0   ; Solo el 0
 	ld a,(0e137h)		;71b1   ; Por que fotograma va el golpe
@@ -5807,7 +5807,7 @@ L_725D:
 	pop bc			;7268
 	ld hl,07273h		;7269   ; La tabla de figuras
 	ld a,b			;726c
-	call L_4830		;726d   ; La que toque
+	call lee_la_entrada_de_la_tabla		;726d   ; La que toque
 	jp pinta_figura_sin_sprites		;7270   ; Y a pintarla
 
 ; ----------------------------------------------------------------------
@@ -5832,7 +5832,7 @@ DATA_cuatro_figuras:
 ; ======================================================================
 
 
-L_728B:
+avanza_el_paso_del_agarre:
 	ld a,(0e138h)		;728b   ; El fotograma
 	cp 004h		;728e
 	ret nc			;7290   ; De 4 en adelante, nada
@@ -5855,7 +5855,7 @@ L_72A4:
 	ret nz			;72a7   ; Todavia dura
 	ld (de),a			;72a8   ; Se acabo
 	ret			;72a9
-L_72AA:
+mueve_el_agarre:
 	ld b,000h		;72aa   ; B = 0
 	ld hl,0e138h		;72ac   ; El fotograma
 	ld a,(hl)			;72af
@@ -5875,8 +5875,8 @@ L_72C0:
 	add a,b			;72c3
 	ld (0e1d4h),a		;72c4
 	ret			;72c7
-L_72C8:
-	call L_72AA		;72c8   ; Mover el agarre
+pinta_el_agarre_en_la_ultima_fila:
+	call mueve_el_agarre		;72c8   ; Mover el agarre
 	ld a,(0e137h)		;72cb   ; Hay golpe en marcha?
 	and a			;72ce
 	ret nz			;72cf
@@ -5886,7 +5886,7 @@ L_72C8:
 	ld hl,03a00h		;72d6   ; Limpiar la ultima fila
 	ld c,020h		;72d9
 	xor a			;72db
-	call L_4885		;72dc
+	call rellena_c_bytes_con_filvrm		;72dc
 	ld de,0e1d2h		;72df
 	ld a,(de)			;72e2
 	ld hl,072ffh		;72e3
@@ -5898,7 +5898,7 @@ L_72C8:
 	ld (0e170h),a		;72f2
 	ld hl,07305h		;72f5
 	ld a,(de)			;72f8
-	call L_4830		;72f9
+	call lee_la_entrada_de_la_tabla		;72f9
 	jp pinta_figura_sin_sprites		;72fc
 
 ; ----------------------------------------------------------------------
@@ -5931,21 +5931,21 @@ DATA_seis_figuras:
 ; ======================================================================
 
 
-L_732F:
+haz_lo_que_solo_hay_con_un_jugador:
 	ld a,(0e002h)		;732f   ; Con dos jugadores no hay nada de esto
 	bit 5,a		;7332
 	ret nz			;7334
 	ld a,(0e10bh)		;7335   ; El jugador esta a lo suyo?
 	cp 002h		;7338
 	ret nc			;733a
-	call L_734D		;733b   ; El descanso entre asaltos
+	call cuenta_el_descanso_entre_asaltos		;733b   ; El descanso entre asaltos
 	ld a,(0e107h)		;733e   ; Solo en el modo 3...
 	cp 003h		;7341
 	ret nz			;7343
-	call L_73E3		;7344   ; ...hay bicho volando...
+	call reparte_la_subescena_del_bicho		;7344   ; ...hay bicho volando...
 	call el_extra_del_cartucho_vecino		;7347   ; ...y premio del cartucho hermano
 	jp L_752D		;734a   ; Y subir sus atributos
-L_734D:
+cuenta_el_descanso_entre_asaltos:
 	ld hl,0e265h		;734d   ; La cuenta del descanso
 	ld a,(hl)			;7350
 	and a			;7351   ; No hay descanso
@@ -5967,7 +5967,7 @@ L_736D:
 	xor a			;736d
 	ld (de),a			;736e   ; Limpiar el turno
 	ld bc,00000h		;736f   ; Y a la escena 0
-	jp L_528B		;7372
+	jp pon_las_escenas_del_jugador_y_del_enemigo		;7372
 L_7375:
 	ld a,(0e100h)		;7375   ; Le queda barra al jugador?
 	and a			;7378
@@ -5988,7 +5988,7 @@ L_738C:
 	ld a,b			;7391   ; Y de quien fue
 	ld (0e266h),a		;7392
 	ld bc,00404h		;7395   ; El fotograma de caerse
-	call L_528B		;7398
+	call pon_las_escenas_del_jugador_y_del_enemigo		;7398
 	ld hl,0e108h		;739b   ; Es la primera vez?
 	ld a,(hl)			;739e
 	and a			;739f
@@ -6003,19 +6003,19 @@ L_73AF:
 	ld (0e041h),a		;73af   ; Queda en cola
 L_73B2:
 	ld a,011h		;73b2   ; Y suena la de ahora
-	jp L_B8D3		;73b4
-L_73B7:
+	jp pide_pieza_si_la_escena_lo_permite		;73b4
+pinta_el_marcador_de_vidas:
 	ld hl,03ae0h		;73b7   ; La fila del marcador de vidas
 	ld c,010h		;73ba   ; Dieciseis casillas...
 	xor a			;73bc
-	call L_4885		;73bd   ; ...a cero
+	call rellena_c_bytes_con_filvrm		;73bd   ; ...a cero
 	ld a,(0e2f0h)		;73c0   ; Las vidas del jugador
 	and a			;73c3
 	jr z,L_73CF		;73c4   ; Ninguna
 	ld c,a			;73c6
 	ld hl,03ae7h		;73c7   ; Se pintan desde 0x3AE7...
 	ld a,084h		;73ca   ; ...con la casilla 0x84
-	call L_4885		;73cc
+	call rellena_c_bytes_con_filvrm		;73cc
 L_73CF:
 	ld a,(0e003h)		;73cf   ; El bit 2 del cuadro...
 	bit 2,a		;73d2
@@ -6026,8 +6026,8 @@ L_73CF:
 	ld c,a			;73da
 	ld hl,03ae3h		;73db   ; Desde 0x3AE3...
 	ld a,083h		;73de   ; ...con la 0x83
-	jp L_4885		;73e0
-L_73E3:
+	jp rellena_c_bytes_con_filvrm		;73e0
+reparte_la_subescena_del_bicho:
 	ld a,(0e003h)		;73e3   ; Un cuadro de cada dos
 	and 001h		;73e6
 	ret nz			;73e8
@@ -6052,7 +6052,7 @@ L_73FD:
 	and a			;7400
 	ret nz			;7401
 	ld hl,0e300h		;7402   ; Esta el jugador a tiro?
-	call L_65A5		;7405
+	call mira_si_llego_a_su_sitio		;7405
 	ret z			;7408   ; No
 	ld de,0e250h		;7409   ; Su atributo
 	ld a,028h		;740c   ; Fila 0x28
@@ -6077,7 +6077,7 @@ L_7427:
 	ld de,0e262h		;742a   ; Y su escena
 	ld ix,0e260h		;742d
 	ld b,062h		;7431   ; 0x62 cuadros de vida
-	call L_7448		;7433   ; Sigue valiendo?
+	call mira_si_el_jugador_esta_en_lo_suyo		;7433   ; Sigue valiendo?
 	jr z,L_743C		;7436
 	ld a,005h		;7438   ; No: a la escena 5
 	ld (de),a			;743a
@@ -6092,7 +6092,7 @@ L_743C:
 	ex de,hl			;7445
 	inc (hl)			;7446   ; ...y a la escena siguiente
 	ret			;7447
-L_7448:
+mira_si_el_jugador_esta_en_lo_suyo:
 	ld a,(0e10bh)		;7448   ; En que anda el jugador
 	dec a			;744b
 	dec a			;744c
@@ -6106,19 +6106,19 @@ L_7455:
 	ret			;7457
 L_7458:
 	ld hl,0e253h		;7458   ; La coordenada del bicho
-	call L_7539		;745b   ; Toca al jugador?
+	call alterna_el_color_del_premio		;745b   ; Toca al jugador?
 	jr z,L_7473		;745e
 	ld a,0a8h		;7460   ; 0xA8 cuadros de castigo
 	ld (0e29eh),a		;7462
 	ld de,0e260h		;7465
 	ld hl,0e252h		;7468
-	call L_755B		;746b   ; Sonar y apagarlo
+	call coge_el_premio		;746b   ; Sonar y apagarlo
 L_746E:
 	ld hl,0e262h		;746e   ; Una escena mas
 	inc (hl)			;7471
 	ret			;7472
 L_7473:
-	call L_7448		;7473   ; Sigue valiendo?
+	call mira_si_el_jugador_esta_en_lo_suyo		;7473   ; Sigue valiendo?
 	jr nz,L_747D		;7476
 	ld hl,0e260h		;7478   ; La cuenta
 	dec (hl)			;747b
@@ -6187,7 +6187,7 @@ el_extra_del_cartucho_vecino:		; Lo unico que mira 0xE450; ademas pide ronda >= 
 	ld hl,074f1h		;74d4   ; Los cuatro bytes del atributo
 	ld bc,00004h		;74d7
 	ldir		;74da   ; Copiados
-	call L_7518		;74dc   ; Pintar la figura
+	call pinta_la_figura_del_premio		;74dc   ; Pintar la figura
 	ld hl,0e272h		;74df
 	inc (hl)			;74e2   ; Y un paso mas
 	ret			;74e3
@@ -6197,7 +6197,7 @@ L_74E4:
 	xor a			;74e7
 	ld (0e272h),a		;74e8   ; Y el paso, a cero
 	ret			;74eb
-L_74EC:
+apunta_a_las_casillas_guardadas:
 	ld de,0e460h		;74ec
 	jr $+44		;74ef
 
@@ -6222,7 +6222,7 @@ L_74F5:
 	jp L_743C		;7501
 L_7504:
 	ld hl,0e257h		;7504   ; La coordenada del premio
-	call L_7539		;7507   ; Lo ha cogido el jugador?
+	call alterna_el_color_del_premio		;7507   ; Lo ha cogido el jugador?
 	ret z			;750a
 	xor a			;750b
 	ld (0e272h),a		;750c   ; El paso, a cero
@@ -6230,7 +6230,7 @@ L_7504:
 	ld (0e271h),a		;7510   ; Y marcarlo como cogido
 	ld b,001h		;7513
 	jp L_738C		;7515
-L_7518:
+pinta_la_figura_del_premio:
 	ld de,07525h		;7518   ; La figura del premio
 L_751B:
 	ld bc,00e06h		;751b   ; En la fila 6, columna 14
@@ -6255,7 +6255,7 @@ L_752D:
 	ld bc,00008h		;7533   ; ...a los atributos de sprite
 	ldir		;7536
 	ret			;7538
-L_7539:
+alterna_el_color_del_premio:
 	ld a,(0e003h)		;7539   ; El contador de cuadros
 	bit 1,a		;753c   ; Su bit 1 alterna el color...
 	ld a,00fh		;753e
@@ -6271,14 +6271,14 @@ L_7544:
 	jr nz,L_7558		;754c
 	ld c,001h		;754e   ; Montar su caja
 	ld b,003h		;7550
-	call L_5562		;7552
+	call monta_la_caja_en_0xe19d		;7552
 	jp se_tocan		;7555   ; Y mirar el toque
 L_7558:
 	and 000h		;7558   ; Sin toque
 	ret			;755a
-L_755B:
+coge_el_premio:
 	ld a,011h		;755b   ; El pitido del premio
-	call L_B8D3		;755d
+	call pide_pieza_si_la_escena_lo_permite		;755d
 	ld a,020h		;7560   ; El sprite, aparcado
 	ld (de),a			;7562
 	ld a,0d0h		;7563   ; Y la coordenada fuera
@@ -6287,9 +6287,9 @@ L_755B:
 	ld a,00fh		;7567
 	ld (hl),a			;7569
 	ld d,005h		;756a   ; Cinco puntos de tanteo
-	jp L_46C9		;756c
-L_756F:
-	call L_7EA0		;756f   ; En que escenario
+	jp suma_puntos_en_bcd		;756c
+suelta_una_de_las_tres_del_escenario_6:
+	call el_escenario_de_la_ronda		;756f   ; En que escenario
 	cp 006h		;7572
 	ret nz			;7574   ; Solo el 6
 	ld a,(0e137h)		;7575   ; Por que fotograma va el golpe
@@ -6381,18 +6381,18 @@ DATA_cuatro_palabras:
 
 
 L_75EB:
-	call L_76CC		;75eb   ; Mover lo del escenario 6
+	call mira_los_toques_y_repasa_las_dos_ranuras		;75eb   ; Mover lo del escenario 6
 	ld ix,0e1a0h		;75ee   ; La primera ranura
 	ld hl,0e1abh		;75f2
 	ld de,0e1a3h		;75f5
-	call L_760E		;75f8   ; Moverla
-	call L_77C4		;75fb   ; Y subir sus sprites
+	call reparte_por_el_estado_de_la_ranura		;75f8   ; Moverla
+	call sube_los_atributos_de_las_dos_ranuras		;75fb   ; Y subir sus sprites
 	ld ix,0e1b0h		;75fe   ; La segunda
 	ld hl,0e1bbh		;7602
 	ld de,0e1b3h		;7605
-	call L_760E		;7608
-	jp L_77C4		;760b   ; Y sus sprites
-L_760E:
+	call reparte_por_el_estado_de_la_ranura		;7608
+	jp sube_los_atributos_de_las_dos_ranuras		;760b   ; Y sus sprites
+reparte_por_el_estado_de_la_ranura:
 	ld a,(0e10bh)		;760e   ; El jugador esta a lo suyo?
 	cp 002h		;7611
 	ret nc			;7613
@@ -6420,11 +6420,11 @@ L_760E:
 L_763A:
 	ld a,0c8h		;763a   ; Casilla 0xC8...
 	ld b,00fh		;763c   ; ...y color 0x0F
-	call L_7646		;763e
+	call pon_la_casilla_y_el_color_y_descuenta		;763e
 	ret nz			;7641   ; Todavia no ha acabado
 	inc (ix+000h)		;7642   ; Un estado mas
 	ret			;7645
-L_7646:
+pon_la_casilla_y_el_color_y_descuenta:
 	inc de			;7646
 	inc de			;7647
 	inc de			;7648
@@ -6440,7 +6440,7 @@ L_7646:
 L_7652:
 	ld a,0d4h		;7652   ; Casilla 0xD4
 	ld b,007h		;7654   ; Y color 7
-	call L_7646		;7656
+	call pon_la_casilla_y_el_color_y_descuenta		;7656
 	ret nz			;7659   ; Todavia no
 	ld a,007h		;765a   ; Estado 7
 	ld (ix+000h),a		;765c
@@ -6518,49 +6518,49 @@ L_7695:
 	ld (ix+00fh),a		;76c4   ; Sin rebotes todavia
 	ld a,044h		;76c7   ; El pitido del golpe contra el suelo
 	jp pide_pieza		;76c9
-L_76CC:
-	call L_7734		;76cc   ; Mirar si le da al enemigo
-	call L_7702		;76cf   ; Y si le da al jugador
+mira_los_toques_y_repasa_las_dos_ranuras:
+	call mira_si_el_jugador_rompe_alguna_ranura		;76cc   ; Mirar si le da al enemigo
+	call mira_si_las_dos_le_dan_al_enemigo		;76cf   ; Y si le da al jugador
 	ld iy,0e1a0h		;76d2   ; La primera ranura
 	ld de,0e1a0h		;76d6
 	ld hl,0e1a2h		;76d9
-	call L_76E9		;76dc   ; Mirarla
+	call tumba_al_jugador_si_esta_le_toca		;76dc   ; Mirarla
 	ld iy,0e1b0h		;76df   ; Y la segunda
 	ld de,0e1b0h		;76e3
 	ld hl,0e1b2h		;76e6
-L_76E9:
+tumba_al_jugador_si_esta_le_toca:
 	ld a,(de)			;76e9   ; Esta suelta?
 	dec a			;76ea
 	ret nz			;76eb
-	call L_76FA		;76ec   ; Toca al jugador?
+	call monta_la_caja_de_dos_y_mira_el_toque		;76ec   ; Toca al jugador?
 	ret z			;76ef
 	xor a			;76f0   ; Si: limpiar sus cuentas...
 	ld (iy+00bh),a		;76f1
 	ld (iy+00ch),a		;76f4
-	jp L_55E7		;76f7   ; ...y tumbarlo
-L_76FA:
+	jp devuelve_al_jugador_a_su_sitio		;76f7   ; ...y tumbarlo
+monta_la_caja_de_dos_y_mira_el_toque:
 	ld c,000h		;76fa   ; Montar la caja...
-	call L_5560		;76fc   ; ...de dos de alto...
+	call monta_la_caja_de_altura_dos		;76fc   ; ...de dos de alto...
 	jp se_tocan		;76ff   ; ...y mirar el toque
-L_7702:
+mira_si_las_dos_le_dan_al_enemigo:
 	ld hl,0e1a2h		;7702   ; La coordenada de la primera
 	ld de,0e1a0h		;7705
-	call L_7711		;7708
+	call mira_si_lo_lanzado_le_da_al_enemigo		;7708
 	ld hl,0e1b2h		;770b   ; Y la de la segunda
 	ld de,0e1b0h		;770e
-L_7711:
+mira_si_lo_lanzado_le_da_al_enemigo:
 	ld a,(de)			;7711   ; Esta suelta?
 	dec a			;7712
 	ret nz			;7713
 	push de			;7714
 	ld d,(hl)			;7715   ; Su coordenada
 	inc hl			;7716
-	call L_65A6		;7717   ; Le da al enemigo?
+	call mira_si_esta_dentro_de_la_caja_de_once		;7717   ; Le da al enemigo?
 	pop de			;771a
 	ret z			;771b   ; No
 	push de			;771c
 	ld d,001h		;771d   ; Un punto de tanteo
-	call L_46C9		;771f
+	call suma_puntos_en_bcd		;771f
 	ld a,00bh		;7722   ; El pitido
 	call pide_pieza		;7724
 	pop de			;7727
@@ -6571,16 +6571,16 @@ L_7711:
 	ld a,005h		;7730   ; ...un 5
 	ld (de),a			;7732
 	ret			;7733
-L_7734:
+mira_si_el_jugador_rompe_alguna_ranura:
 	ld a,(0e29eh)		;7734   ; Hay algo que lo impida?
 	and a			;7737
 	ret nz			;7738
 	ld iy,0e1a0h		;7739   ; La primera
 	ld hl,0e1a2h		;773d
-	call L_774A		;7740
+	call mira_si_el_jugador_rompe_esta_ranura		;7740
 	ld iy,0e1b0h		;7743   ; Y la segunda
 	ld hl,0e1b2h		;7747
-L_774A:
+mira_si_el_jugador_rompe_esta_ranura:
 	ld a,(iy+000h)		;774a   ; En que estado esta
 	cp 002h		;774d
 	ret c			;774f   ; Antes del 2 no se puede golpear
@@ -6588,10 +6588,10 @@ L_774A:
 	ret nc			;7752   ; Y del 5 en adelante, tampoco
 	ld c,000h		;7753
 	ld b,008h		;7755   ; Caja de ocho de alto
-	call L_5562		;7757
+	call monta_la_caja_en_0xe19d		;7757
 	call se_tocan		;775a   ; Le da el jugador?
 	ret z			;775d   ; No
-	call L_79CC		;775e   ; Sumar el tanteo
+	call manda_al_enemigo_a_la_escena_4		;775e   ; Sumar el tanteo
 	ld a,005h		;7761   ; Estado 5: rota
 	ld (iy+000h),a		;7763
 	ld a,00ch		;7766   ; Y el pitido de romperla
@@ -6654,12 +6654,12 @@ DATA_diez_parejas:
 ; ======================================================================
 
 
-L_77C4:
+sube_los_atributos_de_las_dos_ranuras:
 	ld de,0e1e4h		;77c4   ; Los atributos que se van a subir
 	ld hl,0e1a2h		;77c7   ; La primera ranura
-	call L_77D0		;77ca
+	call monta_el_atributo_de_una_ranura		;77ca
 	ld hl,0e1b2h		;77cd   ; Y la segunda
-L_77D0:
+monta_el_atributo_de_una_ranura:
 	ld a,(hl)			;77d0   ; La fila
 	ld (de),a			;77d1
 	inc de			;77d2
@@ -6679,8 +6679,8 @@ L_77D0:
 	ld (de),a			;77e0
 	inc de			;77e1
 	ret			;77e2
-L_77E3:
-	call L_7EA0		;77e3   ; En que escenario
+suelta_las_tres_a_la_vez_del_escenario_7:
+	call el_escenario_de_la_ronda		;77e3   ; En que escenario
 	cp 007h		;77e6
 	ret nz			;77e8   ; Solo el 7
 	ld a,(0e137h)		;77e9   ; Por que fotograma va el golpe
@@ -6692,11 +6692,11 @@ L_77E3:
 	ld a,003h		;77f5   ; Tres a la vez
 	ld (0e1d2h),a		;77f7
 	ret			;77fa
-L_77FB:
+cuenta_la_espera_entre_una_y_otra:
 	ld a,(0e10bh)		;77fb   ; El jugador esta a lo suyo?
 	cp 002h		;77fe
 	ret nc			;7800
-	call L_7EA0		;7801   ; En que escenario
+	call el_escenario_de_la_ronda		;7801   ; En que escenario
 	cp 007h		;7804
 	ret nz			;7806   ; Solo el 7
 	ld hl,0e1d3h		;7807   ; La espera entre una y otra
@@ -6831,7 +6831,7 @@ L_78C6:
 	ld a,002h		;78cf   ; Dos cosas mas por soltar
 	ld (0e1d1h),a		;78d1
 	ld b,0eeh		;78d4   ; El borde se pone claro: eso es el fogonazo
-	call L_496B		;78d6
+	call pon_el_color_del_borde		;78d6
 	ld a,04ah		;78d9   ; Y suena
 	jp pide_pieza		;78db
 
@@ -6868,9 +6868,9 @@ L_78EA:
 	jr L_7900		;78f9
 L_78FB:
 	ld b,0e0h		;78fb   ; Se acabo: el borde, negro otra vez
-	call L_496B		;78fd
+	call pon_el_color_del_borde		;78fd
 L_7900:
-	call L_79DC		;7900   ; Subir los atributos
+	call sube_los_atributos_de_las_tres_ranuras		;7900   ; Subir los atributos
 	ld a,(0e1d0h)		;7903   ; Y repartir por el estado
 	call reparte_por_tabla		;7906
 
@@ -6887,19 +6887,19 @@ DATA_tabla_de_subescenas_7909:
 
 
 L_790D:
-	call L_798C		;790d   ; Mirar si le da al jugador
+	call mira_si_alguna_toca_al_jugador		;790d   ; Mirar si le da al jugador
 	ld ix,0e1a0h		;7910   ; La primera de las tres
 	ld de,0e1a0h		;7914
 	ld hl,0e1a5h		;7917
-	call L_7934		;791a
+	call hazle_caer_o_apagala		;791a
 	ld ix,0e1b0h		;791d   ; La segunda
 	ld de,0e1b0h		;7921
 	ld hl,0e1b5h		;7924
-	call L_7934		;7927
+	call hazle_caer_o_apagala		;7927
 	ld ix,0e1c0h		;792a   ; Y la tercera
 	ld de,0e1c0h		;792e
 	ld hl,0e1c5h		;7931
-L_7934:
+hazle_caer_o_apagala:
 	ld a,(0e10bh)		;7934   ; El jugador esta a lo suyo?
 	cp 002h		;7937
 	ret nc			;7939
@@ -6969,23 +6969,23 @@ L_7988:
 	inc hl			;7989
 	ld (hl),a			;798a   ; Ahi va el color
 	ret			;798b
-L_798C:
+mira_si_alguna_toca_al_jugador:
 	ld a,(0e29eh)		;798c   ; Hay algo que lo impida?
 	and a			;798f
 	ret nz			;7990
 	ld iy,0e1a0h		;7991   ; La primera
 	ld de,0e1a0h		;7995
 	ld hl,0e1a2h		;7998
-	call L_79B5		;799b
+	call enciende_el_rayo_si_esta_toca		;799b
 	ld iy,0e1b0h		;799e   ; La segunda
 	ld de,0e1b0h		;79a2
 	ld hl,0e1b2h		;79a5
-	call L_79B5		;79a8
+	call enciende_el_rayo_si_esta_toca		;79a8
 	ld iy,0e1c0h		;79ab   ; Y la tercera
 	ld de,0e1c0h		;79af
 	ld hl,0e1c2h		;79b2
-L_79B5:
-	call L_76FA		;79b5   ; Toca al jugador?
+enciende_el_rayo_si_esta_toca:
+	call monta_la_caja_de_dos_y_mira_el_toque		;79b5   ; Toca al jugador?
 	ret z			;79b8   ; No
 	ld a,001h		;79b9
 	ld (0e1d0h),a		;79bb   ; Estado 1 del rayo
@@ -6996,7 +6996,7 @@ L_79B5:
 L_79C8:
 	xor a			;79c8   ; Apagar el rayo
 	ld (0e1d0h),a		;79c9
-L_79CC:
+manda_al_enemigo_a_la_escena_4:
 	ld a,004h		;79cc   ; El enemigo pasa a la escena 4
 	ld (0e130h),a		;79ce
 	xor a			;79d1
@@ -7004,14 +7004,14 @@ L_79CC:
 	inc a			;79d5
 	ld (0e110h),a		;79d6   ; ...con la escena 1
 	jp L_5457		;79d9
-L_79DC:
+sube_los_atributos_de_las_tres_ranuras:
 	ld hl,0e1a2h		;79dc   ; Los tres atributos...
 	ld de,0e1e4h		;79df   ; ...a la copia que se sube
-	call L_79EE		;79e2
+	call monta_el_atributo_de_una_de_las_tres		;79e2
 	ld hl,0e1b2h		;79e5
-	call L_79EE		;79e8
+	call monta_el_atributo_de_una_de_las_tres		;79e8
 	ld hl,0e1c2h		;79eb
-L_79EE:
+monta_el_atributo_de_una_de_las_tres:
 	ld a,(hl)			;79ee   ; La fila
 	ld (de),a			;79ef
 	inc de			;79f0
@@ -7033,8 +7033,8 @@ L_79EE:
 	ld (de),a			;7a00
 	inc de			;7a01
 	ret			;7a02
-L_7A03:
-	call L_7EA0		;7a03   ; En que escenario
+suelta_una_de_las_tres_del_escenario_3:
+	call el_escenario_de_la_ronda		;7a03   ; En que escenario
 	cp 003h		;7a06
 	ret nz			;7a08   ; Solo el 3
 	ld a,(0e137h)		;7a09   ; Por que fotograma va el golpe
@@ -7061,10 +7061,10 @@ L_7A03:
 	ld a,04dh		;7a31
 	call pide_pieza		;7a33
 	jp L_7C7E		;7a36
-L_7A39:
-	call L_7A3F		;7a39
+haz_lo_del_escenario_que_toque:
+	call elige_el_color_que_parpadea		;7a39
 	jp L_7C2D		;7a3c
-L_7A3F:
+elige_el_color_que_parpadea:
 	ld hl,0e003h		;7a3f   ; Casilla 0xF0
 	ld a,(hl)			;7a42
 	bit 2,a		;7a43
@@ -7160,7 +7160,7 @@ L_7ABF:
 	inc (hl)			;7ac2   ; Un estado mas
 	ret			;7ac3
 L_7AC4:
-	call L_7B77		;7ac4   ; Mover lo que hay
+	call pide_el_zumbido_si_no_suena_ya		;7ac4   ; Mover lo que hay
 	ld hl,0e1bdh		;7ac7   ; El desplazamiento
 	ld a,(hl)			;7aca
 	cp 080h		;7acb   ; Ya esta en 0x80?
@@ -7279,14 +7279,14 @@ DATA_ocho_mas:
 
 
 L_7B68:
-	call L_7B77		;7b68   ; Mover lo que hay
+	call pide_el_zumbido_si_no_suena_ya		;7b68   ; Mover lo que hay
 	ld a,(0e1b2h)		;7b6b   ; La columna
 	cp 032h		;7b6e
 	ret nc			;7b70   ; Todavia no
 	ld a,001h		;7b71
 	ld (0e1b0h),a		;7b73   ; Estado 1
 	ret			;7b76
-L_7B77:
+pide_el_zumbido_si_no_suena_ya:
 	ld a,(0e032h)		;7b77   ; Ya esta sonando?
 	and a			;7b7a
 	jr nz,L_7B89		;7b7b
@@ -7420,8 +7420,8 @@ L_7C2D:
 	ld a,(hl)			;7c44   ; Y el color
 	ld (de),a			;7c45
 	ret			;7c46
-L_7C47:
-	call L_7EA0		;7c47   ; En que escenario
+mueve_lo_agarrado_del_escenario_3:
+	call el_escenario_de_la_ronda		;7c47   ; En que escenario
 	cp 003h		;7c4a
 	ret nz			;7c4c   ; Solo el 3
 	ld a,(0e1c6h)		;7c4d   ; Hay algo agarrado?
@@ -7459,14 +7459,14 @@ L_7C84:
 	push hl			;7c84
 	push de			;7c85
 	ld hl,012d8h		;7c86   ; El color va a 0x12D8...
-	call L_48E7		;7c89
+	call vuelca_el_guion_con_destino_en_hl		;7c89
 	pop de			;7c8c
 	ld hl,01698h		;7c8d   ; ...y a 0x1698
-	call L_48E7		;7c90
+	call vuelca_el_guion_con_destino_en_hl		;7c90
 	pop hl			;7c93
 	ex de,hl			;7c94
 	ld hl,032d8h		;7c95   ; Y el patron a 0x32D8
-	call L_48E7		;7c98
+	call vuelca_el_guion_con_destino_en_hl		;7c98
 	ld hl,032d8h		;7c9b   ; Que se espeja sobre 0x3698
 	ld de,03698h		;7c9e
 	ld bc,00028h		;7ca1   ; 0x28 patrones
@@ -7487,24 +7487,24 @@ DATA_guiones_del_marcador_de_fase:
 ; ======================================================================
 
 
-L_7D17:
-	call L_7EA0		;7d17   ; En que escenario
+mueve_lo_agarrado_o_reparte:
+	call el_escenario_de_la_ronda		;7d17   ; En que escenario
 	cp 000h		;7d1a
 	jr nz,L_7D25		;7d1c
 	ld a,(0e1d7h)		;7d1e   ; En el 0, si hay algo agarrado...
 	and a			;7d21
 	jp nz,L_71F1		;7d22   ; ...se mueve eso
 L_7D25:
-	call L_7A03		;7d25   ; Lo del escenario 3
-	call L_77FB		;7d28   ; Lo del 7
+	call suelta_una_de_las_tres_del_escenario_3		;7d25   ; Lo del escenario 3
+	call cuenta_la_espera_entre_una_y_otra		;7d28   ; Lo del 7
 	call mueve_lo_que_vuela		;7d2b   ; Y lo de los demas
 	ld a,(0e137h)		;7d2e   ; Hay golpe en marcha?
 	and a			;7d31
 	jr z,L_7D46		;7d32
-	call L_6ED6		;7d34   ; Si: seguirlo por cada escenario
-	call L_71AB		;7d37
-	call L_77E3		;7d3a
-	call L_756F		;7d3d
+	call lanza_algo_si_el_escenario_lo_lleva		;7d34   ; Si: seguirlo por cada escenario
+	call suelta_una_de_las_tres_del_escenario_0		;7d37
+	call suelta_las_tres_a_la_vez_del_escenario_7		;7d3a
+	call suelta_una_de_las_tres_del_escenario_6		;7d3d
 L_7D40:
 	ld hl,082d8h		;7d40   ; Y sacar el fotograma de la tabla
 	jp L_6E84		;7d43
@@ -7519,9 +7519,9 @@ L_7D40:
 ; maquina en 0x7E7E.
 ; ----------------------------------------------------------------------
 L_7D46:
-	call L_7EA0		;7d46   ; En que escenario
+	call el_escenario_de_la_ronda		;7d46   ; En que escenario
 	cp 000h		;7d49
-	call z,L_728B		;7d4b   ; En el 0 hay ademas que agarrar
+	call z,avanza_el_paso_del_agarre		;7d4b   ; En el 0 hay ademas que agarrar
 	ld a,(0e118h)		;7d4e   ; Por que fotograma va el jugador
 	cp 010h		;7d51   ; De 0x10 en adelante no se hace nada
 	jp nc,L_7DE2		;7d53
@@ -7599,10 +7599,10 @@ L_7DEB:
 L_7DEC:
 	ld (0e134h),a		;7dec   ; El lado
 	ld a,003h		;7def   ; Golpe 3
-	jr L_7E6E		;7df1
+	jr arranca_el_golpe_de_siete_cuadros		;7df1
 L_7DF3:
 	xor a			;7df3   ; Golpe 0
-	jr L_7E6E		;7df4
+	jr arranca_el_golpe_de_siete_cuadros		;7df4
 L_7DF6:
 	ld b,012h		;7df6   ; Fotograma 0x12
 	jr L_7DE4		;7df8
@@ -7614,7 +7614,7 @@ L_7DFD:
 L_7DFF:
 	ld (0e134h),a		;7dff   ; El lado
 	ld a,005h		;7e02   ; Y golpe 5
-	jr L_7E6E		;7e04
+	jr arranca_el_golpe_de_siete_cuadros		;7e04
 L_7E06:
 	ld a,(0e003h)		;7e06   ; Uno de cada cuatro cuadros
 	and 006h		;7e09
@@ -7670,10 +7670,10 @@ L_7E51:
 	jp L_6EB9		;7e51   ; Poner el fotograma
 L_7E54:
 	ld a,004h		;7e54   ; Golpe 4
-	jr L_7E6E		;7e56
+	jr arranca_el_golpe_de_siete_cuadros		;7e56
 L_7E58:
 	ld a,002h		;7e58   ; Golpe 2
-	jr L_7E6E		;7e5a
+	jr arranca_el_golpe_de_siete_cuadros		;7e5a
 L_7E5C:
 	xor a			;7e5c   ; A la izquierda
 	jr L_7E61		;7e5d
@@ -7681,16 +7681,16 @@ L_7E5F:
 	ld a,001h		;7e5f   ; A la derecha
 L_7E61:
 	ld (0e134h),a		;7e61   ; El lado
-	call L_7EA0		;7e64   ; En que escenario
+	call el_escenario_de_la_ronda		;7e64   ; En que escenario
 	cp 001h		;7e67   ; El 1 usa el golpe 2...
 	ld a,001h		;7e69
-	jr nz,L_7E6E		;7e6b
+	jr nz,arranca_el_golpe_de_siete_cuadros		;7e6b
 	inc a			;7e6d   ; ...y los demas el 1
-L_7E6E:
-	call L_7E75		;7e6e   ; Arrancar el golpe
+arranca_el_golpe_de_siete_cuadros:
+	call pon_el_tipo_de_golpe		;7e6e   ; Arrancar el golpe
 	ld a,007h		;7e71   ; Siete cuadros
 	jr L_7E7A		;7e73
-L_7E75:
+pon_el_tipo_de_golpe:
 	ld (0e135h),a		;7e75   ; El tipo de golpe
 	ld a,010h		;7e78   ; Y dieciseis cuadros
 L_7E7A:
@@ -7705,11 +7705,11 @@ L_7E7A:
 ; apuntadas que se van gastando.
 ; ----------------------------------------------------------------------
 lo_maneja_la_maquina:
-	call L_7EF2		;7e7e   ; Corregir la fila si se salio
-	call L_7F2A		;7e81   ; Gastar la cola de un lado
-	call L_7ECB		;7e84   ; Y la del otro
-	call L_7C47		;7e87   ; Lo del escenario 3
-	call L_7EA0		;7e8a   ; El escenario de la ronda
+	call corrige_el_lado_segun_la_fila		;7e7e   ; Corregir la fila si se salio
+	call saca_lo_siguiente_de_la_cola_del_lado		;7e81   ; Gastar la cola de un lado
+	call saca_lo_siguiente_de_la_otra_cola		;7e84   ; Y la del otro
+	call mueve_lo_agarrado_del_escenario_3		;7e87   ; Lo del escenario 3
+	call el_escenario_de_la_ronda		;7e8a   ; El escenario de la ronda
 	call reparte_por_tabla		;7e8d   ; Y a su rutina
 
 ; ----------------------------------------------------------------------
@@ -7724,7 +7724,7 @@ DATA_tabla_de_subescenas_7e90:
 ; ======================================================================
 
 
-L_7EA0:
+el_escenario_de_la_ronda:
 	push hl			;7ea0   ; La tira de escenarios
 	ld hl,0e2c0h		;7ea1
 	ld a,(0e066h)		;7ea4   ; Indexada por la ronda
@@ -7732,7 +7732,7 @@ L_7EA0:
 	ld a,(hl)			;7eaa   ; Ese es el escenario
 	pop hl			;7eab
 	ret			;7eac
-L_7EAD:
+saca_dos_bits_del_azar:
 	ld b,002h		;7ead   ; Dos veces
 L_7EAF:
 	push bc			;7eaf
@@ -7753,7 +7753,7 @@ L_7EBA:
 	ld a,(0e160h)		;7ec5   ; Y los dos bits bajos son el resultado
 	and 003h		;7ec8
 	ret			;7eca
-L_7ECB:
+saca_lo_siguiente_de_la_otra_cola:
 	ld hl,0e184h		;7ecb   ; La cola de este lado
 	ld a,(hl)			;7ece
 	and a			;7ecf
@@ -7775,9 +7775,9 @@ L_7EDA:
 	bit 2,a		;7eec
 	pop hl			;7eee
 	jp L_811B		;7eef
-L_7EF2:
+corrige_el_lado_segun_la_fila:
 	ld hl,0e133h		;7ef2   ; La fila del enemigo
-	call L_7EA0		;7ef5   ; En que escenario
+	call el_escenario_de_la_ronda		;7ef5   ; En que escenario
 	cp 007h		;7ef8   ; El 7 tiene sus limites
 	jr z,L_7F1A		;7efa
 	ld a,(0e134h)		;7efc   ; De que lado viene
@@ -7814,12 +7814,12 @@ L_7F22:
 L_7F28:
 	ld (hl),b			;7f28
 	ret			;7f29
-L_7F2A:
+saca_lo_siguiente_de_la_cola_del_lado:
 	ld hl,0e185h		;7f2a   ; La cola de este lado
 	ld a,(hl)			;7f2d
 	and a			;7f2e
 	jr z,L_7F86		;7f2f   ; Vacia
-	call L_7EA0		;7f31   ; En que escenario
+	call el_escenario_de_la_ronda		;7f31   ; En que escenario
 	dec (hl)			;7f34   ; Una menos
 	cp 007h		;7f35   ; El 7 va aparte
 	jr z,L_7F79		;7f37
@@ -7854,7 +7854,7 @@ L_7F65:
 	call pon_la_subescena		;7f65   ; Poner la subescena
 	and a			;7f68
 	jr z,L_7F79		;7f69
-	call L_7EA0		;7f6b
+	call el_escenario_de_la_ronda		;7f6b
 	cp 003h		;7f6e
 	ld a,003h		;7f70
 	jr nz,L_7F76		;7f72
@@ -7925,9 +7925,9 @@ L_7FC3:
 decide_que_hace_el_enemigo:
 	call copia_el_lado		;7fc7   ; Copiar el lado en el que esta el jugador
 	call mide_la_distancia		;7fca   ; Medir la distancia; deja el tramo en B
-	call L_7EA0		;7fcd   ; El escenario de la ronda...
+	call el_escenario_de_la_ronda		;7fcd   ; El escenario de la ronda...
 	ld hl,07fdbh		;7fd0   ; ...elige una de las ocho tablas
-	call L_4830		;7fd3
+	call lee_la_entrada_de_la_tabla		;7fd3
 	ex de,hl			;7fd6
 	ld a,b			;7fd7   ; Y el tramo de distancia, la entrada
 	jp reparte_por_tabla_en_hl		;7fd8   ; A la reaccion que toque
@@ -8073,10 +8073,10 @@ L_8097:
 	ld a,003h		;8097   ; Fuera de rango, se queda en 3
 L_8099:
 	ld (hl),a			;8099
-L_809A:
-	jp L_7E75		;809a   ; Arrancarlo
+arranca_el_golpe:
+	jp pon_el_tipo_de_golpe		;809a   ; Arrancarlo
 L_809D:
-	call L_7EAD		;809d   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;809d   ; Dos bits del registro
 	dec a			;80a0   ; A uno: la orden 6
 	jr z,L_80B3		;80a1
 	dec a			;80a3   ; A dos: acercarse
@@ -8099,12 +8099,12 @@ L_80B7:
 L_80B9:
 	ld a,004h		;80b9   ; Orden 4
 L_80BB:
-	call L_809A		;80bb   ; Arrancar el golpe
+	call arranca_el_golpe		;80bb   ; Arrancar el golpe
 	ld a,006h		;80be   ; Y ponerlo en el sexto cuadro
 	ld (0e137h),a		;80c0
 	ret			;80c3
 L_80C4:
-	call L_7EAD		;80c4   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;80c4   ; Dos bits del registro
 	dec a			;80c7
 	jr z,L_80D0		;80c8
 	dec a			;80ca
@@ -8117,12 +8117,12 @@ L_80D2:
 	ld a,005h		;80d2   ; Orden 5
 	jr L_80BB		;80d4
 L_80D6:
-	call L_7EAD		;80d6   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;80d6   ; Dos bits del registro
 	dec a			;80d9
 	jr z,L_80EA		;80da
 	jr L_8081		;80dc
 L_80DE:
-	call L_7EAD		;80de   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;80de   ; Dos bits del registro
 	dec a			;80e1
 	jr z,L_80A9		;80e2   ; A uno: la orden 6
 	dec a			;80e4
@@ -8147,7 +8147,7 @@ L_80EE:
 	xor a			;8103
 L_8104:
 	ld (hl),a			;8104   ; Ahi va
-	jp L_7E75		;8105   ; Y a arrancarlo
+	jp pon_el_tipo_de_golpe		;8105   ; Y a arrancarlo
 L_8108:
 	ld a,(0e003h)		;8108   ; El contador de cuadros
 	bit 6,a		;810b   ; Su bit 6 decide
@@ -8294,7 +8294,7 @@ L_833F:
 	ld a,030h		;833f   ; 0x30 cuadros de espera
 	jp L_8087		;8341
 L_8344:
-	call L_7EAD		;8344   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8344   ; Dos bits del registro
 	dec a			;8347   ; A uno: la orden 6
 	jr z,L_8363		;8348
 	dec a			;834a
@@ -8305,7 +8305,7 @@ L_8344:
 L_8352:
 	jp L_80D2		;8352
 L_8355:
-	call L_7EAD		;8355   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8355   ; Dos bits del registro
 	dec a			;8358
 	jr z,L_8361		;8359
 	dec a			;835b
@@ -8319,7 +8319,7 @@ L_8363:
 L_8366:
 	jp L_8081		;8366   ; Orden 3
 L_8369:
-	call L_7EAD		;8369   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8369   ; Dos bits del registro
 	dec a			;836c
 	jr z,L_8352		;836d   ; A uno: la orden 5
 	dec a			;836f
@@ -8345,7 +8345,7 @@ L_837D:
 	xor a			;838e   ; ...y el 2
 L_838F:
 	ld (hl),a			;838f   ; Ahi va
-	jp L_7E75		;8390   ; Y a arrancarlo
+	jp pon_el_tipo_de_golpe		;8390   ; Y a arrancarlo
 L_8393:
 	ld a,(0e003h)		;8393   ; El contador de cuadros
 	bit 6,a		;8396   ; Su bit 6 decide
@@ -8451,9 +8451,9 @@ L_8535:
 	ld a,002h		;8535   ; Fuera de rango, se queda en 2
 L_8537:
 	ld (hl),a			;8537   ; Ahi va
-	jp L_7E75		;8538   ; Y a arrancarlo
+	jp pon_el_tipo_de_golpe		;8538   ; Y a arrancarlo
 L_853B:
-	call L_7EAD		;853b   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;853b   ; Dos bits del registro
 	dec a			;853e   ; A uno: la orden 5
 	jr z,L_854A		;853f
 	dec a			;8541
@@ -8469,7 +8469,7 @@ L_854D:
 L_8550:
 	jp L_80B9		;8550
 L_8553:
-	call L_7EAD		;8553   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8553   ; Dos bits del registro
 	dec a			;8556
 	jr z,L_8550		;8557
 	dec a			;8559
@@ -8478,7 +8478,7 @@ L_8553:
 	jr z,L_8550		;855d
 	jp L_80B3		;855f   ; Y si no, la orden 6
 L_8562:
-	call L_7EAD		;8562   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8562   ; Dos bits del registro
 	dec a			;8565
 	jr z,L_854D		;8566
 	dec a			;8568
@@ -8487,7 +8487,7 @@ L_8562:
 	jr z,L_854D		;856c
 	jr L_8547		;856e
 L_8570:
-	call L_7EAD		;8570   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8570   ; Dos bits del registro
 	dec a			;8573
 	jr z,L_8550		;8574
 	dec a			;8576
@@ -8596,7 +8596,7 @@ L_8732:
 	ld a,028h		;8732   ; 0x28 cuadros de espera
 	jp L_8087		;8734
 L_8737:
-	call L_7EAD		;8737   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8737   ; Dos bits del registro
 	dec a			;873a
 	jr z,L_8745		;873b
 	dec a			;873d
@@ -8611,7 +8611,7 @@ L_8747:
 L_874A:
 	jp L_80D2		;874a   ; Orden 5
 L_874D:
-	call L_7EAD		;874d   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;874d   ; Dos bits del registro
 	dec a			;8750
 	jr z,L_8747		;8751
 	dec a			;8753
@@ -8621,7 +8621,7 @@ L_874D:
 L_8759:
 	jp L_80B3		;8759   ; Orden 6
 L_875C:
-	call L_7EAD		;875c   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;875c   ; Dos bits del registro
 	dec a			;875f
 	jr z,L_8747		;8760
 	dec a			;8762
@@ -8630,7 +8630,7 @@ L_875C:
 L_8767:
 	jp L_8081		;8767   ; Orden 3
 L_876A:
-	call L_7EAD		;876a   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;876a   ; Dos bits del registro
 	dec a			;876d
 	dec a			;876e
 	jr z,L_8745		;876f   ; A dos: la orden 4
@@ -8654,7 +8654,7 @@ L_8788:
 	ld a,003h		;8788   ; Cual ha quedado libre
 	sub b			;878a
 	ld (0e135h),a		;878b   ; Esa se lanza
-	jp L_7E75		;878e   ; Y arrancar el golpe
+	jp pon_el_tipo_de_golpe		;878e   ; Y arrancar el golpe
 L_8791:
 	ld hl,0e159h		;8791   ; La espera
 	dec (hl)			;8794
@@ -8818,11 +8818,11 @@ L_898B:
 	dec a			;8993   ; ...y 2 si no
 L_8994:
 	ld (hl),a			;8994   ; Ahi va
-	jp L_7E75		;8995   ; Y a arrancarlo
+	jp pon_el_tipo_de_golpe		;8995   ; Y a arrancarlo
 L_8998:
 	jp L_8081		;8998   ; Orden 3
 L_899B:
-	call L_7EAD		;899b   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;899b   ; Dos bits del registro
 	dec a			;899e
 	jr z,L_89A9		;899f
 	dec a			;89a1
@@ -8837,7 +8837,7 @@ L_89AC:
 L_89AF:
 	jp L_80EA		;89af   ; Orden 3 con golpe
 L_89B2:
-	call L_7EAD		;89b2   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;89b2   ; Dos bits del registro
 	dec a			;89b5
 	jr z,L_89C1		;89b6
 	dec a			;89b8
@@ -8849,12 +8849,12 @@ L_89BE:
 L_89C1:
 	jr L_8998		;89c1   ; Y a la orden 3
 L_89C3:
-	call L_7EAD		;89c3   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;89c3   ; Dos bits del registro
 	and a			;89c6   ; A cero: la orden 3
 	jr z,L_89C1		;89c7
 	jr L_89AF		;89c9   ; Y si no, la 3 con golpe
 L_89CB:
-	call L_7EAD		;89cb   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;89cb   ; Dos bits del registro
 	dec a			;89ce
 	jr z,L_89AC		;89cf
 	dec a			;89d1
@@ -8869,7 +8869,7 @@ L_89D6:
 	ret nz			;89e0
 	ld a,002h		;89e1   ; El golpe 2
 	ld (0e135h),a		;89e3
-	jp L_7E75		;89e6   ; Arrancarlo
+	jp pon_el_tipo_de_golpe		;89e6   ; Arrancarlo
 L_89E9:
 	ld a,(0e003h)		;89e9   ; El contador de cuadros
 	bit 6,a		;89ec   ; Su bit 6 decide
@@ -8959,7 +8959,7 @@ L_8B61:
 L_8B76:
 	jp L_80AF		;8b76   ; Orden 4
 L_8B79:
-	call L_7EAD		;8b79   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8b79   ; Dos bits del registro
 	dec a			;8b7c
 	jr z,L_8B85		;8b7d
 	dec a			;8b7f
@@ -8973,7 +8973,7 @@ L_8B87:
 L_8B8A:
 	jp L_80EA		;8b8a   ; Orden 3 con golpe
 L_8B8D:
-	call L_7EAD		;8b8d   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8b8d   ; Dos bits del registro
 	dec a			;8b90
 	jr z,L_8B87		;8b91
 	dec a			;8b93
@@ -8984,12 +8984,12 @@ L_8B8D:
 L_8B9C:
 	jp L_80B9		;8b9c   ; Orden 4 con golpe
 L_8B9F:
-	call L_7EAD		;8b9f   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8b9f   ; Dos bits del registro
 	dec a			;8ba2
 	jr z,L_8B8A		;8ba3   ; A uno: la orden 3 con golpe
 	jr L_8B85		;8ba5   ; Y si no, la 4
 L_8BA7:
-	call L_7EAD		;8ba7   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8ba7   ; Dos bits del registro
 	and a			;8baa
 	jr nz,L_8B9C		;8bab   ; A cero: la orden 4
 	jr L_8B85		;8bad   ; Y si no, la 4 con golpe
@@ -9079,7 +9079,7 @@ L_8D69:
 L_8D6E:
 	jp L_80AF		;8d6e   ; Orden 4
 L_8D71:
-	call L_7EAD		;8d71   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8d71   ; Dos bits del registro
 	dec a			;8d74
 	jr z,L_8D80		;8d75
 	dec a			;8d77
@@ -9095,7 +9095,7 @@ L_8D82:
 L_8D85:
 	jp L_80EA		;8d85   ; Orden 3 con golpe
 L_8D88:
-	call L_7EAD		;8d88   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8d88   ; Dos bits del registro
 	dec a			;8d8b
 	dec a			;8d8c
 	jr z,L_8D7D		;8d8d   ; A dos: la orden 5
@@ -9103,7 +9103,7 @@ L_8D88:
 	jr z,L_8D82		;8d90   ; A tres: la 4 con golpe
 	jp L_80B3		;8d92   ; Y si no, la 6
 L_8D95:
-	call L_7EAD		;8d95   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8d95   ; Dos bits del registro
 	dec a			;8d98
 	jr z,L_8D82		;8d99
 	dec a			;8d9b
@@ -9113,7 +9113,7 @@ L_8D95:
 L_8DA1:
 	jr L_8D80		;8da1   ; Orden 4
 L_8DA3:
-	call L_7EAD		;8da3   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8da3   ; Dos bits del registro
 	dec a			;8da6
 	dec a			;8da7
 	jr z,L_8D80		;8da8   ; A dos: la orden 4
@@ -9200,20 +9200,20 @@ L_8F1C:
 	ld (0e154h),a		;8f1e
 	xor a			;8f21   ; El golpe 0
 	ld (0e135h),a		;8f22
-	jp L_7E75		;8f25   ; Y a arrancarlo
+	jp pon_el_tipo_de_golpe		;8f25   ; Y a arrancarlo
 L_8F28:
-	call L_7EAD		;8f28   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8f28   ; Dos bits del registro
 	and a			;8f2b   ; A cero: esperar
 	jr z,L_8F0A		;8f2c
 L_8F2E:
 	jp L_8081		;8f2e   ; Orden 3
 L_8F31:
-	call L_7EAD		;8f31   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8f31   ; Dos bits del registro
 	and a			;8f34
 	jr z,L_8F2E		;8f35
 	jp L_80B3		;8f37   ; Y si no, la orden 6
 L_8F3A:
-	call L_7EAD		;8f3a   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8f3a   ; Dos bits del registro
 	dec a			;8f3d
 	jr z,L_8F45		;8f3e
 	dec a			;8f40
@@ -9223,7 +9223,7 @@ L_8F45:
 	xor a			;8f45   ; El golpe 0, arrancado
 	jp L_80BB		;8f46
 L_8F49:
-	call L_7EAD		;8f49   ; Dos bits del registro
+	call saca_dos_bits_del_azar		;8f49   ; Dos bits del registro
 	and a			;8f4c
 	jr z,L_8F45		;8f4d
 	jr L_8F2E		;8f4f   ; Y si no, la orden 3
@@ -9241,7 +9241,7 @@ L_8F61:
 	ld (hl),a			;8f62   ; Ahi va la espera
 	xor a			;8f63
 	ld (0e135h),a		;8f64   ; El golpe 0
-	jp L_7E75		;8f67   ; Y a arrancarlo
+	jp pon_el_tipo_de_golpe		;8f67   ; Y a arrancarlo
 L_8F6A:
 	ld a,(0e003h)		;8f6a   ; El contador de cuadros
 	bit 6,a		;8f6d   ; Su bit 6 decide
@@ -9288,10 +9288,10 @@ decide_el_siguiente:
 	jp nz,L_9135		;9027
 	ld hl,09276h		;902a   ; La tabla de las rondas
 	ld a,(0e066h)		;902d   ; La ronda...
-	call L_4830		;9030   ; ...da la tanda
+	call lee_la_entrada_de_la_tabla		;9030   ; ...da la tanda
 	ex de,hl			;9033
 	ld a,(0e061h)		;9034   ; Y (0xE061), la tira de parejas
-	call L_4830		;9037
+	call lee_la_entrada_de_la_tabla		;9037
 	ld hl,0e10ah		;903a   ; El paso dentro de la tira
 	ld a,(hl)			;903d
 	add a,a			;903e   ; Las parejas ocupan dos bytes
@@ -9466,12 +9466,12 @@ L_9139:
 ; ----------------------------------------------------------------------
 mueve_las_seis_ranuras:
 	push bc			;913f
-	call L_914B		;9140   ; Mover esta
+	call reparte_la_escena_de_la_ranura		;9140   ; Mover esta
 	ld de,0000ch		;9143   ; Doce bytes por ranura
 	add ix,de		;9146
 	pop bc			;9148
 	djnz mueve_las_seis_ranuras		;9149   ; Las seis
-L_914B:
+reparte_la_escena_de_la_ranura:
 	ld a,(ix+000h)		;914b   ; La escena de esta
 	and a			;914e
 	ret z			;914f   ; Vacia
@@ -9499,10 +9499,10 @@ L_915A:
 L_9166:
 	ld a,(ix+005h)		;9166   ; La subescena
 	dec a			;9169
-	jp z,L_91D8		;916a   ; A uno: caer
+	jp z,borra_el_paso_y_corre_la_columna		;916a   ; A uno: caer
 	dec a			;916d
 	jp z,L_9212		;916e   ; A dos: andar
-	call L_91DF		;9171   ; Y si no, bajar por la curva
+	call baja_por_la_curva		;9171   ; Y si no, bajar por la curva
 	ret nz			;9174   ; Todavia baja
 	ld a,014h		;9175   ; Ya abajo: fotograma 0x14
 	ld (ix+001h),a		;9177
@@ -9524,7 +9524,7 @@ L_9189:
 	xor a			;9196
 	ld (ix+000h),a		;9197   ; ...y vaciar la ranura
 	ret			;919a
-L_919B:
+corre_la_columna_hacia_su_lado:
 	ld a,(ix+003h)		;919b   ; Hacia que lado va
 	and a			;919e
 	ld a,(0e1aah)		;919f   ; Lo que corre
@@ -9559,12 +9559,12 @@ L_91CE:
 L_91D5:
 	or 001h		;91d5
 	ret			;91d7
-L_91D8:
+borra_el_paso_y_corre_la_columna:
 	xor a			;91d8
 	ld (ix+004h),a		;91d9
-	jp L_919B		;91dc
-L_91DF:
-	call L_91D8		;91df   ; Bajar por la curva
+	jp corre_la_columna_hacia_su_lado		;91dc
+baja_por_la_curva:
+	call borra_el_paso_y_corre_la_columna		;91df   ; Bajar por la curva
 	ld a,(0e003h)		;91e2   ; Uno de cada dos cuadros
 	and 002h		;91e5
 	ret nz			;91e7
@@ -9597,7 +9597,7 @@ DATA_la_curva_del_enemigo:
 
 
 L_9212:
-	call L_919B		;9212   ; Andar
+	call corre_la_columna_hacia_su_lado		;9212   ; Andar
 	ld a,(0e003h)		;9215   ; Uno de cada dos cuadros
 	and 002h		;9218
 	ret nz			;921a
@@ -9611,23 +9611,23 @@ L_9225:
 L_9227:
 	ld (ix+004h),a		;9227
 	ret			;922a
-L_922B:
+limpia_la_ultima_banda_y_repasa_las_ranuras:
 	ld hl,03a00h		;922b   ; La ultima banda de la pantalla...
 	ld c,0a0h		;922e   ; ...0xA0 casillas...
 	xor a			;9230
-	call L_4885		;9231   ; ...a cero
+	call rellena_c_bytes_con_filvrm		;9231   ; ...a cero
 	ld hl,0e200h		;9234   ; Las seis ranuras
 	ld b,005h		;9237
 L_9239:
 	push bc			;9239
 	push hl			;923a
-	call L_9246		;923b   ; Pintar esta
+	call pinta_la_figura_de_la_ranura		;923b   ; Pintar esta
 	ld de,0000ch		;923e   ; Doce bytes por ranura
 	pop hl			;9241
 	add hl,de			;9242
 	pop bc			;9243
 	djnz L_9239		;9244
-L_9246:
+pinta_la_figura_de_la_ranura:
 	ld a,(hl)			;9246   ; Esta ocupada?
 	and a			;9247
 	ret z			;9248
@@ -9647,7 +9647,7 @@ L_9256:
 	ld a,b			;9256
 	push hl			;9257
 	ld hl,093a6h		;9258   ; La tabla de figuras
-	call L_4830		;925b
+	call lee_la_entrada_de_la_tabla		;925b
 	pop hl			;925e
 	dec hl			;925f
 	dec hl			;9260
@@ -9863,7 +9863,7 @@ DATA_guiones_del_suelo:
 ; ======================================================================
 
 
-L_B8D3:
+pide_pieza_si_la_escena_lo_permite:
 	di			;b8d3   ; Nada de interrupciones tocando la RAM del sonido
 	push hl			;b8d4
 	ld hl,0e002h		;b8d5   ; La marca de escena
@@ -10016,10 +10016,10 @@ L_B9A4:
 	ld a,(ix+002h)		;b9a5   ; Esta voz suena?
 	or a			;b9a8
 	jr nz,L_B9B0		;b9a9
-	call L_BA43		;b9ab   ; No: callarla
+	call apaga_la_voz_y_dejala_libre		;b9ab   ; No: callarla
 	jr L_B9B3		;b9ae
 L_B9B0:
-	call L_B9BB		;b9b0   ; Si: un paso de su guion
+	call calla_la_voz_si_lo_pide_la_orden		;b9b0   ; Si: un paso de su guion
 L_B9B3:
 	inc c			;b9b3   ; La voz siguiente
 	inc c			;b9b4
@@ -10027,7 +10027,7 @@ L_B9B3:
 	add ix,de		;b9b6
 	djnz L_B9A4		;b9b8
 	ret			;b9ba
-L_B9BB:
+calla_la_voz_si_lo_pide_la_orden:
 	bit 6,a		;b9bb   ; El bit 6 de la orden
 	ld d,001h		;b9bd   ; D = 1: apagar
 	call z,mezclador		;b9bf   ; Callar la voz
@@ -10044,7 +10044,7 @@ L_B9D1:
 	ld a,(hl)			;b9d7   ; La orden
 	cp 0feh		;b9d8   ; 0xFE abre un bucle
 	jp z,repite_un_trozo		;b9da
-	jr nc,L_BA43		;b9dd   ; Y 0xFF cierra la pieza
+	jr nc,apaga_la_voz_y_dejala_libre		;b9dd   ; Y 0xFF cierra la pieza
 	bit 7,(ix+002h)		;b9df   ; Pieza larga?
 	jp nz,orden_larga		;b9e3
 	and 0f0h		;b9e6   ; El nibble alto a 2...
@@ -10091,13 +10091,13 @@ L_BA21:
 	call avanza_el_guion		;ba21   ; Avanzar el guion
 L_BA24:
 	ex de,hl			;ba24
-	call L_BB47		;ba25   ; El periodo de esa nota
+	call escribe_las_dos_mitades_del_tono		;ba25   ; El periodo de esa nota
 	ld a,b			;ba28
 	rrca			;ba29   ; El volumen, al nibble bajo
 	rrca			;ba2a
 	rrca			;ba2b
 	rrca			;ba2c
-L_BA2D:
+arranca_la_cuenta_de_la_nota:
 	ld h,a			;ba2d
 	ld a,(ix+00bh)		;ba2e   ; Con destello no se toca la envolvente
 	or a			;ba31
@@ -10108,7 +10108,7 @@ L_BA2D:
 	add a,e			;ba3d
 	ld (ix+008h),a		;ba3e   ; ...marca cuando empieza a bajar
 	jr escribe_el_volumen		;ba41
-L_BA43:
+apaga_la_voz_y_dejala_libre:
 	ld d,001h		;ba43   ; D = 1: apagar
 	call mezclador		;ba45
 	xor a			;ba48   ; La voz queda libre
@@ -10249,7 +10249,7 @@ L_BB25:
 	ld a,(ix+006h)		;bb2a
 L_BB2D:
 	ld (ix+007h),a		;bb2d
-	call L_BA2D		;bb30
+	call arranca_la_cuenta_de_la_nota		;bb30
 	ld a,b			;bb33
 pon_el_periodo:
 	ld hl,0bb77h		;bb34   ; La tabla de doce periodos
@@ -10258,12 +10258,12 @@ pon_el_periodo:
 	ld h,000h		;bb3b
 	ld a,(ix+005h)		;bb3d   ; La octava
 	or a			;bb40
-	jr z,L_BB47		;bb41   ; La cero es la de la tabla
+	jr z,escribe_las_dos_mitades_del_tono		;bb41   ; La cero es la de la tabla
 	ld b,a			;bb43
 L_BB44:
 	add hl,hl			;bb44   ; Cada octava mas es doblar el periodo
 	djnz L_BB44		;bb45
-L_BB47:
+escribe_las_dos_mitades_del_tono:
 	ld a,c			;bb47
 	ld e,h			;bb48
 	call 00093h		;bb49   ; BIOS WRTPSG - Writes data to PSG-register

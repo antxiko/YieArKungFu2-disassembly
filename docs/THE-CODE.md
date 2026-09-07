@@ -3,7 +3,8 @@
     13,725 bytes of code   41.89 %
     19,043 bytes of data   58.11 %
          0 unexplained      0.00 %
-     1,027 named routines, none below 10 % commented
+     1,027 code blocks measured, none below 10 % commented
+       430 of the 1,168 labels carry a name; the rest are internal jumps
      7,142 instructions, 2,919 line comments — 40.9 %
 
 ## Everything hangs off the interrupt
@@ -65,7 +66,7 @@ is `borra_guion`.
 **RLE script** — `guion_rle` (`0x48E1`). `0x01..0x7F` repeats the byte that
 follows N times, `0x81..0xFF` copies the N bytes that follow, `0x80` closes the
 stretch and opens another with a new destination, `0x00` closes the script.
-`L_48E7` is the same thing with the destination already in HL.
+`vuelca_el_guion_con_destino_en_hl` is the same thing with the destination already in HL.
 
 Careful with the `0x80`. Reading it as "does nothing" gives a script that also
 seems to fit — `0x49F5` came out as 53 bytes and landed cleanly on `0x4A2A`,
@@ -92,8 +93,8 @@ themselves through `vuelve_los_bits`, and the right half of the scenery is the
 same drawings reversed. The offsets check out: `0x0560-0x0260 = 0x300` and the
 other two `0x3C0`, exactly the distance of each copy.
 
-The name table is filled separately: row 3 by `L_5B42`, rows 5 and down by
-`L_5B4E`, and the bottom two rows only for backdrops 0 and 3.
+The name table is filled separately: row 3 by `pinta_la_fila_3_y_los_dos_nombres`, rows 5 and down by
+`monta_el_decorado_o_la_oleada`, and the bottom two rows only for backdrops 0 and 3.
 
 ## The figures on screen
 

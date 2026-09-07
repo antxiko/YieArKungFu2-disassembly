@@ -62,14 +62,14 @@ class Vram:
         return self.b(d) | (self.b(d + 1) << 8)
 
     def tabla(self, t, i):
-        """L_4830: `add a,a` + `suma_a_a_hl` + leer la palabra. Una entrada."""
+        """lee_la_entrada_de_la_tabla: `add a,a` + `suma_a_a_hl` + leer la palabra. Una entrada."""
         return self.w(t + 2 * i)
 
     # ------------------------------------------------------------------
     # Los volcados a la VRAM
     # ------------------------------------------------------------------
     def rle(self, p, dest=None):
-        """guion_rle (0x48E1) si dest es None, y L_48E7 si el destino ya viene.
+        """guion_rle (0x48E1) si dest es None, y vuelca_el_guion_con_destino_en_hl si el destino ya viene.
 
         Devuelve los bytes de ROM que ha consumido el guion.
         """
@@ -81,7 +81,7 @@ class Vram:
         return n
 
     def rle_en_tercios(self, p, dest, veces):
-        """L_48AE (dos tercios) y L_48B2 (los tres): el mismo guion, +0x800."""
+        """vuelca_el_guion_en_dos_tercios (dos tercios) y vuelca_el_guion_en_los_tres_tercios (los tres): el mismo guion, +0x800."""
         for _ in range(veces):
             self.rle(p, dest)
             dest += 0x800
@@ -198,7 +198,7 @@ class Vram:
 
     def limpia_la_pantalla(self):
         """limpia_la_pantalla (0x485C): aparca los sprites y borra los nombres."""
-        self.v[ATRIBUTOS] = 0xD0                 # L_46BF: 0xD0 en la y del primero
+        self.v[ATRIBUTOS] = 0xD0                 # aparca_los_sprites: 0xD0 en la y del primero
         self.rellena(NOMBRES, 0x300, 0x00)
         return self
 
@@ -235,7 +235,7 @@ class Vram:
         """monta_el_titulo (0x4CE9): borde negro, pantalla limpia y logotipo.
 
         El logotipo son tres piezas: los patrones de 0x4D43 en 0x2400 -y
-        L_48AE los repite en 0x2C00, o sea en los dos primeros tercios-, su
+        vuelca_el_guion_en_dos_tercios los repite en 0x2C00, o sea en los dos primeros tercios-, su
         color plano de 0x4F4E en 0x0400 y 0x0C00, y la figura de 7x18 de
         0x4F5F, que la coloca 0x4D10 en la fila 7, columna 4.
 
@@ -249,7 +249,7 @@ class Vram:
         return self
 
     def pantalla_del_titulo(self, cursor=True, dos_jugadores=False):
-        """L_4D06 (0x4D06) y L_4D1F: el titulo entero, con su cursor.
+        """monta_la_pantalla_del_titulo (0x4D06) y L_4D1F: el titulo entero, con su cursor.
 
         Tras el logotipo van los dos rotulos de 0x4A3A -"PLAY SELECT" y las dos
         opciones- y, cada cuadro de la escena 1, el cursor: el mismo guion de
@@ -272,7 +272,7 @@ class Vram:
 
     # ------------------------------------------------------------------
     def sprites_del_jugador(self):
-        """L_5ABA (0x5ABA): los dieciseis guiones de sprite y su espejo.
+        """sube_los_sprites_del_muneco (0x5ABA): los dieciseis guiones de sprite y su espejo.
 
         Las dos tablas van en paralelo: 0x5B02 los guiones y 0x5B22 los
         destinos, de 0x1A00 a 0x1EE0. Y al final, `espeja_sprites` refleja 48
@@ -285,7 +285,7 @@ class Vram:
         return self
 
     def decorado_de_fondo(self, escenario=None):
-        """L_5AE1 (0xA7D1, el guion suelto) o L_5AE6 (uno de los ocho del pozo).
+        """sube_el_guion_de_sprite_suelto (0xA7D1, el guion suelto) o sube_el_guion_del_pozo_de_la_ronda (uno de los ocho del pozo).
 
         Los dos acaban en `guion_rle`, o sea con el destino metido dentro del
         propio guion.
@@ -371,9 +371,9 @@ class Vram:
         return self
 
     def fila_del_decorado(self, escenario=0, dos_jugadores=False):
-        """L_5B42 (0x5B42): la fila 3, el contador de vidas y los dos nombres."""
+        """pinta_la_fila_3_y_los_dos_nombres (0x5B42): la fila 3, el contador de vidas y los dos nombres."""
         self.rle(0x6006)                         # la fila 3, destino dentro
-        if dos_jugadores:                        # L_4838, solo con dos
+        if dos_jugadores:                        # pinta_los_contadores_de_vidas, solo con dos
             self.v[0x384A] = 0x3F
             self.v[0x3855] = 0x3F
         self.literal(0x447B)                     # "LEE YOUNG", el que se maneja
@@ -381,7 +381,7 @@ class Vram:
         return self
 
     def decorado_de_arriba(self, decorado):
-        """L_5B4E (0x5B4E) con el modo 3: el decorado del combate.
+        """monta_el_decorado_o_la_oleada (0x5B4E) con el modo 3: el decorado del combate.
 
         Sube el guion de 0x5FFE a partir de la fila 5, y los decorados 0 y 3
         llevan ademas las dos filas de abajo -que son los mismos 64 bytes de
@@ -422,7 +422,7 @@ class Vram:
         return self
 
     def marcador(self, dos_jugadores=False, nivel=1, puntos=(0, 0, 0), vidas=3):
-        """L_472F (0x472F): el armazon del marcador y los cuatro numeros.
+        """pinta_el_marcador (0x472F): el armazon del marcador y los cuatro numeros.
 
         Los rotulos salen del guion literal de 0x4A06 -"1UP SCORE", "HI-SCORE",
         "STAGE", "2UP"-, y encima se escriben los digitos en BCD por 0x4785,
@@ -462,14 +462,14 @@ class Vram:
     # Las escenas enteras, en el orden en que las monta el cartucho
     # ------------------------------------------------------------------
     def monta_la_partida(self, escenario):
-        """L_5776 (0x5776): lo que monta la demostracion al empezar.
+        """monta_la_partida_de_la_demostracion (0x5776): lo que monta la demostracion al empezar.
 
             prepara_el_marcador             y de paso (0xE2E0) = escenario / 2
-            L_5ABA                          los sprites del muneco
-            L_5AE1                          el decorado de fondo suelto
+            sube_los_sprites_del_muneco                          los sprites del muneco
+            sube_el_guion_de_sprite_suelto                          el decorado de fondo suelto
             monta_la_pantalla_de_combate    marco, iconos, bandas y espejo
-            L_5B42                          la fila 3 y los dos nombres
-            L_472F                          y el marcador
+            pinta_la_fila_3_y_los_dos_nombres                          la fila 3 y los dos nombres
+            pinta_el_marcador                          y el marcador
         """
         self.sprites_del_jugador()
         self.decorado_de_fondo()
@@ -483,7 +483,7 @@ class Vram:
 
         En el modo 3 -el de un jugador contra uno- el suelo lo pone la RONDA
         (0x50C4) y no el montaje de la pantalla, y detras va el decorado de
-        arriba de L_5B4E. Con eso la pantalla queda como se ve jugando.
+        arriba de monta_el_decorado_o_la_oleada. Con eso la pantalla queda como se ve jugando.
         """
         self.pon_el_suelo_de_la_ronda(escenario)
         self.decorado_de_fondo(escenario)
@@ -533,11 +533,11 @@ class Vram:
 
             INIT 0x40B6      arranca_la_pantalla: los 16 KB a cero
             escena 0 sub 2   limpia, la fuente y el cartel de la presentacion
-            escena 0 sub 1   0x4114 -> L_4D06, la pantalla del titulo
+            escena 0 sub 1   0x4114 -> monta_la_pantalla_del_titulo, la pantalla del titulo
         """
         self.arranca_la_pantalla()               # INIT 0x40B6
         self.presentacion()
-        self.pantalla_del_titulo()               # 0x4114 -> L_4D06
+        self.pantalla_del_titulo()               # 0x4114 -> monta_la_pantalla_del_titulo
         return self
 
     def presentacion(self):

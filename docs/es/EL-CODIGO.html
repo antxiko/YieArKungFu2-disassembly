@@ -87,7 +87,8 @@ audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
 <pre><code>13.725 bytes de codigo   41,89 %
 19.043 bytes de datos    58,11 %
      0 sin explicar       0,00 %
- 1.027 rutinas con nombre, ninguna por debajo del 10 % comentada
+ 1.027 bloques de codigo medidos, ninguno por debajo del 10 % comentado
+   430 de las 1.168 etiquetas llevan nombre; el resto son saltos internos
  7.142 instrucciones, 2.919 comentarios de linea — 40,9 %</code></pre>
 <h2 id="todo-cuelga-de-la-interrupcion">Todo cuelga de la interrupcion</h2>
 <p>INIT acaba en un <code>jr $</code> en <code>0x40C1</code>. De ahi en adelante no pasa nada en el flujo principal: <code>0x409B</code> ha escrito un <code>jp cada_cuadro</code> en el gancho de <code>0xFD9A</code>, y <code>cada_cuadro</code> (<code>0x402E</code>) es el juego entero.</p>
@@ -106,13 +107,13 @@ audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
 <h2 id="los-cuatro-formatos-de-datos">Los cuatro formatos de datos</h2>
 <p>Aqui no hay nada guardado en plano. Todo es un guion, y los cuatro lectores estan traducidos en <code>tools/formatos.py</code>:</p>
 <p><b>Guion literal</b> — <code>guion_literal</code> (<code>0x48C8</code>). Una palabra de destino de VRAM y detras las casillas, una a una; <code>0xFE</code> cierra el tramo y abre otro con su destino, <code>0xFF</code> cierra el guion. La misma rutina tambien <b>borra</b>: el <code>and c</code> de <code>0x48D6</code> con <code>C = 0</code> convierte en ceros todo lo que se escriba, y eso es <code>borra_guion</code>.</p>
-<p><b>Guion RLE</b> — <code>guion_rle</code> (<code>0x48E1</code>). <code>0x01..0x7F</code> repite N veces el byte que sigue, <code>0x81..0xFF</code> copia los N bytes que siguen, <code>0x80</code> cierra el tramo y abre otro con otro destino, <code>0x00</code> cierra el guion. <code>L_48E7</code> es lo mismo con el destino ya en HL.</p>
+<p><b>Guion RLE</b> — <code>guion_rle</code> (<code>0x48E1</code>). <code>0x01..0x7F</code> repite N veces el byte que sigue, <code>0x81..0xFF</code> copia los N bytes que siguen, <code>0x80</code> cierra el tramo y abre otro con otro destino, <code>0x00</code> cierra el guion. <code>vuelca_el_guion_con_destino_en_hl</code> es lo mismo con el destino ya en HL.</p>
 <p>Cuidado con el <code>0x80</code>. Leerlo como &quot;no hace nada&quot; da un guion que tambien parece encajar -<code>0x49F5</code> salia de 53 bytes y llegaba limpiamente a <code>0x4A2A</code>, saltandose de paso el guion de <code>0x4A06</code> que hay en medio- y ademas escupia texto legible. Lo que lo delata es que la cadena entera de guiones consecutivos solo cierra sin huecos ni solapes con la lectura buena.</p>
 <p><b>Figura</b> — hay dos, y no son la misma. Las dos leen alto y ancho delante y las dos tratan <code>0xF0..0xFF</code> como una secuencia ascendente, pero la orden <code>0xE0..0xEF</code> cambia <b>de las dos maneras a la vez</b>: <code>0x67F5</code> repite el byte que viene detras y ocupa dos, y <code>0x67A7</code> escribe <b>ceros</b> y ocupa uno. El primero dibuja las figuras de las oleadas y el segundo las de los rivales.</p>
 <h2 id="montar-una-pantalla">Montar una pantalla</h2>
 <p><code>monta_la_pantalla_de_combate</code> (<code>0x597F</code>) es el trozo de codigo mas claro del cartucho. Primero lo que no cambia -el marco y los iconos- y luego las tres bandas y el suelo, cada uno con su pareja de tablas entre las seis que van seguidas de <code>0x592F</code> a <code>0x597E</code>.</p>
 <p>El color sube <b>dos veces</b> y el patron <b>una</b>, y la razon es el espejo: <code>espeja_el_decorado</code> (<code>0x5A4D</code>) copia tres tramos de la tabla de patrones sobre si mismos pasandolos por <code>vuelve_los_bits</code>, y la mitad derecha del decorado son los mismos dibujos del reves. Las cuentas cuadran: <code>0x0560-0x0260 = 0x300</code> y las otras dos <code>0x3C0</code>, que es exactamente la distancia de cada copia.</p>
-<p>La tabla de nombres se llena aparte: la fila 3 por <code>L_5B42</code>, de la fila 5 para abajo por <code>L_5B4E</code>, y las dos filas de abajo solo en los decorados 0 y 3.</p>
+<p>La tabla de nombres se llena aparte: la fila 3 por <code>pinta_la_fila_3_y_los_dos_nombres</code>, de la fila 5 para abajo por <code>monta_el_decorado_o_la_oleada</code>, y las dos filas de abajo solo en los decorados 0 y 3.</p>
 <h2 id="las-figuras-en-pantalla">Las figuras en pantalla</h2>
 <p><code>pinta_la_figura</code> (<code>0x66D8</code>) descomprime una figura en <code>0xE480</code> y la sube a la tabla de nombres fila a fila, recortando lo que se salga por cada lado -el <code>add a,c</code> de <code>0x670C</code> cuando la columna es negativa y el <code>sub 020h</code> de <code>0x671C</code> cuando se pasa de la 32-.</p>
 <p>Dos detalles faciles de leer al reves, y los dos medidos contra el emulador:</p>

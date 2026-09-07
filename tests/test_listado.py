@@ -198,18 +198,33 @@ class TestListado(unittest.TestCase):
                 c += 1
         self.assertEqual(flojas, [], "rutinas flojas: %s" % flojas[:5])
 
-    def test_las_etiquetas_bautizadas_no_van_a_menos(self):
-        """Este listado esta bautizado A MEDIAS, y el numero se fija aqui.
+    def test_ninguna_rutina_se_queda_sin_bautizar(self):
+        """Lo que lleva nombre son las RUTINAS, y una rutina es lo que se LLAMA.
 
-        905 de 1168 etiquetas siguen siendo `L_xxxx`. No es un fallo del
-        listado -el 100 %% esta explicado y no hay una sola rutina por
-        debajo del 10 %% de comentario- pero si una deuda, y esta escrita
-        para que se vea: este test la deja bajar y no subir.
+        Una etiqueta a la que solo se llega con `jr` o `jp` es un salto interno
+        y se queda como `L_xxxx`; una que es destino de un `call` es una rutina
+        y tiene que tener nombre. Aqui no queda ninguna sin el, y el que las
+        busca es tools/sin_bautizar.py.
+        """
+        llamadas = set()
+        for ln in self.lineas:
+            m = re.search(r"^\tcall\s+(?:[a-z]+,)?(L_[0-9A-F]{4})\b", ln)
+            if m:
+                llamadas.add(m.group(1))
+        self.assertEqual(sorted(llamadas), [],
+                         "rutinas llamadas y sin bautizar: %s"
+                         % sorted(llamadas)[:6])
+
+    def test_las_etiquetas_sin_nombre_no_van_a_mas(self):
+        """Y las que quedan sin nombre, que no vuelvan a subir.
+
+        738 de 1168 siguen siendo `L_xxxx`, y todas son saltos internos. El
+        numero se fija aqui para que solo pueda bajar.
         """
         etiquetas = [ln[:-1] for ln in self.lineas
                      if re.match(r"^[A-Za-z_][A-Za-z_0-9]*:\s*$", ln)]
         sin_nombre = [e for e in etiquetas if re.match(r"^L_[0-9A-F]{4}$", e)]
-        self.assertLessEqual(len(sin_nombre), 905,
+        self.assertLessEqual(len(sin_nombre), 738,
                              "%d de %d etiquetas sin bautizar: han subido"
                              % (len(sin_nombre), len(etiquetas)))
 

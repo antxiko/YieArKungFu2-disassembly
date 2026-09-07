@@ -3,7 +3,8 @@
     13.725 bytes de codigo   41,89 %
     19.043 bytes de datos    58,11 %
          0 sin explicar       0,00 %
-     1.027 rutinas con nombre, ninguna por debajo del 10 % comentada
+     1.027 bloques de codigo medidos, ninguno por debajo del 10 % comentado
+       430 de las 1.168 etiquetas llevan nombre; el resto son saltos internos
      7.142 instrucciones, 2.919 comentarios de linea — 40,9 %
 
 ## Todo cuelga de la interrupcion
@@ -64,7 +65,7 @@ de `0x48D6` con `C = 0` convierte en ceros todo lo que se escriba, y eso es
 
 **Guion RLE** — `guion_rle` (`0x48E1`). `0x01..0x7F` repite N veces el byte que
 sigue, `0x81..0xFF` copia los N bytes que siguen, `0x80` cierra el tramo y abre
-otro con otro destino, `0x00` cierra el guion. `L_48E7` es lo mismo con el
+otro con otro destino, `0x00` cierra el guion. `vuelca_el_guion_con_destino_en_hl` es lo mismo con el
 destino ya en HL.
 
 Cuidado con el `0x80`. Leerlo como "no hace nada" da un guion que tambien parece
@@ -92,8 +93,8 @@ si mismos pasandolos por `vuelve_los_bits`, y la mitad derecha del decorado son
 los mismos dibujos del reves. Las cuentas cuadran: `0x0560-0x0260 = 0x300` y las
 otras dos `0x3C0`, que es exactamente la distancia de cada copia.
 
-La tabla de nombres se llena aparte: la fila 3 por `L_5B42`, de la fila 5 para
-abajo por `L_5B4E`, y las dos filas de abajo solo en los decorados 0 y 3.
+La tabla de nombres se llena aparte: la fila 3 por `pinta_la_fila_3_y_los_dos_nombres`, de la fila 5 para
+abajo por `monta_el_decorado_o_la_oleada`, y las dos filas de abajo solo en los decorados 0 y 3.
 
 ## Las figuras en pantalla
 

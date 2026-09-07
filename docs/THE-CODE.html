@@ -87,7 +87,8 @@ audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
 <pre><code>13,725 bytes of code   41.89 %
 19,043 bytes of data   58.11 %
      0 unexplained      0.00 %
- 1,027 named routines, none below 10 % commented
+ 1,027 code blocks measured, none below 10 % commented
+   430 of the 1,168 labels carry a name; the rest are internal jumps
  7,142 instructions, 2,919 line comments — 40.9 %</code></pre>
 <h2 id="everything-hangs-off-the-interrupt">Everything hangs off the interrupt</h2>
 <p>INIT ends in <code>jr $</code> at <code>0x40C1</code>. From there on nothing happens in the main flow: <code>0x409B</code> has written a <code>jp cada_cuadro</code> into the hook at <code>0xFD9A</code>, and <code>cada_cuadro</code> (<code>0x402E</code>) is the whole game.</p>
@@ -106,13 +107,13 @@ audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
 <h2 id="the-four-data-formats">The four data formats</h2>
 <p>Nothing in this cartridge is stored flat. Everything is a script, and all four readers are translated in <code>tools/formatos.py</code>:</p>
 <p><b>Literal script</b> — <code>guion_literal</code> (<code>0x48C8</code>). A word of VRAM destination and then tiles, one at a time; <code>0xFE</code> closes the stretch and opens another with a new destination, <code>0xFF</code> closes the script. The same routine also <b>erases</b>: the <code>and c</code> at <code>0x48D6</code> with <code>C = 0</code> turns everything written into zeros, and that is <code>borra_guion</code>.</p>
-<p><b>RLE script</b> — <code>guion_rle</code> (<code>0x48E1</code>). <code>0x01..0x7F</code> repeats the byte that follows N times, <code>0x81..0xFF</code> copies the N bytes that follow, <code>0x80</code> closes the stretch and opens another with a new destination, <code>0x00</code> closes the script. <code>L_48E7</code> is the same thing with the destination already in HL.</p>
+<p><b>RLE script</b> — <code>guion_rle</code> (<code>0x48E1</code>). <code>0x01..0x7F</code> repeats the byte that follows N times, <code>0x81..0xFF</code> copies the N bytes that follow, <code>0x80</code> closes the stretch and opens another with a new destination, <code>0x00</code> closes the script. <code>vuelca_el_guion_con_destino_en_hl</code> is the same thing with the destination already in HL.</p>
 <p>Careful with the <code>0x80</code>. Reading it as &quot;does nothing&quot; gives a script that also seems to fit — <code>0x49F5</code> came out as 53 bytes and landed cleanly on <code>0x4A2A</code>, skipping the script at <code>0x4A06</code> on the way, and it even spat out readable text. What gives it away is that the whole chain of consecutive scripts only closes with no gaps and no overlaps on the right reading.</p>
 <p><b>Figure</b> — two of them, and they are not the same. Both read height and width first and both treat <code>0xF0..0xFF</code> as an ascending run, but the <code>0xE0..0xEF</code> order differs <b>in both ways at once</b>: <code>0x67F5</code> repeats the byte that follows and takes two bytes, <code>0x67A7</code> writes <b>zeros</b> and takes one. The first draws the wave figures, the second the rivals&#x27;.</p>
 <h2 id="building-a-screen">Building a screen</h2>
 <p><code>monta_la_pantalla_de_combate</code> (<code>0x597F</code>) is the clearest piece of code in the cartridge. First what never changes — the frame and the icons — then the three bands and the floor, each from its own pair of tables among the six laid end to end from <code>0x592F</code> to <code>0x597E</code>.</p>
 <p>Colour goes up <b>twice</b> and the pattern <b>once</b>, and the reason is the mirror: <code>espeja_el_decorado</code> (<code>0x5A4D</code>) copies three stretches of the pattern table over themselves through <code>vuelve_los_bits</code>, and the right half of the scenery is the same drawings reversed. The offsets check out: <code>0x0560-0x0260 = 0x300</code> and the other two <code>0x3C0</code>, exactly the distance of each copy.</p>
-<p>The name table is filled separately: row 3 by <code>L_5B42</code>, rows 5 and down by <code>L_5B4E</code>, and the bottom two rows only for backdrops 0 and 3.</p>
+<p>The name table is filled separately: row 3 by <code>pinta_la_fila_3_y_los_dos_nombres</code>, rows 5 and down by <code>monta_el_decorado_o_la_oleada</code>, and the bottom two rows only for backdrops 0 and 3.</p>
 <h2 id="the-figures-on-screen">The figures on screen</h2>
 <p><code>pinta_la_figura</code> (<code>0x66D8</code>) unpacks a figure into <code>0xE480</code> and sends it to the name table row by row, clipping what falls off each side — the <code>add a,c</code> at <code>0x670C</code> when the column is negative and the <code>sub 020h</code> at <code>0x671C</code> when it runs past 32.</p>
 <p>Two details that are easy to get wrong, and both were measured against the emulator:</p>

@@ -1306,7 +1306,7 @@ C 0x42aa Cambiarlos si le toca al segundo
 C 0x42ab Las vidas del que acaba de perder
 C 0x42ac Le queda mas de una?
 C 0x42b0 Si: le toca al otro
-C 0x42b2 Y a este se le suma una ronda, en BCD
+C 0x42b2 Y a este se le suma una vida, en BCD
 C 0x42b6 Subir el marcador
 C 0x42bc Una vida menos y a seguir
 C 0x42c0 Con un jugador: sigue vivo?
@@ -1314,16 +1314,16 @@ C 0x42c6 Le quedan vidas?
 C 0x42ca No: se acabo
 C 0x42cc La tanda de la coreografia...
 C 0x42d0 ...baja dos, sin pasarse de cero
-C 0x42d6 Y una ronda mas
+C 0x42d6 Y una vida mas
 C 0x42dc Subir el marcador del que gano
-C 0x42df Y la ronda
+C 0x42df Y la vida
 C 0x42e2 Empezar de cero la tanda...
 C 0x42e6 ...y el paso
 C 0x42e9 Si la ronda ha vuelto a cero...
 C 0x42ef ...toca la subescena 3
 C 0x42f4 Subir el marcador del jugador 1
 C 0x42fc El del jugador 2
-C 0x4300 Una ronda mas, en BCD
+C 0x4300 Una VIDA mas, en BCD: 0xE055 y 0xE065 son los contadores de REST, medido metiendoles un valor y mirando que casilla lo pinta
 C 0x4305 Subir el nivel
 C 0x4308 No habia que subirlo
 C 0x4309 La ronda...
@@ -4101,3 +4101,176 @@ C 0x716a La fila
 C 0x716c Entre 0x11 y 0x20 esta tapando algo
 C 0x7174 Lo que hay debajo es la casilla de tapar?
 C 0x7179 Entonces devolver la que se habia guardado
+
+# ---------------------------------------------------------------------------
+# BAUTIZO DE RUTINAS (tanda 1). Una etiqueta L_xxxx a la que solo se llega con
+# `jr` o `jp` es un salto interno y se queda asi; las que son destino de un
+# `call` son rutinas y llevan nombre. tools/sin_bautizar.py las lista.
+# ---------------------------------------------------------------------------
+L 0x42f4 sube_el_nivel_y_da_una_vida_al_1
+L 0x42fc da_una_vida_al_jugador_2
+L 0x42ff suma_una_vida_en_bcd
+L 0x4305 sube_el_nivel_la_ronda_y_la_vuelta
+L 0x4321 sube_el_nivel_en_bcd
+L 0x432c baja_el_nivel_en_bcd
+L 0x43aa borra_lo_apuntado_del_truco
+L 0x43b8 apunta_la_pulsacion_del_truco
+L 0x43f7 toca_demostracion
+L 0x4416 mueve_el_cursor_del_menu
+L 0x4445 pinta_el_cursor_del_menu
+L 0x44d9 pon_la_tira_de_escenarios
+L 0x44ef monta_la_pantalla_de_dos_jugadores
+L 0x4699 barre_la_pantalla_desde_la_fila_2
+L 0x469f barre_la_pantalla_desde_la_fila_5
+L 0x46a5 barre_la_pantalla_entera
+L 0x46bf aparca_los_sprites
+L 0x46c9 suma_puntos_en_bcd
+L 0x472f pinta_el_marcador
+L 0x476a escribe_tres_bytes_de_bcd
+L 0x476e pinta_el_nivel
+L 0x4771 escribe_el_nivel_donde_diga_hl
+L 0x4778 pinta_las_vidas
+L 0x47ba copia_los_atributos_del_muneco
+L 0x47e4 copia_el_sprite_si_no_esta_aparcado
+L 0x4801 sube_los_cuatro_primeros_sprites
+L 0x480e sube_los_demas_sprites
+L 0x481c aparca_los_sprites_si_el_jugador_no_esta
+L 0x4830 lee_la_entrada_de_la_tabla
+L 0x4838 pinta_los_contadores_de_vidas
+L 0x484d pinta_un_contador_de_vidas
+L 0x487f vuelca_c_bytes_con_ldirvm
+L 0x4881 vuelca_con_ldirvm
+L 0x4885 rellena_c_bytes_con_filvrm
+L 0x48ae vuelca_el_guion_en_dos_tercios
+L 0x48b2 vuelca_el_guion_en_los_tres_tercios
+L 0x48e7 vuelca_el_guion_con_destino_en_hl
+L 0x496b pon_el_color_del_borde
+L 0x497e guarda_lo_pulsado_y_lo_recien_pulsado
+L 0x4987 lee_un_mando_del_psg
+L 0x4997 lee_las_filas_7_y_8_del_teclado
+L 0x49bc lee_el_mando_y_las_teclas_del_2
+L 0x49cb lee_las_teclas_del_segundo_jugador
+L 0x4d06 monta_la_pantalla_del_titulo
+L 0x4d3d pinta_el_cursor_donde_diga_hl
+L 0x4fc8 prepara_la_partida
+L 0x5048 elige_el_modo_de_juego
+L 0x5157 guarda_las_casillas_que_tapa_el_marcador
+L 0x517a pinta_la_barra_de_fase
+L 0x51ab pinta_el_indicador_que_parpadea
+L 0x5260 mira_la_invulnerabilidad
+L 0x5266 baja_la_invulnerabilidad
+L 0x5288 pon_la_espera
+L 0x528b pon_las_escenas_del_jugador_y_del_enemigo
+L 0x53f4 mira_si_el_enemigo_esta_tocado
+L 0x547e monta_la_caja_en_0xe140
+L 0x54e8 recorre_las_cinco_ranuras
+L 0x5500 monta_la_caja_en_0xe14c
+L 0x5554 mira_el_toque_de_la_coordenada_siguiente
+L 0x5560 monta_la_caja_de_altura_dos
+L 0x5562 monta_la_caja_en_0xe19d
+L 0x557f mira_si_la_coordenada_esta_a_tiro
+L 0x5620 da_tres_puntos_de_tanteo
+L 0x562b mira_si_toca_algo_de_lo_que_vuela
+L 0x5658 mira_el_toque_de_una_de_las_que_vuelan
+L 0x568d mueve_las_tres_cosas_que_vuelan
+L 0x56b1 mueve_una_de_las_que_vuelan
+L 0x56d5 descuenta_la_barra_a_tanteo
+L 0x56fa mira_si_la_fase_fue_perfecta
+L 0x5739 acerca_al_enemigo_al_jugador
+L 0x5776 monta_la_partida_de_la_demostracion
+L 0x57b0 haz_un_cuadro_de_combate
+L 0x5103 haz_un_cuadro_del_jugador_y_del_enemigo
+L 0x55b1 lanza_lo_que_sale_del_enemigo
+L 0x55cc mira_el_toque_de_lo_que_vuela
+L 0x55e7 devuelve_al_jugador_a_su_sitio
+L 0x55f6 elige_la_caja_del_que_toca
+L 0x57b4 lee_la_orden_grabada_de_la_demostracion
+L 0x5826 haz_un_cuadro_del_final
+L 0x58dc pinta_o_borra_las_cuatro_casillas
+L 0x58ea pinta_las_cuatro_casillas
+L 0x5aba sube_los_sprites_del_muneco
+L 0x5ae1 sube_el_guion_de_sprite_suelto
+L 0x5ae6 sube_el_guion_del_pozo_de_la_ronda
+L 0x5b42 pinta_la_fila_3_y_los_dos_nombres
+L 0x5b4e monta_el_decorado_o_la_oleada
+L 0x6464 reparte_la_subescena_del_enemigo
+L 0x649c avanza_la_caida_del_jugador
+L 0x64d5 reparte_la_subescena_de_0xe130
+L 0x6502 aparca_los_dieciseis_sprites_si_no_vuela_nada
+L 0x65a5 mira_si_llego_a_su_sitio
+L 0x65a6 mira_si_esta_dentro_de_la_caja_de_once
+L 0x660d elige_las_casillas_de_la_barra
+L 0x6656 recorta_la_barra_al_tope
+L 0x666e pita_si_queda_poca_barra
+L 0x6680 mira_si_alguna_barra_llego_a_cero
+L 0x6692 tira_al_suelo_si_la_barra_esta_a_cero
+L 0x6699 anima_el_destello
+L 0x67a2 cuenta_las_casillas_y_lee_a_ceros
+L 0x67d5 espeja_la_figura
+L 0x67f5 cuenta_las_casillas_y_lee_repitiendo
+L 0x6959 guarda_lo_pulsado_del_cuadro
+L 0x707f sube_o_baja_una_fila
+L 0x71a2 pide_la_pieza_si_nada_lo_impide
+L 0x71ab suelta_una_de_las_tres_del_escenario_0
+L 0x728b avanza_el_paso_del_agarre
+L 0x72aa mueve_el_agarre
+L 0x72c8 pinta_el_agarre_en_la_ultima_fila
+L 0x732f haz_lo_que_solo_hay_con_un_jugador
+L 0x734d cuenta_el_descanso_entre_asaltos
+L 0x73b7 pinta_el_marcador_de_vidas
+L 0x73e3 reparte_la_subescena_del_bicho
+L 0x6976 arranca_la_orden_pedida
+L 0x6a33 alterna_las_dos_piernas_al_andar
+L 0x6b4c elige_el_fotograma_segun_el_lado
+L 0x6ed6 lanza_algo_si_el_escenario_lo_lleva
+L 0x6ff0 baja_la_espera_de_lo_que_vuela
+L 0x7448 mira_si_el_jugador_esta_en_lo_suyo
+L 0x74ec apunta_a_las_casillas_guardadas
+L 0x7518 pinta_la_figura_del_premio
+L 0x7539 alterna_el_color_del_premio
+L 0x755b coge_el_premio
+L 0x756f suelta_una_de_las_tres_del_escenario_6
+L 0x760e reparte_por_el_estado_de_la_ranura
+L 0x7646 pon_la_casilla_y_el_color_y_descuenta
+L 0x76cc mira_los_toques_y_repasa_las_dos_ranuras
+L 0x7711 mira_si_lo_lanzado_le_da_al_enemigo
+L 0x7734 mira_si_el_jugador_rompe_alguna_ranura
+L 0x774a mira_si_el_jugador_rompe_esta_ranura
+L 0x77c4 sube_los_atributos_de_las_dos_ranuras
+L 0x77d0 monta_el_atributo_de_una_ranura
+L 0x77e3 suelta_las_tres_a_la_vez_del_escenario_7
+L 0x77fb cuenta_la_espera_entre_una_y_otra
+L 0x7934 hazle_caer_o_apagala
+L 0x798c mira_si_alguna_toca_al_jugador
+L 0x79b5 enciende_el_rayo_si_esta_toca
+L 0x79cc manda_al_enemigo_a_la_escena_4
+L 0x76e9 tumba_al_jugador_si_esta_le_toca
+L 0x76fa monta_la_caja_de_dos_y_mira_el_toque
+L 0x7702 mira_si_las_dos_le_dan_al_enemigo
+L 0x79dc sube_los_atributos_de_las_tres_ranuras
+L 0x79ee monta_el_atributo_de_una_de_las_tres
+L 0x7a03 suelta_una_de_las_tres_del_escenario_3
+L 0x7a39 haz_lo_del_escenario_que_toque
+L 0x7a3f elige_el_color_que_parpadea
+L 0x7b77 pide_el_zumbido_si_no_suena_ya
+L 0x7c47 mueve_lo_agarrado_del_escenario_3
+L 0x7d17 mueve_lo_agarrado_o_reparte
+L 0x7e6e arranca_el_golpe_de_siete_cuadros
+L 0x7e75 pon_el_tipo_de_golpe
+L 0x7ea0 el_escenario_de_la_ronda
+L 0x7f2a saca_lo_siguiente_de_la_cola_del_lado
+L 0x809a arranca_el_golpe
+L 0x914b reparte_la_escena_de_la_ranura
+L 0x919b corre_la_columna_hacia_su_lado
+L 0x91d8 borra_el_paso_y_corre_la_columna
+L 0x91df baja_por_la_curva
+L 0x922b limpia_la_ultima_banda_y_repasa_las_ranuras
+L 0x9246 pinta_la_figura_de_la_ranura
+L 0xb8d3 pide_pieza_si_la_escena_lo_permite
+L 0xb9bb calla_la_voz_si_lo_pide_la_orden
+L 0xba2d arranca_la_cuenta_de_la_nota
+L 0xba43 apaga_la_voz_y_dejala_libre
+L 0xbb47 escribe_las_dos_mitades_del_tono
+L 0x7ead saca_dos_bits_del_azar
+L 0x7ecb saca_lo_siguiente_de_la_otra_cola
+L 0x7ef2 corrige_el_lado_segun_la_fila
