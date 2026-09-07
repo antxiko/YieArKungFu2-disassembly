@@ -65,10 +65,10 @@ comprimidas.*
 
 ![Las diez poses](../imagenes/poses.png)
 
-*Las diez poses, cada una montada con sus cuatro sprites de cabecera, sus trios
-`[y][x][patron]` y los guiones que suben sus patrones.*
+*Las diez poses, cada una montada con sus trios `[y][x][patron]` y los guiones
+que suben sus patrones.*
 
-Un fotograma son cuatro sprites de cabecera mas hasta ocho trios, colgados de
+Un fotograma son cuatro cajas de golpe mas hasta ocho trios, colgados de
 los veinte punteros de `0x6C83`. Mirando a un lado, los ocho sprites usan los
 **patrones 0 a 7**, que `0x6BE6` acaba de subir a `0x1800` siguiendo los guiones
 del propio fotograma; mirando al otro, los trios traen numeros de patron que

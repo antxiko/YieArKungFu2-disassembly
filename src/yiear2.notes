@@ -470,9 +470,11 @@ F 0x601a 256,278,248,316
 #
 # Un fotograma PAR es:
 #
-#   cuatro sprites   el formato de 0x6829, el mismo que el de los enemigos:
-#                    los tres primeros [y][x][patron][color], el cuarto solo
-#                    [y][x], y 0x80 para el que no se pinta
+#   cuatro cajas     el formato de 0x6829, el mismo que el de los enemigos:
+#                    tres cajas de [y][x][alto][ancho] y una cuarta entrada de
+#                    solo [y][x], y 0x80 para la que no hay. NO son sprites:
+#                    van a 0xE120, que cae fuera de los 0x80 bytes de atributos
+#                    de sprite de 0xE080, y quien las lee es se_tocan (0x654F)
 #   un byte          el juego de colores; 0x6C13 lo usa para elegir una de
 #                    las tiras de 0x6C51 o de 0x6C66
 #   trios [y][x][patron]  hasta un byte cuyo nibble alto sea 8
@@ -524,17 +526,17 @@ F 0x6c83 40,44,2,45,2,36,2,36,2,36,2,34,2,37,2,38,2,22,2,22,2
 # los ocho bloques -143 de 144 tramos; el que sobra no es un fallo, es la
 # tabla de 0x82D8, que vive detras del primer bloque y la carga otro-.
 #
-# Un fotograma PAR es un dibujo entero: [dy][dx], cuatro sprites y una figura
-# de casillas. Uno IMPAR son tres bytes, [dy][word], y la word apunta al
+# Un fotograma PAR es un dibujo entero: [dy][dx], cuatro cajas de golpe y una
+# figura de casillas. Uno IMPAR son tres bytes, [dy][word], y la word apunta al
 # SEGUNDO byte de otra entrada. Lo decide el `bit 0,a / ret z` de 0x677C
 # mirando el indice, y el mismo bit hace otra cosa en 0x686A: NEGAR la x de
-# los sprites. O sea que el fotograma impar es el par mirando al otro lado,
+# las cajas. O sea que el fotograma impar es el par mirando al otro lado,
 # con su propia altura.
 #
-# De los cuatro sprites, los tres primeros son [y][x][patron][color] y el
-# CUARTO solo [y][x]: el `ld a,b / cp 1` de 0x6879 sale del bucle antes de
-# leer patron y color. Cualquiera vale 0x80, y entonces ocupa un byte y no
-# pinta nada.
+# De las cuatro entradas, las tres primeras son [y][x][alto][ancho] y la
+# CUARTA solo [y][x]: el `ld a,b / cp 1` de 0x6879 sale del bucle antes de
+# leer los dos ultimos bytes. Cualquiera vale 0x80, y entonces ocupa un byte y
+# no hay caja.
 #
 # Y la figura NO es la de 0x67F5 sino la de su hermana 0x67A7, que trata el
 # 0xE0..0xEF de otra manera: escribe ceros y ocupa UN byte, en vez de repetir
@@ -816,7 +818,7 @@ C 0x66d5 A = 0: la marca de borrar
 L 0x66d8 pinta_la_figura
 C 0x66d8 A = 0xFF: la de pintar
 C 0x66da Queda apuntado para 0x6733
-C 0x66df Monta los cuatro sprites y deja DE en el alto
+C 0x66df Monta las cuatro cajas y deja DE en el alto
 C 0x66e4 B = el alto
 C 0x66e7 C = el ancho
 C 0x66e9 (0xE172) = ancho y (0xE173) = alto, por el orden del `ld (nn),bc`
@@ -880,24 +882,31 @@ B 0x5a4d ---------------------------------------------------------------------
 B 0x66d5 ======================================================================
 B 0x66d5 ======================================================================
 B 0x6829 ======================================================================
-B 0x6829 LOS CUATRO SPRITES DE UN FOTOGRAMA
+B 0x6829 LAS CUATRO CAJAS DE GOLPE DE UN FOTOGRAMA
 B 0x6829 ======================================================================
-B 0x6829 Delante de cada dibujo van cuatro sprites. Los tres primeros son
-B 0x6829 [y][x][patron][color] y el CUARTO solo [y][x]: el `cp 1` de 0x687A
-B 0x6829 sale del bucle antes de leerle patron y color. Un 0x80 en el sitio
-B 0x6829 del [y] significa "este no se pinta" y ocupa un solo byte.
+B 0x6829 Delante de cada dibujo van cuatro entradas. Las tres primeras son
+B 0x6829 [y][x][alto][ancho] y la CUARTA solo [y][x]: el `cp 1` de 0x687A sale
+B 0x6829 del bucle antes de leerle los dos ultimos bytes. Un 0x80 en el sitio
+B 0x6829 del [y] significa "aqui no hay caja" y ocupa un solo byte.
 B 0x6829 Si el fotograma es IMPAR la x se NIEGA: es el mismo dibujo mirando al
 B 0x6829 otro lado.
-L 0x6829 monta_los_cuatro_sprites
+B 0x6829 Y NO SON SPRITES, aunque lo parezcan por el formato. Van a parar a
+B 0x6829 0xE120 -el jugador- y 0xE140 -el enemigo-, y la tabla de atributos de
+B 0x6829 sprite en RAM es 0xE080..0xE0FF, los 0x80 bytes que 0x500F aparca con
+B 0x6829 0xE0 en la y: 0xE120 cae FUERA. Quien las lee es el codigo de choques:
+B 0x6829 se_tocan (0x654F) recorre TRES cajas de cuatro bytes -doce, que es
+B 0x6829 justo lo que ocupan las tres primeras entradas- y suma el tercer byte
+B 0x6829 al primero y el cuarto al segundo para sacar los dos bordes.
+L 0x6829 monta_las_cuatro_cajas
 C 0x6829 Pintando o borrando?
 C 0x682f Borrando: los atributos de la copia vieja
 C 0x683c Pintando: los de la nueva
 C 0x6847 El fotograma manda
-L 0x684a monta_los_sprites_con_a
+L 0x684a monta_las_cajas_con_a
 C 0x684a Queda apuntado: su bit 0 decide el espejo
-C 0x684d Cuatro sprites, ni uno mas
-C 0x6850 C = la x de referencia
-C 0x6853 B = la y de referencia
+C 0x684d Cuatro entradas, ni una mas
+C 0x6850 C = la coordenada de referencia
+C 0x6853 B = la otra
 C 0x6856 0x80 en el primer byte...
 C 0x6859 ...si no, es un sprite de verdad
 C 0x685b ...quiere decir sprite vacio: y y x a cero
@@ -972,7 +981,7 @@ C 0x6b89 Su entrada en el bloque
 C 0x6b8c Punteros de dos bytes
 C 0x6b94 Mirando a la derecha o a la izquierda?
 C 0x6b9a Seguir la remision: aqui la entrada es un puntero
-C 0x6b9e Los cuatro sprites de delante
+C 0x6b9e Las cuatro cajas de golpe de delante
 C 0x6ba1 Y el byte de la paleta
 C 0x6ba4 La copia de atributos en RAM
 L 0x6ba7 trios_con_patron
@@ -986,7 +995,7 @@ C 0x6bc1 A por el siguiente
 L 0x6bc3 cierra_la_lista_de_sprites
 C 0x6bc3 0xD0 en la y: el VDP deja de mirar de aqui para abajo
 L 0x6bc7 monta_al_jugador_mirando_al_otro_lado
-C 0x6bc7 Los cuatro sprites
+C 0x6bc7 Las cuatro cajas de golpe
 C 0x6bca La paleta
 L 0x6bd0 trios_sin_negar_la_x
 C 0x6bd0 Mismo terminador
@@ -1002,8 +1011,8 @@ L 0x6bef sube_un_guion
 C 0x6bef La direccion del guion
 C 0x6bf5 Se vuelca con el destino metido dentro
 C 0x6bfa Hasta agotar la cuenta
-L 0x6bfd monta_los_sprites_del_jugador
-C 0x6bff Los atributos de este muneco
+L 0x6bfd monta_las_cajas_del_jugador
+C 0x6bff Las cajas de golpe de este muneco
 C 0x6c02 La posicion de referencia
 C 0x6c0a El bit 0 decide el espejo
 L 0x6c13 pon_los_colores_del_fotograma

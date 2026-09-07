@@ -10,8 +10,9 @@ EL MUNECO (0x6B79, `monta_al_jugador`). Su fotograma sale de los veinte
 punteros de 0x6C83: diez dibujos en las entradas pares y diez REMISIONES de dos
 bytes en las impares, que apuntan al dibujo de delante. Un dibujo es
 
-    4 sprites   0x80 = vacio y ocupa 1 byte; si no [y][x][patron][color], y el
-                CUARTO solo [y][x] (el `cp 1` de 0x6879 sale antes)
+    4 cajas     0x80 = no hay y ocupa 1 byte; si no [y][x][alto][ancho], y la
+                CUARTA solo [y][x] (el `cp 1` de 0x6879 sale antes). NO son
+                sprites: van a 0xE120 y las lee se_tocan (0x654F)
     1 byte      la paleta: indexa 0x6C51, que da una tira de ocho colores
     n trios     [y][x][patron] hasta un byte con el nibble alto a 8
     n guiones   el nibble BAJO de ese terminador dice cuantas palabras siguen,
@@ -27,7 +28,7 @@ LOS RIVALES (0x68A4, `mueve_al_enemigo`) no son sprites sino CASILLAS. Cada
 escenario tiene el suyo -ocho bloques en 0x6922- y cada bloque, 22 entradas:
 
     [dy][dx]    se suman a la fila y la columna del enemigo
-    4 sprites   igual que los del muneco
+    4 cajas     igual que las del muneco
     figura      alto, ancho y las casillas comprimidas, con el lector que
                 escribe CEROS (0x67A7), no con el que repite el byte
 
@@ -49,8 +50,13 @@ ENEMIGOS = 0x6922                     # los ocho bloques de rival
 POR_RIVAL = 22                        # entradas de cada bloque
 
 
-def lee_los_cuatro_sprites(rom, p, org=ORG):
-    """monta_los_sprites_con_a (0x684A): cuatro, y el cuarto sin patron ni color."""
+def lee_las_cuatro_cajas(rom, p, org=ORG):
+    """monta_las_cajas_con_a (0x684A): cuatro, y la cuarta de solo [y][x].
+
+    Son las CAJAS DE GOLPE del fotograma, no sprites: acaban en 0xE120 y las
+    lee se_tocan (0x654F). Aqui se leen solo para saber cuanto ocupan y poder
+    seguir hasta el byte de la paleta.
+    """
     out = []
     for k in range(4):
         if rom[p - org] == 0x80:                 # sprite vacio, un solo byte
@@ -69,7 +75,7 @@ def lee_los_cuatro_sprites(rom, p, org=ORG):
 def fotograma_del_jugador(rom, i, org=ORG):
     """Uno de los diez dibujos: sus sprites, sus colores y sus guiones."""
     p = rom[FOTOGRAMAS + 4 * i - org] | (rom[FOTOGRAMAS + 4 * i + 1 - org] << 8)
-    cuatro, p = lee_los_cuatro_sprites(rom, p, org)
+    cajas, p = lee_las_cuatro_cajas(rom, p, org)
     paleta = rom[p - org]
     p += 1
     t = COLORES_A + 2 * paleta
@@ -85,18 +91,20 @@ def fotograma_del_jugador(rom, i, org=ORG):
             break
         trios.append((rom[p - org], rom[p + 1 - org], rom[p + 2 - org]))
         p += 3
-    return cuatro, list(tira), trios, guiones
+    return cajas, list(tira), trios, guiones
 
 
-def dibuja_al_jugador(rom, i, fondo=(0x20, 0x20, 0x30)):
+def dibuja_al_jugador(rom, i, fondo=None):
     """La pose i, montada como la monta el cartucho y pintada tal cual.
 
     Se parte de la VRAM de una partida de verdad -los patrones espejados ya
     subidos- y encima se sueltan los guiones del fotograma, que es exactamente
     lo que hace 0x6BE6 antes de que el VDP lo pinte.
     """
+    if fondo is None:
+        fondo = G.BORDE                          # el color de fondo del juego
     v = V.como_en_la_demostracion(rom, 0)
-    cuatro, tira, trios, guiones = fotograma_del_jugador(rom, i)
+    cajas, tira, trios, guiones = fotograma_del_jugador(rom, i)
     for g in guiones:                            # sube_los_patrones_del_fotograma
         v.rle(g)
 
@@ -104,8 +112,17 @@ def dibuja_al_jugador(rom, i, fondo=(0x20, 0x20, 0x30)):
     # colores de la tira; los cuatro de cabecera traen los suyos dentro.
     puestos = [(y, x, rom[PATRONES_BASE + k - ORG], tira[k])
                for k, (y, x, _) in enumerate(trios[:8])]
-    puestos += [(y, x, pat if pat is not None else 0, col if col is not None
-                 else tira[0]) for y, x, pat, col in cuatro]
+    # Y NADA MAS. Las cuatro entradas de cabecera NO son sprites: son las
+    # CAJAS DE GOLPE del fotograma. Se ve en donde acaban:
+    # `monta_las_cajas_del_jugador` (0x6BFD) las escribe en 0xE120, y la
+    # tabla de atributos de sprite en RAM es 0xE080..0xE0FF -los 0x80 bytes que
+    # 0x500F aparca con 0xE0 en la y-, asi que 0xE120 cae FUERA. Quien la lee
+    # es el codigo de choques: 0x5578 la nombra "la caja del jugador", y 0x541D
+    # y 0x5526 hacen lo mismo con la del enemigo.
+    #
+    # Pintarlas como sprites era lo que sacaba manchones verdes sobre el muneco
+    # -sus dos ultimos bytes son alto y ancho, no patron y color, y un 0x0C
+    # leido como color da verde oscuro- y lo que descolocaba el pelo.
 
     def con_signo(b):
         return b - 256 if b > 127 else b
@@ -136,7 +153,7 @@ def figuras_de_un_rival(rom, escenario, org=ORG):
         if i % 2:                                # los impares son remisiones
             continue
         dy, dx = rom[p - org], rom[p + 1 - org]
-        _, q = lee_los_cuatro_sprites(rom, p + 2, org)
+        _, q = lee_las_cuatro_cajas(rom, p + 2, org)
         alto, ancho, casillas, _ = F.figura_a_ceros(rom, q, org)
         out.append((dy, dx, alto, ancho, casillas))
     return out
@@ -154,24 +171,28 @@ def dibuja_a_un_rival(rom, escenario, sep=2):
     for dy, dx, alto, ancho, casillas in figuras_de_un_rival(rom, escenario):
         if not alto or not ancho:
             continue
-        px = [[(0, 0, 0)] * (ancho * 8) for _ in range(alto * 8)]
+        px = [[G.BORDE] * (ancho * 8) for _ in range(alto * 8)]
         for f in range(alto):
             for c in range(ancho):
                 t = casillas[f * ancho + c]
-                for y, fila in enumerate(G.casilla(v, t, 2, (0, 0, 0))):
+                for y, fila in enumerate(G.casilla(v, t, 2, G.BORDE)):
                     px[f * 8 + y][c * 8:c * 8 + 8] = fila
         dibujos.append(px)
     if not dibujos:
         return [[(0, 0, 0)]]
+    # Todas al mismo tamano, apoyadas en el suelo, para que G.rejilla las
+    # reparta en varias filas. En una sola tira las once figuras daban una
+    # lamina de 1489 px de ancho, y en la pagina cada luchador quedaba
+    # diminuto.
     alto = max(len(d) for d in dibujos)
-    ancho = sum(len(d[0]) + sep for d in dibujos) + sep
-    out = [[(0x20, 0x20, 0x30)] * ancho for _ in range(alto + 2 * sep)]
-    x = sep
+    ancho = max(len(d[0]) for d in dibujos)
+    igual = []
     for d in dibujos:
+        q = [[G.BORDE] * ancho for _ in range(alto)]
         for y, fila in enumerate(d):
-            out[sep + alto - len(d) + y][x:x + len(fila)] = fila
-        x += len(d[0]) + sep
-    return out
+            q[alto - len(d) + y][:len(fila)] = fila
+        igual.append(q)
+    return G.rejilla(igual, 4, sep=sep, fondo=G.BORDE)
 
 
 def main():
@@ -183,11 +204,12 @@ def main():
     ancho = max(len(p[0]) for p in poses)
     igual = []
     for p in poses:                              # todas al mismo tamano
-        q = [[(0x20, 0x20, 0x30)] * ancho for _ in range(alto)]
+        q = [[G.BORDE] * ancho for _ in range(alto)]
         for y, fila in enumerate(p):
             q[alto - len(p) + y][:len(fila)] = fila
         igual.append(q)
-    G.png(os.path.join(carpeta, "poses.png"), G.rejilla(igual, 5, sep=2), escala=3)
+    G.png(os.path.join(carpeta, "poses.png"),
+          G.rejilla(igual, 5, sep=2, fondo=G.BORDE), escala=3)
     for e in range(V.ESCENARIOS):
         G.png(os.path.join(carpeta, "rival%d.png" % (e + 1)),
               dibuja_a_un_rival(rom, e), escala=3)

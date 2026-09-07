@@ -65,10 +65,10 @@ tiles.*
 
 ![The ten poses](imagenes/poses.png)
 
-*The ten poses, each assembled from its four header sprites, its
+*The ten poses, each assembled from its
 `[y][x][pattern]` triples and the scripts that upload its patterns.*
 
-One frame is four header sprites plus up to eight triples, hanging off the
+One frame is four hit boxes plus up to eight triples, hanging off the
 twenty pointers at `0x6C83`. Facing one way the eight sprites use **patterns 0
 to 7**, which `0x6BE6` has just uploaded to `0x1800` following the frame's own
 scripts; facing the other, the triples carry pattern numbers landing in the

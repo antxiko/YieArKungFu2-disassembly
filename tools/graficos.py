@@ -24,9 +24,16 @@ PALETA = [
     (33, 176, 59), (201, 91, 186), (204, 204, 204), (255, 255, 255),
 ]
 
-# El registro 7 vale 0xE4 (0x4963), o sea que el borde -y con el todo lo
-# transparente- es el color 4, el azul oscuro.
-BORDE = PALETA[0xE4 & 0x0F]
+# El color de fondo -el borde, y con el TODO lo que en la tabla de color salga
+# transparente- es el nibble bajo del registro 7. La tabla de arranque de
+# 0x4963 dice 0xE4, o sea azul oscuro, pero eso solo vale hasta que empieza el
+# juego: 0x5208 lo cambia con `ld b,0E0h` en cuanto la escena no es la cero, y
+# el propio listado lo dice ahi -"el borde se pone negro"-. El nibble bajo pasa
+# a 0, que es NEGRO.
+#
+# Tomar el 0xE4 de la tabla de arranque era el motivo de que todos los
+# escenarios salieran con el fondo azul en vez de negro.
+BORDE = PALETA[0xE0 & 0x0F]
 
 
 def png(ruta, px, escala=2):

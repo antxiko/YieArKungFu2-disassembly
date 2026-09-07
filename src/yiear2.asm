@@ -4037,7 +4037,7 @@ pinta_la_figura:
 L_66DA:
 	ld (0e176h),a		;66da   ; Queda apuntado para 0x6733
 	push ix		;66dd
-	call monta_los_cuatro_sprites		;66df   ; Monta los cuatro sprites y deja DE en el alto
+	call monta_las_cuatro_cajas		;66df   ; Monta las cuatro cajas y deja DE en el alto
 	pop ix		;66e2
 	ld a,(de)			;66e4   ; B = el alto
 	ld b,a			;66e5
@@ -4290,16 +4290,23 @@ L_6822:
 
 ; ----------------------------------------------------------------------
 ; ======================================================================
-; LOS CUATRO SPRITES DE UN FOTOGRAMA
+; LAS CUATRO CAJAS DE GOLPE DE UN FOTOGRAMA
 ; ======================================================================
-; Delante de cada dibujo van cuatro sprites. Los tres primeros son
-; [y][x][patron][color] y el CUARTO solo [y][x]: el `cp 1` de 0x687A
-; sale del bucle antes de leerle patron y color. Un 0x80 en el sitio
-; del [y] significa "este no se pinta" y ocupa un solo byte.
+; Delante de cada dibujo van cuatro entradas. Las tres primeras son
+; [y][x][alto][ancho] y la CUARTA solo [y][x]: el `cp 1` de 0x687A sale
+; del bucle antes de leerle los dos ultimos bytes. Un 0x80 en el sitio
+; del [y] significa "aqui no hay caja" y ocupa un solo byte.
 ; Si el fotograma es IMPAR la x se NIEGA: es el mismo dibujo mirando al
 ; otro lado.
+; Y NO SON SPRITES, aunque lo parezcan por el formato. Van a parar a
+; 0xE120 -el jugador- y 0xE140 -el enemigo-, y la tabla de atributos de
+; sprite en RAM es 0xE080..0xE0FF, los 0x80 bytes que 0x500F aparca con
+; 0xE0 en la y: 0xE120 cae FUERA. Quien las lee es el codigo de choques:
+; se_tocan (0x654F) recorre TRES cajas de cuatro bytes -doce, que es
+; justo lo que ocupan las tres primeras entradas- y suma el tercer byte
+; al primero y el cuarto al segundo para sacar los dos bordes.
 ; ----------------------------------------------------------------------
-monta_los_cuatro_sprites:
+monta_las_cuatro_cajas:
 	ld a,(0e176h)		;6829   ; Pintando o borrando?
 	and a			;682c
 	jr nz,L_683C		;682d
@@ -4313,13 +4320,13 @@ L_683C:
 	ld iy,0e141h		;6843
 L_6847:
 	ld a,(0e138h)		;6847   ; El fotograma manda
-monta_los_sprites_con_a:
+monta_las_cajas_con_a:
 	ld (0e15eh),a		;684a   ; Queda apuntado: su bit 0 decide el espejo
-	ld b,004h		;684d   ; Cuatro sprites, ni uno mas
+	ld b,004h		;684d   ; Cuatro entradas, ni una mas
 L_684F:
 	push bc			;684f
-	ld c,(ix+000h)		;6850   ; C = la x de referencia
-	ld b,(ix+001h)		;6853   ; B = la y de referencia
+	ld c,(ix+000h)		;6850   ; C = la coordenada de referencia
+	ld b,(ix+001h)		;6853   ; B = la otra
 	ld a,(de)			;6856   ; 0x80 en el primer byte...
 	cp 080h		;6857
 	jr nz,L_6866		;6859   ; ...si no, es un sprite de verdad
@@ -4840,7 +4847,7 @@ monta_al_jugador:
 	inc hl			;6b9b
 	ld d,(hl)			;6b9c
 	ex de,hl			;6b9d
-	call monta_los_sprites_del_jugador		;6b9e   ; Los cuatro sprites de delante
+	call monta_las_cajas_del_jugador		;6b9e   ; Las cuatro cajas de golpe de delante
 	call pon_los_colores_del_fotograma		;6ba1   ; Y el byte de la paleta
 	ld de,0e09ch		;6ba4   ; La copia de atributos en RAM
 trios_con_patron:
@@ -4871,7 +4878,7 @@ cierra_la_lista_de_sprites:
 	ld (de),a			;6bc5
 	ret			;6bc6
 monta_al_jugador_mirando_al_otro_lado:
-	call monta_los_sprites_del_jugador		;6bc7   ; Los cuatro sprites
+	call monta_las_cajas_del_jugador		;6bc7   ; Las cuatro cajas de golpe
 	call pon_los_colores_del_fotograma		;6bca   ; La paleta
 	ld de,0e09ch		;6bcd
 trios_sin_negar_la_x:
@@ -4913,14 +4920,14 @@ sube_un_guion:
 	pop bc			;6bf9
 	djnz sube_un_guion		;6bfa   ; Hasta agotar la cuenta
 	ret			;6bfc
-monta_los_sprites_del_jugador:
+monta_las_cajas_del_jugador:
 	push bc			;6bfd
 	ex de,hl			;6bfe
-	ld hl,0e120h		;6bff   ; Los atributos de este muneco
+	ld hl,0e120h		;6bff   ; Las cajas de golpe de este muneco
 	ld ix,0e112h		;6c02   ; La posicion de referencia
 	ld iy,0e121h		;6c06
 	ld a,(0e114h)		;6c0a   ; El bit 0 decide el espejo
-	call monta_los_sprites_con_a		;6c0d
+	call monta_las_cajas_con_a		;6c0d
 	ex de,hl			;6c10
 	pop bc			;6c11
 	ret			;6c12

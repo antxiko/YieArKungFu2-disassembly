@@ -64,11 +64,19 @@ El **fotograma impar es el par mirando al otro lado**: el `bit 0,a` de `0x677C`
 sigue un puntero de dos bytes en vez de leer un dibujo, y el mismo bit niega la
 x en `0x686A`.
 
-## El muneco son doce sprites, y la mitad se calcula
+## El muneco son ocho sprites, y la mitad se calcula
 
-Un fotograma de LEE YOUNG son cuatro sprites de cabecera mas hasta ocho trios
+Un fotograma de LEE YOUNG son cuatro CAJAS DE GOLPE mas hasta ocho trios
 `[y][x][patron]`, colgados de los veinte punteros de `0x6C83` -diez dibujos en
 las entradas pares y diez remisiones de dos bytes en las impares-.
+
+Las cuatro cajas de delante tienen el formato de un sprite -`[y][x]` y dos
+bytes mas- y por eso es facil confundirlas con uno, pero no lo son: acaban en
+`0xE120`, y la tabla de atributos de sprite en RAM es `0xE080..0xE0FF`, los
+`0x80` bytes que `0x500F` aparca con `0xE0` en la y. Quien las lee es el codigo
+de choques: `se_tocan` (`0x654F`) recorre **tres** cajas de cuatro bytes -doce,
+justo lo que ocupan las tres primeras entradas- y suma el tercer byte al primero
+y el cuarto al segundo para sacar los dos bordes.
 
 Mirando a un lado, los ocho sprites usan los **patrones 0 a 7**, que `0x6BE6`
 sube a `0x1800` siguiendo hasta quince guiones que trae el propio fotograma;

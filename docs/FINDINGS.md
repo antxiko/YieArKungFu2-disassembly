@@ -64,9 +64,9 @@ The **odd frame is the even one facing the other way**: the `bit 0,a` at
 `0x677C` follows a two-byte pointer instead of reading a drawing, and the same
 bit negates x at `0x686A`.
 
-## The fighter is twelve sprites, and half of him is computed
+## The fighter is eight sprites, and half of him is computed
 
-One LEE YOUNG frame is four header sprites plus up to eight `[y][x][pattern]`
+One LEE YOUNG frame is four HIT BOXES plus up to eight `[y][x][pattern]`
 triples, hanging off the twenty pointers at `0x6C83` — ten drawings in the even
 entries and ten two-byte redirections in the odd ones.
 
@@ -75,6 +75,14 @@ to `0x1800` following up to fifteen scripts carried by the frame itself; facing
 the other, the triples carry pattern numbers landing in the **mirrored** bank
 that `espeja_sprites` (`0x490C`) left behind. One drawing, two directions, only
 one half stored.
+
+Those four leading entries have a sprite's shape -`[y][x]` and two more bytes-
+and that is what makes them easy to mistake for one, but they are not: they land
+in `0xE120`, and the RAM sprite attribute table is `0xE080..0xE0FF`, the `0x80`
+bytes that `0x500F` parks with `0xE0` in the y. What reads them is the collision
+code: `se_tocan` (`0x654F`) walks **three** four-byte boxes -twelve bytes, exactly
+what the first three entries take- and adds the third byte to the first and the
+fourth to the second to get both edges.
 
 The sprite scripts **start two bytes earlier** than they look: the word that
 reads like a tail belongs in front and is the VRAM destination `guion_rle`

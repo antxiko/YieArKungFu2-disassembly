@@ -84,28 +84,28 @@ audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
 </style>
 <div class="w"><nav class="top"><a href="index.html">Home</a><a href="GETTING-STARTED.html">Start</a><a href="THE-GAME.html" style=color:var(--tinta)>The game</a><a href="THE-CARTRIDGE.html">The cartridge</a><a href="THE-CODE.html">The code</a><a href="FINDINGS.html">Findings</a><a href="IN-THE-EMULATOR.html">In the emulator</a><a href="OPEN-QUESTIONS.html">Open questions</a><a href="es/EL-JUEGO.html" style="margin-left:auto;color:var(--oro)">Castellano</a></nav>
 <h1 id="the-game">The game</h1>
-<p><img src="imagenes/titulo.png?v=13bf278d" alt="The title screen"></p>
+<p><img src="imagenes/titulo.png?v=b69db35f" alt="The title screen"></p>
 <p><em>The title screen, built by <code>0x4CE9</code> and placed by <code>0x4D10</code>. It is not a capture: it is drawn from the ROM, and checked against openMSX&#x27;s VRAM at 768 of 768 tiles.</em></p>
 <p>LEE YOUNG works his way through <b>eight sceneries</b>, one rival each, up to the emperor Yie-Gah. Between fights come the <b>wave screens</b>, where the enemies arrive in a row.</p>
 <h2 id="the-eight-rivals">The eight rivals</h2>
 <p>Their names are eight scripts hanging off the pointer table at <code>0x4487</code>, indexed by the scenery of the round; the one you play is at <code>0x447B</code>.</p>
 <table><tr><th>round</th><th>rival</th><th>backdrop</th></tr><tr><td>1</td><td>YEN-PEI</td><td>0</td></tr><tr><td>2</td><td>LAN-FANG</td><td>0</td></tr><tr><td>3</td><td>PO-CHIN</td><td>1</td></tr><tr><td>4</td><td>WEN-HU</td><td>1</td></tr><tr><td>5</td><td>WEI-CHIN</td><td>2</td></tr><tr><td>6</td><td>MEI-LING</td><td>2</td></tr><tr><td>7</td><td>HAN-CHEN</td><td>3</td></tr><tr><td>8</td><td>LI-JEN</td><td>3</td></tr></table>
 <p>Eight sceneries share <b>four backdrops</b>, two by two: <code>0x4FB4</code> does an <code>srl a</code> on the scenery and keeps the result in <code>(0xE2E0)</code>, and that is what indexes every band and scenery table. The <b>floor</b> does not follow that rule — it is indexed by the whole scenery at <code>0x5A93</code> — so two rounds that share a backdrop still stand on different ground.</p>
-<p><img src="imagenes/escenario1.png?v=b068c8ab" alt="Scenery 1"></p>
+<p><img src="imagenes/escenario1.png?v=9581dfdc" alt="Scenery 1"></p>
 <p><em>Round 1, against YEN-PEI.</em></p>
-<p><img src="imagenes/escenario7.png?v=7a3091fd" alt="Scenery 7"></p>
+<p><img src="imagenes/escenario7.png?v=fc3b329e" alt="Scenery 7"></p>
 <p><em>Round 7, against HAN-CHEN: the night one.</em></p>
 <h2 id="the-rivals-are-tiles-not-sprites">The rivals are tiles, not sprites</h2>
 <p>The fighter you control is made of sprites. The rival is not: it is written straight into the <b>name table</b>, <code>pinta_la_figura</code> (<code>0x66D8</code>) unpacking a figure into <code>0xE480</code> and sending it up row by row, clipping whatever falls off the sides.</p>
 <p>Each rival has a block of <b>22 pointers</b> at <code>0x6922</code>, indexed by scenery. Eleven of them are drawings and eleven are two-byte redirections: the <b>odd frame is the even one facing the other way</b>, and the same bit that follows the pointer (<code>bit 0,a</code> at <code>0x677C</code>) negates x at <code>0x686A</code>.</p>
-<p><img src="imagenes/rival1.png?v=6dcb100a" alt="YEN-PEI"></p>
+<p><img src="imagenes/rival1.png?v=5cb88d55" alt="YEN-PEI"></p>
 <p><em>YEN-PEI&#x27;s eleven figures, each with its own height, width and compressed tiles.</em></p>
-<p><img src="imagenes/rival8.png?v=c62999d5" alt="LI-JEN"></p>
+<p><img src="imagenes/rival8.png?v=63bef28c" alt="LI-JEN"></p>
 <p><em>LI-JEN, the emperor Yie-Gah.</em></p>
 <h2 id="lee-young">LEE YOUNG</h2>
-<p><img src="imagenes/poses.png?v=f2a706f4" alt="The ten poses"></p>
-<p><em>The ten poses, each assembled from its four header sprites, its <code>[y][x][pattern]</code> triples and the scripts that upload its patterns.</em></p>
-<p>One frame is four header sprites plus up to eight triples, hanging off the twenty pointers at <code>0x6C83</code>. Facing one way the eight sprites use <b>patterns 0 to 7</b>, which <code>0x6BE6</code> has just uploaded to <code>0x1800</code> following the frame&#x27;s own scripts; facing the other, the triples carry pattern numbers landing in the <b>mirrored</b> bank that <code>espeja_sprites</code> (<code>0x490C</code>) left behind. One drawing, two directions.</p>
+<p><img src="imagenes/poses.png?v=71b94b51" alt="The ten poses"></p>
+<p><em>The ten poses, each assembled from its <code>[y][x][pattern]</code> triples and the scripts that upload its patterns.</em></p>
+<p>One frame is four hit boxes plus up to eight triples, hanging off the twenty pointers at <code>0x6C83</code>. Facing one way the eight sprites use <b>patterns 0 to 7</b>, which <code>0x6BE6</code> has just uploaded to <code>0x1800</code> following the frame&#x27;s own scripts; facing the other, the triples carry pattern numbers landing in the <b>mirrored</b> bank that <code>espeja_sprites</code> (<code>0x490C</code>) left behind. One drawing, two directions.</p>
 <h2 id="the-wave-screens">The wave screens</h2>
 <p>A wave screen is <b>four bytes</b>. The strip at <code>0x5BE8</code> for the backdrop carries eight nibbles; each one picks a figure out of the thirty at <code>0x5C64</code>, and the eight are painted in a row four columns apart. Even ones come from the low nibble, odd ones from the high one. All of that is checked by the tests: the four strips are twelve bytes each, no nibble asks for a figure its table does not have, and the thirty figures tile end to end up to <code>0x5F38</code>.</p>
 <p>There is <b>no picture of one here</b>, and that is deliberate: built on top of the fight screen&#x27;s VRAM, those figures ask for tiles that are the font there, and they come out as letters. Where their patterns come from is not known — see <a href="OPEN-QUESTIONS.html">Open questions</a>.</p>
