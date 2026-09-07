@@ -1,0 +1,104 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Preguntas abiertas — Yie Ar Kung-Fu II (Konami, 1985)</title>
+<style>
+:root{--tinta:#cfd0d4;--suave:#83868f;--fondo:#000;--panel:#0c0e13;--linea:#23262e;
+  --rojo:#ff897d;--cyan:#65dbef;--verde:#3eb849;--oro:#ded087}
+@media (prefers-color-scheme:light){:root{--tinta:#191a1e;--suave:#5a5d66;--fondo:#e9e7e1;
+  --panel:#f7f6f2;--linea:#d0cdc5;--rojo:#b23f34;--cyan:#1c6b7c;--verde:#2b7734;--oro:#8a7420}}
+:root[data-theme="dark"]{--tinta:#cfd0d4;--suave:#83868f;--fondo:#000;--panel:#0c0e13;
+  --linea:#23262e;--rojo:#ff897d;--cyan:#65dbef;--verde:#3eb849;--oro:#ded087}
+:root[data-theme="light"]{--tinta:#191a1e;--suave:#5a5d66;--fondo:#e9e7e1;--panel:#f7f6f2;
+  --linea:#d0cdc5;--rojo:#b23f34;--cyan:#1c6b7c;--verde:#2b7734;--oro:#8a7420}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fondo);color:var(--tinta);padding:0 1.25rem 6rem;
+  font:15px/1.7 ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+.w{max-width:1120px;margin:0 auto}
+.n{max-width:68ch}
+h1,h2,h3,h4{font-weight:400;text-wrap:balance}
+a{color:var(--cyan)}
+img{image-rendering:pixelated;max-width:100%;height:auto;display:block}
+header.top{display:flex;flex-direction:column;align-items:center;gap:1.5rem;
+  padding:4rem 0 2rem;text-align:center}
+header.top img{width:min(100%,642px)}
+.claim{max-width:60ch;color:var(--suave);font-size:1.05rem}
+.claim b{color:var(--tinta);font-weight:400}
+.ficha{display:flex;flex-wrap:wrap;justify-content:center;gap:0 1.5rem;width:100%;
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--suave);
+  border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);padding:.85rem 0}
+.ficha b{color:var(--rojo);font-weight:400}
+nav{display:flex;flex-wrap:wrap;gap:1.25rem;justify-content:center;padding:1.25rem 0;
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+nav a{color:var(--suave);text-decoration:none;border-bottom:1px solid transparent}
+nav a:hover,nav a:focus{color:var(--tinta);border-bottom-color:var(--rojo)}
+nav.docs{border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);
+  margin-bottom:1rem}
+section{margin-top:4.5rem;scroll-margin-top:1rem}
+section>h2{font-size:1rem;letter-spacing:.1em;text-transform:uppercase;
+  border-left:3px solid var(--rojo);padding-left:.9rem;margin:0 0 1.5rem}
+.cifras{display:grid;gap:1px;background:var(--linea);border:1px solid var(--linea);
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.cifra{background:var(--panel);padding:1.1rem}
+.cifra b{display:block;font-size:1.7rem;color:var(--oro);font-weight:400;
+  font-variant-numeric:tabular-nums;line-height:1.2}
+.cifra span{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--suave)}
+.hall{border-top:1px solid var(--linea);padding-top:1.75rem;margin-top:2.5rem}
+.hall:first-of-type{border-top:0;padding-top:0;margin-top:0}
+.hall h3{margin:0 0 .75rem;font-size:1.15rem;color:var(--rojo)}
+.hall h4{color:var(--oro);margin:1.5rem 0 .5rem;font-size:.95rem}
+.hall p{margin:0 0 1rem}
+pre.asm{background:var(--panel);border-left:2px solid var(--verde);margin:1.25rem 0;
+  padding:1rem 1.1rem;overflow-x:auto;font-size:13px;line-height:1.6;color:var(--tinta)}
+.par{display:grid;gap:1.25rem;grid-template-columns:1fr}
+@media(min-width:820px){.par{grid-template-columns:1fr 1fr}}
+.par figure{margin:0}
+table{border-collapse:collapse;width:100%;margin:1.25rem 0;font-size:13px;display:block;
+  overflow-x:auto}
+th,td{text-align:left;padding:.5rem .75rem;border-bottom:1px solid var(--linea)}
+th{color:var(--suave);font-weight:400;font-size:11px;letter-spacing:.07em;text-transform:uppercase}
+td.num{font-variant-numeric:tabular-nums;color:var(--oro)}
+.nivel{margin-top:2rem}
+.nivel h3{margin:0 0 .9rem;font-size:.95rem;letter-spacing:.06em;text-transform:uppercase}
+.nivel em{color:var(--cyan);font-style:normal}
+.sep{color:var(--suave);margin:0 .6rem}
+.rejilla{display:grid;gap:.9rem;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.rejilla figure{margin:0;background:var(--panel);box-shadow:0 0 0 1px var(--linea)}
+.rejilla figcaption{display:flex;justify-content:space-between;padding:.45rem .65rem;
+  font-size:11px;color:var(--suave);border-top:1px solid var(--linea)}
+.dir{font-variant-numeric:tabular-nums;color:var(--verde)}
+footer{margin-top:5rem;padding-top:1.5rem;border-top:1px solid var(--linea);
+  color:var(--suave);font-size:12px}
+
+/* Aviso de trabajo en curso: tiene que verse antes que las cifras, porque un
+   100% mal leido hace mas dano que no ponerlo. */
+.aviso{background:#3a2a10;border-left:3px solid var(--oro);margin:1.5rem auto;
+  padding:1rem 1.2rem;max-width:900px;border-radius:4px}
+.aviso p{margin:0;color:var(--tinta);font-size:15px;line-height:1.65}
+.galeria{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:1.5rem;margin:1.5rem 0}
+.galeria figure{margin:0}
+.galeria img{width:100%;height:auto;image-rendering:pixelated;
+  border:1px solid var(--linea);border-radius:3px}
+.galeria figcaption{color:var(--suave);font-size:13px;margin-top:.5rem}
+audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
+</style>
+<div class="w"><nav class="top"><a href="index.html">Portada</a><a href="EMPEZAR.html">Empezar</a><a href="EL-JUEGO.html">El juego</a><a href="EL-CARTUCHO.html">El cartucho</a><a href="EL-CODIGO.html">El código</a><a href="HALLAZGOS.html">Hallazgos</a><a href="EN-EL-EMULADOR.html">En el emulador</a><a href="PREGUNTAS-ABIERTAS.html" style=color:var(--tinta)>Preguntas abiertas</a><a href="../OPEN-QUESTIONS.html" style="margin-left:auto;color:var(--oro)">English</a></nav>
+<h1 id="preguntas-abiertas">Preguntas abiertas</h1>
+<p>El listado esta completo: 32.768 bytes, ninguno sin explicar. Eso no quiere decir que se sepa todo del cartucho. Lo que no, esta aqui.</p>
+<h2 id="que-da-de-verdad-la-primera-parte">Que da de verdad la primera parte</h2>
+<p><code>0x74A3</code> es el unico que lee la marca que el rastreo de ranuras deja en <code>(0xE450)</code>, y copia cuatro bytes de <code>0x74F1</code> y llama a <code>0x7518</code>, que pinta la figura de 3x4 de <code>0x7525</code> en la fila 6, columna 14. Eso se lee del codigo.</p>
+<p>Lo que <b>no</b> se ha hecho es grabarlo: dos cartuchos en openMSX, una partida de un jugador, ronda 3 o mas, y una captura de lo que aparece. Hasta que eso este hecho, lo que el extra <em>significa</em> jugando no esta cerrado, y en esta serie no se publican suposiciones.</p>
+<h2 id="de-donde-sacan-sus-casillas-las-pantallas-de-oleadas">De donde sacan sus casillas las pantallas de oleadas</h2>
+<p><code>monta_la_oleada</code> (<code>0x5B70</code>) esta leida y comprobada: cuatro tiras de doce bytes, ocho nibbles que eligen una de las treinta figuras de <code>0x5C64</code>, y las ocho pintadas de cuatro en cuatro columnas. Todo eso lo verifican los tests sobre los bytes.</p>
+<p>Lo que <b>no</b> sale es dibujar una. Montada encima de la VRAM que deja la pantalla de combate, esas figuras piden casillas que ahi son la fuente, y el resultado se lee como <code>1PLAYER</code> y <code>2PLAYERS</code>. O sea que algo carga patrones antes de una pantalla de oleadas y no se ha encontrado: no lo hace nada del arranque de ronda (<code>0x50BB</code>), y fuera del modo 3 ese camino se salta ademas el suelo y el guion del pozo.</p>
+<p>Dos intentos y parada. En este sitio no hay ningun dibujo de una pantalla de oleadas, porque lo que no se entiende no se publica.</p>
+<h2 id="hay-algun-otro-cartucho-de-konami-haciendo-lo-mismo">Hay algun otro cartucho de Konami haciendo lo mismo?</h2>
+<p>El rastreo de <code>0xBF6C</code> es un juego buscando a <b>otro juego</b>, que no es el mecanismo del Game Master. La pregunta obvia es si aparece en algun otro RC-7xx. La pista a seguir es un <code>call</code> muy temprano desde INIT que toque <code>0xFCC1</code> y ENASLT.</p>
+<p>Todavia sin comprobar en el resto de la serie.</p>
+<h2 id="que-decide-cual-de-las-dos-compilaciones-importa">Que decide cual de las dos compilaciones importa</h2>
+<p>El rastreo distingue las dos compilaciones del RC-725, <code>5A 47</code> la facil y <code>23 70</code> la dificil, y guarda el mismo <code>1</code> en <code>(0xE450)</code> en los dos casos. O sea que el cartucho se toma el trabajo de reconocer dos compilaciones por separado y luego no las distingue. Si eso es un resto, una segunda tabla que nunca se uso, o algo que se lee en otro sitio, no se sabe.</p>
+<h2 id="los-dos-escenarios-que-no-se-leen">Los dos escenarios que no se leen</h2>
+<p><code>0x44E4</code> llena la tira de <code>0xE2C0</code> con diez escenarios, del 0 al 9, pero la ronda vuelve a empezar a las ocho (<code>0x4311</code>). Las entradas 8 y 9 no se leen nunca. Si es un resto de un juego mas largo o simplemente un numero redondo, no se sabe.</p>
+<h2 id="los-finales">Los finales</h2>
+<p>La escena 6 (<code>0x425E</code>) lleva los finales y <code>0x58F9</code> sus rotulos, que se leen como una felicitacion. Aqui no se ha llegado a ellos jugando, asi que como es la secuencia de principio a fin esta descrito desde el codigo y no de haberlo visto.</p>
+<footer><p><em>Yie Ar Kung-Fu II: The Emperor Yie-Gah</em> lo publico Konami para MSX en 1985; su numero de catalogo es RC-737 y son 32 KB. Es la segunda parte de <em>Yie Ar Kung-Fu</em> (RC-725, 1985). Todos los derechos sobre el juego siguen siendo de sus titulares. Este trabajo es de preservacion, estudio y documentacion, y la imagen del cartucho no se distribuye.</p></footer></div>

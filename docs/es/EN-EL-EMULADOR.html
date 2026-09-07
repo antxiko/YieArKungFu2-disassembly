@@ -1,0 +1,115 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>En el emulador — Yie Ar Kung-Fu II (Konami, 1985)</title>
+<style>
+:root{--tinta:#cfd0d4;--suave:#83868f;--fondo:#000;--panel:#0c0e13;--linea:#23262e;
+  --rojo:#ff897d;--cyan:#65dbef;--verde:#3eb849;--oro:#ded087}
+@media (prefers-color-scheme:light){:root{--tinta:#191a1e;--suave:#5a5d66;--fondo:#e9e7e1;
+  --panel:#f7f6f2;--linea:#d0cdc5;--rojo:#b23f34;--cyan:#1c6b7c;--verde:#2b7734;--oro:#8a7420}}
+:root[data-theme="dark"]{--tinta:#cfd0d4;--suave:#83868f;--fondo:#000;--panel:#0c0e13;
+  --linea:#23262e;--rojo:#ff897d;--cyan:#65dbef;--verde:#3eb849;--oro:#ded087}
+:root[data-theme="light"]{--tinta:#191a1e;--suave:#5a5d66;--fondo:#e9e7e1;--panel:#f7f6f2;
+  --linea:#d0cdc5;--rojo:#b23f34;--cyan:#1c6b7c;--verde:#2b7734;--oro:#8a7420}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fondo);color:var(--tinta);padding:0 1.25rem 6rem;
+  font:15px/1.7 ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+.w{max-width:1120px;margin:0 auto}
+.n{max-width:68ch}
+h1,h2,h3,h4{font-weight:400;text-wrap:balance}
+a{color:var(--cyan)}
+img{image-rendering:pixelated;max-width:100%;height:auto;display:block}
+header.top{display:flex;flex-direction:column;align-items:center;gap:1.5rem;
+  padding:4rem 0 2rem;text-align:center}
+header.top img{width:min(100%,642px)}
+.claim{max-width:60ch;color:var(--suave);font-size:1.05rem}
+.claim b{color:var(--tinta);font-weight:400}
+.ficha{display:flex;flex-wrap:wrap;justify-content:center;gap:0 1.5rem;width:100%;
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--suave);
+  border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);padding:.85rem 0}
+.ficha b{color:var(--rojo);font-weight:400}
+nav{display:flex;flex-wrap:wrap;gap:1.25rem;justify-content:center;padding:1.25rem 0;
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+nav a{color:var(--suave);text-decoration:none;border-bottom:1px solid transparent}
+nav a:hover,nav a:focus{color:var(--tinta);border-bottom-color:var(--rojo)}
+nav.docs{border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);
+  margin-bottom:1rem}
+section{margin-top:4.5rem;scroll-margin-top:1rem}
+section>h2{font-size:1rem;letter-spacing:.1em;text-transform:uppercase;
+  border-left:3px solid var(--rojo);padding-left:.9rem;margin:0 0 1.5rem}
+.cifras{display:grid;gap:1px;background:var(--linea);border:1px solid var(--linea);
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.cifra{background:var(--panel);padding:1.1rem}
+.cifra b{display:block;font-size:1.7rem;color:var(--oro);font-weight:400;
+  font-variant-numeric:tabular-nums;line-height:1.2}
+.cifra span{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--suave)}
+.hall{border-top:1px solid var(--linea);padding-top:1.75rem;margin-top:2.5rem}
+.hall:first-of-type{border-top:0;padding-top:0;margin-top:0}
+.hall h3{margin:0 0 .75rem;font-size:1.15rem;color:var(--rojo)}
+.hall h4{color:var(--oro);margin:1.5rem 0 .5rem;font-size:.95rem}
+.hall p{margin:0 0 1rem}
+pre.asm{background:var(--panel);border-left:2px solid var(--verde);margin:1.25rem 0;
+  padding:1rem 1.1rem;overflow-x:auto;font-size:13px;line-height:1.6;color:var(--tinta)}
+.par{display:grid;gap:1.25rem;grid-template-columns:1fr}
+@media(min-width:820px){.par{grid-template-columns:1fr 1fr}}
+.par figure{margin:0}
+table{border-collapse:collapse;width:100%;margin:1.25rem 0;font-size:13px;display:block;
+  overflow-x:auto}
+th,td{text-align:left;padding:.5rem .75rem;border-bottom:1px solid var(--linea)}
+th{color:var(--suave);font-weight:400;font-size:11px;letter-spacing:.07em;text-transform:uppercase}
+td.num{font-variant-numeric:tabular-nums;color:var(--oro)}
+.nivel{margin-top:2rem}
+.nivel h3{margin:0 0 .9rem;font-size:.95rem;letter-spacing:.06em;text-transform:uppercase}
+.nivel em{color:var(--cyan);font-style:normal}
+.sep{color:var(--suave);margin:0 .6rem}
+.rejilla{display:grid;gap:.9rem;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.rejilla figure{margin:0;background:var(--panel);box-shadow:0 0 0 1px var(--linea)}
+.rejilla figcaption{display:flex;justify-content:space-between;padding:.45rem .65rem;
+  font-size:11px;color:var(--suave);border-top:1px solid var(--linea)}
+.dir{font-variant-numeric:tabular-nums;color:var(--verde)}
+footer{margin-top:5rem;padding-top:1.5rem;border-top:1px solid var(--linea);
+  color:var(--suave);font-size:12px}
+
+/* Aviso de trabajo en curso: tiene que verse antes que las cifras, porque un
+   100% mal leido hace mas dano que no ponerlo. */
+.aviso{background:#3a2a10;border-left:3px solid var(--oro);margin:1.5rem auto;
+  padding:1rem 1.2rem;max-width:900px;border-radius:4px}
+.aviso p{margin:0;color:var(--tinta);font-size:15px;line-height:1.65}
+.galeria{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:1.5rem;margin:1.5rem 0}
+.galeria figure{margin:0}
+.galeria img{width:100%;height:auto;image-rendering:pixelated;
+  border:1px solid var(--linea);border-radius:3px}
+.galeria figcaption{color:var(--suave);font-size:13px;margin-top:.5rem}
+audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
+</style>
+<div class="w"><nav class="top"><a href="index.html">Portada</a><a href="EMPEZAR.html">Empezar</a><a href="EL-JUEGO.html">El juego</a><a href="EL-CARTUCHO.html">El cartucho</a><a href="EL-CODIGO.html">El código</a><a href="HALLAZGOS.html">Hallazgos</a><a href="EN-EL-EMULADOR.html" style=color:var(--tinta)>En el emulador</a><a href="PREGUNTAS-ABIERTAS.html">Preguntas abiertas</a><a href="../IN-THE-EMULATOR.html" style="margin-left:auto;color:var(--oro)">English</a></nav>
+<h1 id="en-el-emulador">En el emulador</h1>
+<p>Todo lo de aqui esta medido con <b>openMSX</b> y una <b>Philips VG-8020</b>, que es la maquina de esta serie.</p>
+<pre><code>openmsx -machine Philips_VG_8020 -cart yiear2.rom</code></pre>
+<h2 id="el-cartucho-se-juega-solo">El cartucho se juega solo</h2>
+<p>No hace falta jugar para medirlo. Desde el encendido encadena presentacion → titulo → <b>demostracion</b>, y la demostracion es una <em>partida grabada</em>: 33 pulsaciones en <code>0x57E4</code> con sus duraciones en <code>0x5806</code>, que acaban en el <code>0xFF</code> que busca <code>0x57DA</code>. Dos encendidos dan exactamente lo mismo, que es lo que hace comparable todo esto.</p>
+<p><code>make sonda</code> apunta en que escena esta en cada segundo emulado:</p>
+<pre><code>t=  5.00 escena=  0 sub=  0     la presentacion
+t= 12.00 escena=  1 sub=  0     el titulo
+t= 17.00 escena=  2 sub=  0     empieza el juego
+t= 22.00 escena=  2 sub=  1     la demostracion, peleando
+t= 41.00 escena=  0 sub=  1     y otra vez desde el principio</code></pre>
+<h2 id="llegar-a-los-ocho-escenarios-sin-jugar">Llegar a los ocho escenarios sin jugar</h2>
+<p>La demostracion pelea siempre en el primero. <code>0x5776</code> deja la ronda a cero y escribe el escenario en <code>(0xE2C0)</code> tres instrucciones antes de montar la pantalla, asi que un punto de interrupcion en <code>0x5784</code> -ya escrito el cero- puede poner ahi el que se quiera, y el cartucho monta <b>ese</b> decorado, <b>ese</b> suelo y <b>ese</b> rival con su propio codigo.</p>
+<p>No se falsea nada: se cambia un byte del estado de la partida, como lo tendria un jugador que llegase a esa ronda. Eso es lo que hace <code>tools/omsx_vram.tcl</code>, y asi se comprobaron las ocho pantallas de combate de este sitio.</p>
+<h2 id="la-comprobacion-que-cierra-la-duda">La comprobacion que cierra la duda</h2>
+<pre><code>make vram</code></pre>
+<p>Vuelca los 16 KB de VRAM en nueve instantes, y <code>tools/coteja_vram.py</code> les resta la VRAM que monta <code>tools/vram.py</code> en Python:</p>
+<table><tr><th>pantalla</th><th>color</th><th>patrones de sprite 8-63</th><th>patrones</th></tr><tr><td>el titulo</td><td>0/6144</td><td>0/1792</td><td>0/6144</td></tr><tr><td>escenarios 1 al 8</td><td>0/6144</td><td>0/1792</td><td>0/6144</td></tr></table>
+<p><b>Nueve pantallas, cero bytes distintos en todas las tablas estaticas.</b> La del titulo cuadra ademas su tabla de nombres, 768 de 768 casillas.</p>
+<p>Dos zonas se dejan fuera de esa cuenta a proposito, porque no son estaticas y el emulador esta en mitad de la partida cuando se vuelca:</p>
+<ul><li><b>los patrones de sprite 0 a 7</b> (<code>0x1800..0x18FF</code>), que son la pose viva del muneco: <code>sube_los_patrones_del_fotograma</code> (<code>0x6BE6</code>) los rehace cada vez que cambia el fotograma;</li><li><b>la tabla de nombres</b>, donde se repintan cada cuadro el rival, el marcador y la barra de energia.</li></ul>
+<h2 id="lo-que-mas-costo-cuadrar">Lo que mas costo cuadrar</h2>
+<p>Tres cosas, y ninguna se nota como un dibujo raro:</p>
+<ol><li><b>El cartucho solo borra la tabla de nombres al cambiar de escena.</b> Ni los patrones ni el color. Montar una pantalla desde cero dejaba cientos de bytes distintos que no eran una lectura mala sino <em>herencia que faltaba</em>; el cotejo solo cierra a cero si se rehace la cadena entera desde el encendido.</li><li><b>El escenario 4 lleva marcador de fase y los otros siete no</b> -el <code>cp 003h</code> de <code>0x5A7A</code>, en la cola misma de <code>espeja_el_decorado</code>-.</li><li><b>La pareja fila/columna se guarda al reves de como se lee.</b> <code>ld bc,00704h</code> seguido de <code>ld (0e170h),bc</code> quiere decir fila 4, columna 7, y el bucle de <code>0x66FD</code> la pinta una fila mas arriba. Antes de arreglarlo, la pantalla del titulo tenia 165 casillas mal; despues, ninguna.</li></ol>
+<h2 id="ver-los-extras">Ver los extras</h2>
+<p><b>El truco de las vidas.</b> Desde el encendido, antes de tocar nada: arriba una vez, izquierda dos, abajo tres y derecha cuatro. <code>(0xE055)</code> se pone a <code>0x95</code>.</p>
+<p><b>La primera parte en la otra ranura.</b> Poner el Yie Ar Kung-Fu (RC-725) en la segunda ranura, jugar una partida de un jugador y llegar a la ronda 3. Lo que dibuja entonces <code>0x74A3</code> <b>no</b> esta grabado aqui: esta en las preguntas abiertas.</p>
+<h2 id="para-medir-cualquier-otra-cosa">Para medir cualquier otra cosa</h2>
+<p><code>tools/omsx_sonda.tcl</code> es el patron a copiar: un temporizador que lee un punado de bytes de RAM por segundo emulado y los escribe. Los puntos de interrupcion de ejecucion salen baratos; los de escritura tambien en juego normal, pero su callback tiene que ser barato.</p>
+<footer><p><em>Yie Ar Kung-Fu II: The Emperor Yie-Gah</em> lo publico Konami para MSX en 1985; su numero de catalogo es RC-737 y son 32 KB. Es la segunda parte de <em>Yie Ar Kung-Fu</em> (RC-725, 1985). Todos los derechos sobre el juego siguen siendo de sus titulares. Este trabajo es de preservacion, estudio y documentacion, y la imagen del cartucho no se distribuye.</p></footer></div>

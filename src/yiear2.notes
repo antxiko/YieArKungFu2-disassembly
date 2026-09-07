@@ -1,0 +1,4103 @@
+# ======================================================================
+# YIE AR KUNG-FU II - THE EMPEROR YIE-GAH (Konami RC-737)
+# ======================================================================
+# Anotaciones del desensamblado. Formato: ver la cabecera de tools/mkasm.py.
+#
+# Cada directiva D declara un rango de datos con su nombre y con la MEDIDA de
+# la que sale. Ningun limite esta puesto a ojo.
+#
+# El armazon de este cartucho es el MISMO que el de The Goonies (RC-734), y no
+# de oidas: tools/comun_normalizado.py da 19 tramos y el 44,9 % de lo que
+# traza de este cartucho en comun con aquel, y las rutinas se localizan una a
+# una buscando su firma de instrucciones normalizadas. Los nombres portados de
+# alli estan comprobados leyendo el codigo de AQUI, no heredados a ciegas.
+
+# ======================================================================
+# LAS DOS CABECERAS
+# ======================================================================
+D 0x4000 0x4010 cabecera_del_cartucho  "AB" y la direccion de INIT (0x4070); STATEMENT, DEVICE y TEXT a cero, y los seis bytes reservados tambien
+F 0x4000 w
+
+# La segunda cabecera es la del Konami Game Master, el cartucho de trucos de la
+# casa que se enchufa en la otra ranura: identifica el juego por aqui y sabe
+# que direcciones tocarle. Este cartucho NO la lee; es para el de al lado.
+D 0x4010 0x4014 cabecera_del_game_master  "AB" 07 37: el 0x07 de los RC-7xx y el 0x37 de RC-737
+F 0x4010 4
+D 0x4014 0x4025 punteros_del_game_master  las variables que el Game Master toca: 0x6400, 0xE000, 0xE002, 0xE055, 0xE066, 0xE048 y 0xE04E; el reparto de este espacio cambia de un cartucho a otro
+F 0x4014 w
+
+# ======================================================================
+# EL ARMAZON
+# ======================================================================
+L 0x4025 prepara_el_titulo
+L 0x402E cada_cuadro                El gancho de H.KEYI: el juego ENTERO cuelga de aqui
+L 0x4053 pon_registro_del_vdp
+L 0x405C suma_a_a_hl                HL += A, con el acarreo al alto
+L 0x4061 suma_a_a_de                DE += A, igual
+L 0x4066 reparte_por_tabla          El `pop hl` recoge la tabla: es la direccion de retorno
+L 0x4067 reparte_por_tabla_en_hl    Con la tabla ya en HL, sin sacarla de la pila
+L 0x4070 INIT                       Lo que ejecuta la BIOS al encontrar la "AB" de 0x4000
+L 0x40C1 el_bucle_vacio             INIT acaba aqui: a partir de este `jr $` todo pasa en la interrupcion
+L 0x40C3 suena_con_pantalla_apagada
+L 0x40CB haz_el_cuadro              Cuenta el cuadro y reparte la escena que toque
+
+D 0x40e9 0x40f9 tabla_de_escenas  8 entradas; reparte segun (0xE000) el arranque, el titulo, el juego y el remate
+F 0x40e9 w
+
+L 0x40F9 escena_presentacion
+L 0x41F9 escena_siguiente           Deja 0x20 cuadros de espera, sube (0xE000) y pone la subescena a cero
+L 0x4202 subescena_cero
+L 0x4203 pon_subescena
+
+# ======================================================================
+# LAS RUTINAS DE PANTALLA
+# ======================================================================
+L 0x465B partida_nueva              Pone a cero 0x335 bytes de variables desde 0xE04B
+L 0x46A9 cortina                    Barre la pantalla fila a fila y aparca los sprites en 0x3B00
+L 0x475B pinta_los_puntos           Los cuatro marcadores, cada uno con su direccion de VRAM
+L 0x4785 escribe_en_bcd             Nibble alto y bajo por separado, +0x10 para caer en los digitos de la fuente; el `ld c,0xFF` come los ceros a la izquierda
+L 0x485C limpia_la_pantalla
+L 0x4869 abre_para_escribir
+L 0x489D rellena_los_tres_bancos
+L 0x48C6 pinta_guion
+L 0x48C8 guion_literal
+L 0x48CE byte_del_guion
+L 0x48DD borra_guion
+L 0x48E1 guion_rle
+L 0x48EA orden_del_rle
+L 0x4902 repite_un_byte
+L 0x490C espeja_sprites
+L 0x4918 espeja_un_sprite
+L 0x4934 vuelve_los_bits
+L 0x493F arranca_la_pantalla
+L 0x4952 pon_los_registros_del_vdp
+L 0x4970 lee_los_mandos
+L 0x497B mete_estos_mandos
+L 0x4985 lee_mando_y_teclado
+L 0x4A8D monta_la_fuente
+L 0x4AA4 limpia_la_fuente
+L 0x4BFE arranca_la_presentacion
+L 0x4C0C monta_el_cartel
+L 0x4C20 baja_un_paso
+L 0x4C44 escribe_seguidas_subiendo
+L 0x4CE9 monta_el_titulo
+L 0x650E escribe_seguidas           B bytes iguales a A, seguidos desde (HL)
+
+# ======================================================================
+# EL SONIDO
+# ======================================================================
+# El reproductor entero es el de Goonies reensamblado 0x353 bytes mas arriba.
+L 0xB8DE pide_pieza
+L 0xB928 arranca_una_voz
+L 0xB94B repite_un_trozo
+L 0xB974 mezclador
+L 0xB989 escribe_el_mezclador
+L 0xB992 suena_el_cuadro
+L 0xBA13 toca_la_nota
+L 0xBA7F escribe_el_volumen
+L 0xBA9F orden_larga
+L 0xBB34 pon_el_periodo
+L 0xBB52 avanza_el_guion
+
+# ======================================================================
+# LAS TABLAS DE SUBESCENAS
+# ======================================================================
+# Cada `call reparte_por_tabla` deja detras su tabla de palabras, y el tamano
+# lo deduce tools/tablas_despacho.py; el detalle de la regla y de las tres que
+# hubo que cerrar a mano esta en src/yiear2.entries.
+D 0x509d 0x50a3 tabla_de_subescenas_509d  3 entradas, tras el `call reparte_por_tabla` de 0x509A; detras sigue la primera, 0x50A3
+F 0x509d w
+D 0x5212 0x521a tabla_de_subescenas_5212  4 entradas, tras el `call reparte_por_tabla` de 0x520F; detras sigue la primera, 0x521A
+F 0x5212 w
+D 0x5834 0x583e tabla_de_subescenas_5834  5 entradas, tras el `call reparte_por_tabla` de 0x5831; detras sigue la primera, 0x583E
+F 0x5834 w
+D 0x646c 0x6478 tabla_de_subescenas_646c  6 entradas, tras el `call reparte_por_tabla` de 0x6469; detras sigue la primera, 0x6478
+F 0x646c w
+D 0x64dd 0x64e7 tabla_de_subescenas_64dd  5 entradas, tras el `call reparte_por_tabla` de 0x64DA; detras sigue la primera, 0x64E7
+F 0x64dd w
+D 0x6990 0x69d0 tabla_de_subescenas_6990  32 entradas, tras el `call reparte_por_tabla` de 0x698D; detras sigue la primera, 0x69D0
+F 0x6990 w
+D 0x73f1 0x73fd tabla_de_subescenas_73f1  6 entradas, tras el `call reparte_por_tabla` de 0x73EE; detras sigue la primera, 0x73FD
+F 0x73f1 w
+D 0x7909 0x790d tabla_de_subescenas_7909  2 entradas, tras el `call reparte_por_tabla` de 0x7906; detras sigue la primera, 0x790D
+F 0x7909 w
+D 0x7a61 0x7a6f tabla_de_subescenas_7a61  7 entradas, tras el `call reparte_por_tabla` de 0x7A5E; detras sigue la primera, 0x7A6F
+F 0x7a61 w
+D 0x7da2 0x7de2 tabla_de_subescenas_7da2  32 entradas, tras el `call reparte_por_tabla` de 0x7D9F; detras sigue la primera, 0x7DE2
+F 0x7da2 w
+D 0x7e90 0x7ea0 tabla_de_subescenas_7e90  8 entradas, tras el `call reparte_por_tabla` de 0x7E8D; detras sigue codigo que se alcanza por otra via
+F 0x7e90 w
+D 0x8041 0x804d tabla_de_subescenas_8041  6 entradas, tras el `call reparte_por_tabla` de 0x803E; detras sigue codigo que se alcanza por otra via
+F 0x8041 w
+D 0x8320 0x832c tabla_de_subescenas_8320  6 entradas, tras el `call reparte_por_tabla` de 0x831D; detras sigue la primera, 0x832C
+F 0x8320 w
+D 0x8500 0x850c tabla_de_subescenas_8500  6 entradas, tras el `call reparte_por_tabla` de 0x84FD; detras sigue la primera, 0x850C
+F 0x8500 w
+D 0x8712 0x871e tabla_de_subescenas_8712  6 entradas, tras el `call reparte_por_tabla` de 0x870F; detras sigue la primera, 0x871E
+F 0x8712 w
+D 0x8937 0x8945 reacciones_del_escenario_3  7 entradas. Llega por dos caminos: el `call reparte_por_tabla` de 0x8934 y, como las otras siete, 0x7FDB[3]; detras sigue la primera, 0x8945
+F 0x8937 w
+D 0x8953 0x895f tabla_de_subescenas_8953  6 entradas, tras el `call reparte_por_tabla` de 0x8950; detras sigue la primera, 0x895F
+F 0x8953 w
+D 0x8b55 0x8b61 tabla_de_subescenas_8b55  6 entradas, tras el `call reparte_por_tabla` de 0x8B52; detras sigue la primera, 0x8B61
+F 0x8b55 w
+D 0x8d4e 0x8d5a tabla_de_subescenas_8d4e  6 entradas, tras el `call reparte_por_tabla` de 0x8D4B; detras sigue la primera, 0x8D5A
+F 0x8d4e w
+D 0x8efe 0x8f0a tabla_de_subescenas_8efe  6 entradas, tras el `call reparte_por_tabla` de 0x8EFB; detras sigue la primera, 0x8F0A
+F 0x8efe w
+D 0x9154 0x915a tabla_de_subescenas_9154  3 entradas, tras el `call reparte_por_tabla` de 0x9151; detras sigue la primera, 0x915A
+F 0x9154 w
+
+# ======================================================================
+# EL CARTUCHO DE AL LADO: BUSCA EL YIE AR KUNG-FU I
+# ======================================================================
+# Lo primero que hace INIT, antes incluso de instalar el gancho, es llamar a
+# 0xBF6C. Y lo que hay ahi es un RASTREO DE RANURAS: recorre las cuatro
+# primarias de 0xFCC1, entra en las subranuras cuando el bit 7 lo pide, conmuta
+# la PAGINA 1 de cada una con ENASLT y le hace dos sumas de comprobacion:
+# dieciseis bytes desde 0x5300 y dieciseis desde 0x6700 (0xBFD1).
+#
+# Esas dos sumas se comparan contra las DOS parejas de 0xBFD9. Y las dos
+# parejas son, medidas sobre los binarios:
+#
+#     5A 47  ->  Yie Ar Kung-Fu (RC-725), compilacion FACIL
+#     23 70  ->  Yie Ar Kung-Fu (RC-725), compilacion DIFICIL
+#
+# O sea que la segunda parte reconoce a la primera, y reconoce SUS DOS
+# COMPILACIONES por separado. Comprobado pasando las dos sumas por todas las
+# ROMs de la serie: no cuadra ninguna otra.
+#
+# Si el cartucho esta puesto, 0xE450 se pone a 1, y el unico sitio del juego
+# que mira esa marca es 0x74A3 -que ademas exige ronda >= 3 (0xE053) y un solo
+# jugador (bit 5 de 0xE002, comprobado en 0x732F)-.
+L 0xBF6C prepara_y_vuelve_a_mi_ranura   Rastrea las ranuras y deja la pagina 1 como estaba
+L 0xBF77 busca_el_yie_ar_kung_fu_i      Recorre las cuatro ranuras primarias y sus subranuras
+L 0xBFA6 mira_esta_ranura               Conmuta la pagina 1 a esa ranura y le toma las dos sumas
+L 0xBFD1 suma_dieciseis_bytes           A = suma de los 16 bytes desde (HL)
+L 0x74A3 el_extra_del_cartucho_vecino   Lo unico que mira 0xE450; ademas pide ronda >= 3
+D 0xbfd9 0xbfdd firmas_del_yie_ar_kung_fu_i  dos parejas de sumas: 5A 47 la compilacion facil, 23 70 la dificil
+F 0xbfd9 2
+
+# ======================================================================
+# LA COLA DEL CARTUCHO
+# ======================================================================
+# La marca oculta de Konami, la que describio Manuel Pazos: el titulo en
+# katakana escrito DEL REVES, su longitud, el numero de catalogo y un 0xAA que
+# cierra en 0xBFFF. Leida al derecho da el titulo japones del juego.
+D 0xbfdd 0xbff1 relleno_hasta_la_marca  veinte bytes 0xFF; el ultimo byte util antes de la marca es el 0xBFDC
+F 0xbfdd 16
+D 0xbff1 0xc000 marca_oculta_de_konami  el titulo en katakana del reves, su longitud (0x0C, doce), el 0x37 de RC-737 y el 0xAA que cierra
+F 0xbff1 16
+
+# ======================================================================
+# LOS GUIONES DE PANTALLA
+# ======================================================================
+# Dos formatos, los dos traducidos a Python en tools/formatos.py y los dos
+# comprobados por ENCAJE: cada guion acaba justo donde empieza el siguiente, y
+# la cadena entera cubre el hueco sin sobrar ni faltar un byte.
+#
+#   literal (0x48C8)  word con la direccion de VRAM, los bytes que se escriben,
+#                     0xFE para abrir otro tramo y 0xFF para cerrar.
+#   RLE     (0x48E1)  igual de cabecera, y luego ordenes de un byte: 0x01..0x7F
+#                     repite N veces el que sigue, 0x81..0xFF copia N bytes
+#                     literales, 0x80 abre otro tramo y 0x00 cierra.
+#
+# El 0x80 tiene trampa, y merece contarse porque casi cuela: leerlo como "no
+# hace nada" daba un 0x49F5 de 53 bytes que llegaba limpiamente a 0x4A2A y
+# encima escupia texto legible. Lo que lo delata no es mirar el texto, es que
+# asi se salta entero el guion de 0x4A06 que hay en medio. Con la lectura
+# buena, 0x49F5 son 17 bytes y la cadena cierra en 0x4A8D al byte.
+#
+# Los codigos de casilla son los de la fuente de la casa: 0x00 el espacio,
+# 0x10..0x19 las cifras y 0x21..0x3A las letras.
+D 0x49f5 0x4a06 marco_y_rotulo_software  guion RLE de dos tramos: doce casillas 0x5A de marco en 0x394A y "SOFTWARE" en 0x396C
+F 0x49f5 17
+D 0x4a06 0x4a2a rotulos_del_marcador  cuatro tramos: "HI SCORE", "REST", "STAGE" y "SCORE"
+F 0x4a06 36
+D 0x4a2a 0x4a32 rotulo_stage  la palabra STAGE en 0x38EC, fila 7
+F 0x4a2a 8
+D 0x4a32 0x4a3a rotulo_round  ROUND en la misma casilla que STAGE: el mismo sitio, otra palabra
+F 0x4a32 8
+D 0x4a3a 0x4a61 rotulos_del_titulo  "(c)KONAMI 1985", "PLAY SELECT" y "1PLAYER"; el ano del cartucho lo dice el propio rotulo
+F 0x4a3a 39
+D 0x4a61 0x4a6c rotulo_dos_jugadores  "2PLAYERS", debajo del anterior
+F 0x4a61 11
+D 0x4a6c 0x4a6f guion_vacio  tres bytes: una direccion de VRAM y el 0xFF; no escribe nada
+F 0x4a6c 3
+D 0x4a6f 0x4a7c rotulo_game_over  "GAME  OVER", con los dos espacios
+F 0x4a6f 13
+D 0x4a7c 0x4a8d rotulo_gana_el_jugador  "PLAYER 1  WIN!"; el 1 se sobrescribe con el numero del que gana
+F 0x4a7c 17
+
+# ======================================================================
+# EL SONIDO
+# ======================================================================
+# Las cuatro tablas del reproductor, delimitadas cada una por quien la indexa.
+D 0xbb77 0xbb83 periodos_de_las_doce_notas  la octava mas alta; `pon_el_periodo` (0xBB34) indexa por nota y luego duplica el valor una vez por octava con `add hl,hl`
+F 0xbb77 12
+D 0xbb83 0xbb8b tabla_de_envolventes  cuatro punteros, indexados por 0xBB12
+F 0xbb83 w
+D 0xbb8b 0xbbdc las_cuatro_envolventes  parejas de (volumen y canal, tiempo) cerradas con 0xFF
+F 0xbb8b 8
+D 0xbbdc 0xbc2a tabla_de_piezas  39 punteros; `arranca_una_voz` entra aqui con el numero de pieza por dos (0xB920)
+F 0xbbdc w
+D 0xbc2a 0xbf6c las_treinta_y_nueve_piezas  la musica y los efectos, uno detras de otro; el ultimo acaba justo en 0xBF6C, donde vuelve a haber codigo
+F 0xbc2a 16
+
+# ======================================================================
+# LOS BANCOS DE LA VRAM VAN AL REVES
+# ======================================================================
+# La tabla que `pon_los_registros_del_vdp` (0x4952) vuelca esta en 0x4963, y
+# son estos ocho bytes: 02 E2 0E 7F 07 76 03 E4.
+#
+# R3 y R4 no son una direccion, son base y mascara, y aqui dicen justo lo
+# contrario de lo habitual:
+#   R3 = 0x7F  ->  COLORES  en 0x0000, mascara 0x3FF (los tres bancos)
+#   R4 = 0x07  ->  PATRONES en 0x2000, mascara 0x3FF
+# O sea que 0x0000..0x17FF es color y 0x2000..0x37FF es dibujo, al reves de lo
+# que uno espera. Los demas: nombres en 0x3800 (R2), atributos de sprite en
+# 0x3B00 (R5), patrones de sprite en 0x1800 (R6) y el borde en el color 4 (R7).
+#
+# Esto no es un detalle: leerlo al derecho hace que todo guion salga con las
+# formas y los colores cambiados de sitio.
+D 0x4963 0x496b registros_del_vdp  los ocho bytes de los registros 0 a 7, en orden
+F 0x4963 8
+
+# ======================================================================
+# MAS GUIONES DE PANTALLA
+# ======================================================================
+# Todos delimitados por encaje y, ademas, cotejados contra las direcciones que
+# el codigo carga: la anchura de fila de cada bloque es la longitud REAL de
+# cada guion, no una cuenta redonda.
+#
+# El control importa. La misma prueba sobre el bloque grande de 0x926E-0xB8D3
+# "cierra" con 84 guiones y es MENTIRA: de los seis limites que el codigo
+# conoce ahi dentro solo reproduce tres, y saca guiones de un byte. Que una
+# cadena cierre solo cuenta cuando ademas cae donde el codigo dice.
+# Los nombres de los rivales. Leerlo como "nueve guiones seguidos" cuadra en
+# bytes -94, y 0x447B + 94 = 0x44D9- pero es falso: el segundo trozo no es un
+# guion de 24 bytes sino la TABLA de ocho punteros mas el primer nombre. Lo
+# que lo delata es que 0x4487 + 16 = 0x4497, que es justo su primera entrada,
+# y que 0x4475 entra en los nombres por 0x48C2, o sea SIN leerles la palabra
+# de VRAM: el destino se lo pone el llamador (0x3885).
+D 0x447b 0x4487 rotulo_de_lee_young  un guion literal: "LEE YOUNG" en la VRAM 0x3892, el nombre del que se maneja; 1 guion(es), medidos con tools/formatos.py
+F 0x447b 12
+D 0x4487 0x4497 tabla_de_los_rivales  ocho punteros; cierra en 0x4497, su primera entrada. 0x4467 la indexa con el escenario de la ronda
+F 0x4487 w
+D 0x4497 0x44d9 nombres_de_los_rivales  los ocho, cada uno cerrado con 0xFF y sin direccion delante: YEN PEI, LAN FANG, PO CHIN, WEN HU, WEI CHIN, MEI LING, HAN CHEN y LI JEN. Las ocho longitudes suman 66 y acaban al byte en 0x44D9
+F 0x4497 8,9,8,7,9,9,9,7
+D 0x45d2 0x4632 guion_del_marcador_grande  un solo guion RLE, 161 casillas; lo pinta 0x4514 con el destino ya en HL; 1 guion(es), medidos con tools/formatos.py
+F 0x45d2 96
+D 0x4ac5 0x4bfe patrones_de_la_fuente  un guion RLE de 313 B que `monta_la_fuente` (0x4A90) vuelca en 0x2080, o sea en la tabla de PATRONES: en este cartucho los bancos van al reves; 1 guion(es), medidos con tools/formatos.py
+F 0x4ac5 313
+D 0x4c52 0x4ce9 guion_del_cartel  un guion RLE; lo pinta `monta_el_cartel` (0x4C0C); 1 guion(es), medidos con tools/formatos.py
+F 0x4c52 151
+D 0x51cc 0x5201 guiones_de_los_iconos  dos guiones RLE de 40 casillas cada uno; los pinta 0x59AE/0x59B7 y 0x51B4; 2 guion(es), medidos con tools/formatos.py
+F 0x51cc 38,15
+D 0x572a 0x5739 rotulo_del_perfecto  un guion literal que dice "PERFECT 5000" en la VRAM 0x388A; lo pinta 0x5710, y solo cuando (0xE10D) no es cero -que 0x5328 pone al acabar la fase con la barra llena, comparandola contra 0x24-; 1 guion(es), medidos con tools/formatos.py
+F 0x572a 15
+D 0x7ca7 0x7d17 guiones_del_marcador_de_fase  cuatro guiones; 0x7C76, 0x7C79, 0x7C7E y 0x7C81 cargan los cuatro; 4 guion(es), medidos con tools/formatos.py
+F 0x7ca7 38,36,21,17
+D 0x93e4 0x94c3 guiones_del_decorado  cuatro guiones RLE que 0x5982..0x59A5 vuelca en 0x21F0, 0x2480, 0x01F0 y 0x0480: patrones y colores del decorado; 4 guion(es), medidos con tools/formatos.py
+F 0x93e4 87,41,76,19
+D 0xb819 0xb8d3 guiones_del_suelo  dos guiones RLE; 0x5A33 y 0x5A44 los vuelcan en 0x1080/0x1440 y 0x3080; 2 guion(es), medidos con tools/formatos.py
+F 0xb819 127,59
+
+# ======================================================================
+# EL TRUCO DE LAS VIDAS
+# ======================================================================
+# 0x43B8 va apuntando en 0xE412 las diez primeras pulsaciones que no sean
+# cero -(0xE051) y 0x1F-, y cuando lleva diez las compara una a una contra la
+# tira de 0x43ED. Si cuadran, (0xE410) = 1.
+#
+# Y esa marca la mira 0x4678: en vez de las tres vidas de 0x4695 deja (0xE055)
+# = 0x95. Tambien apaga (0xE047) al reconocerlo, y 0x4358 deja de leer el
+# mando mientras (0xE410) valga uno.
+#
+# La secuencia sale del registro 14 del PSG tal y como la lee 0x4985 -con
+# `cpl` y `and 0x3F`-, o sea el reparto de siempre: 1 arriba, 2 abajo,
+# 4 izquierda, 8 derecha. Leida asi es ARRIBA, IZQUIERDA dos veces, ABAJO
+# tres y DERECHA cuatro: un 1-2-3-4.
+D 0x43ed 0x43f7 la_secuencia_del_truco  las diez pulsaciones: 01 04 04 02 02 02 08 08 08 08
+F 0x43ed 10
+D 0x4695 0x4699 los_valores_de_partida  cuatro bytes que 0x4668 copia a 0xE055: las tres vidas, y detras 0x00, 0x02 y 0x01
+F 0x4695 4
+
+# ======================================================================
+# LA PRESENTACION Y LOS CARTELES
+# ======================================================================
+D 0x454a 0x45c9 patrones_de_la_presentacion  un guion RLE de 152 bytes de VRAM que 0x44EF suelta en 0x2200, y L_48AE repite en 0x2A00; 1 guion(es), medidos con tools/formatos.py
+F 0x454a 127
+D 0x45c9 0x45d2 colores_de_la_presentacion  el mismo tamano en 9 bytes; va a 0x0200 y 0x0A00 por L_48AE, y ademas a 0x0500 y a 0x0DC0 a mano, que es lo que pide el espejo de 0x5A4D
+F 0x45c9 9
+D 0x4632 0x4654 rotulo_de_la_presentacion  un guion literal de dos tramos de 14 casillas, en 0x3A29 y 0x3A69; lo pinta 0x451A; 1 guion(es), medidos con tools/formatos.py
+F 0x4632 34
+D 0x4654 0x465b figura_de_la_presentacion  una figura de 4x4 que 0x4527 pinta en (0xE170) = 0x070C; 1 figura(s), medida con tools/formatos.py
+F 0x4654 7
+D 0x485a 0x485c casillas_del_contador_de_vidas  dos: 0x3F si (0xE055) no ha llegado a dos y 0x3E si si; 0x484E elige una y la escribe con WRTVRM
+F 0x485a 2
+D 0x51a3 0x51ab casillas_de_la_barra  ocho que 0x5185 vuelca en la VRAM 0x3AF3
+F 0x51a3 8
+D 0x51c9 0x51cc atributo_del_indicador  los tres primeros bytes del atributo de sprite que 0x51B4 copia a 0xE098; el cuarto -el color- lo pone 0x51C7, 0x0A o 0x06 segun el bit 2 de (0xE003), o sea parpadea
+F 0x51c9 3
+
+# ======================================================================
+# LO QUE CAMBIA DE UNA RONDA A OTRA
+# ======================================================================
+D 0x5056 0x505c tabla_de_los_ajustes  tres punteros; cierra en 0x505C, su entrada mas baja
+F 0x5056 w
+D 0x505c 0x507a ajustes_de_la_partida  tres tiras de diez bytes; 0x5000 elige con (0xE06A) y las copia con ldir a 0xE160
+F 0x505c 10
+D 0x507a 0x508a dos_bytes_por_ronda  ocho parejas; 0x5027 entra con 2*(0xE066) y copia la que salga a 0xE300. No son el escenario -eso lo da 0xE2C0-: los valores son 0x7E80, 0x8EE0, 0x68D8, 0x8E03, 0x9E90, 0x6810, 0x6880 y 0x8E80
+F 0x507a 2
+D 0x508a 0x508e cuatro_por_0xe060  0x5048 los indexa con (0xE060) y deja el que salga en (0xE107)
+F 0x508a 4
+D 0x57e4 0x5806 los_mandos_grabados  la partida grabada de la demostracion: 33 pulsaciones y el 0xFF que 0x57DA busca para pararla
+F 0x57e4 34
+D 0x5806 0x5826 la_otra_tira_de_la_demostracion  otros 32 bytes, los que carga 0x57C0
+F 0x5806 32
+D 0x64be 0x64c4 seis_por_0xe10e  0x64AC los indexa con (0xE10E), que va de 0 a 5, y el que sale acaba en (0xE11D)
+F 0x64be 6
+D 0x6543 0x6549 seis_pares_de_nibbles  0x652B los indexa; del byte que saca, el nibble alto va a (0xE134) y el bajo se usa aparte
+F 0x6543 6
+D 0x6664 0x6669 casillas_de_una_cifra_baja  cinco; 0x6614 las elige cuando el numero no llega a 13
+F 0x6664 5
+D 0x6669 0x666e casillas_de_una_cifra_alta  las otras cinco, desde 0x660F
+F 0x6669 5
+D 0x69f1 0x6a0c la_curva_del_salto  veintiseis desplazamientos y el 0xA0 que la cierra; van de 0xFC a 0x04, o sea suben cuatro y bajan cuatro. 0x6AA3 entra con (0xE11C)
+F 0x69f1 27
+D 0x9206 0x9212 la_curva_del_enemigo  la misma idea en once bytes y el 0xA0: 0xFF, 0x00 y 0x01. 0x91EE entra con (ix+7), que va incrementando
+F 0x9206 12
+
+# ======================================================================
+# EL GOLPE
+# ======================================================================
+D 0x6e5f 0x6e6f tabla_del_alcance  ocho punteros, uno por escenario -el sexto repite el cuarto-; los carga 0x6E33
+F 0x6e5f w
+D 0x6e6f 0x6e84 tiras_del_alcance  siete tiras de tres bytes, las que apunta la tabla de arriba; 0x6E42 compara contra ellas
+F 0x6e6f 3
+D 0x6eb2 0x6eb5 umbrales_del_golpe  los tres que 0x6E94 compara contra (0xE137) para saber por que fotograma va: 0x0E, 0x07 y 0x01
+F 0x6eb2 3
+D 0x6ed0 0x6ed6 tres_variables  0xE1A7, 0xE1A8 y 0xE1A9; son punteros a RAM, no a ROM, y 0x6EF5 elige con (0xE135)
+F 0x6ed0 w
+D 0x6f95 0x6f9b mas_tres_variables  0xE1AB, 0xE1AD y 0xE1AF, desde 0x6F88 con (0xE1A3)
+F 0x6f95 w
+D 0x6f9b 0x6fa1 y_otras_tres  0xE1E4, 0xE1E8 y 0xE1EC, desde 0x6F07
+F 0x6f9b w
+D 0x6fa1 0x6fa4 tres_casillas  0x7E, 0x8E y 0x9E; 0x6F0F las indexa con el mismo (0xE1A3)
+F 0x6fa1 3
+D 0x70c1 0x70c5 cuatro_casillas_a  0x70B6 las indexa con dos bits de una cuenta
+F 0x70c1 4
+D 0x70c5 0x70c9 cuatro_casillas_b  las mismas cuatro, desde 0x70DE, que ademas pone un 6 detras
+F 0x70c5 4
+D 0x71ee 0x71f1 tres_por_0xe135  0x12, 0x13 y 0x14; 0x71BD las indexa y deja el que salga en (0xE1D0)
+F 0x71ee 3
+D 0x7273 0x727b tabla_de_las_cuatro_figuras  cuatro punteros; cierra en 0x727B
+F 0x7273 w
+D 0x727b 0x728b cuatro_figuras  las cuatro que apunta, de cuatro bytes cada una; 0x7269 elige con B y las pinta con L_675D; 4 figura(s), medidas con tools/formatos.py
+F 0x727b 4
+D 0x72ff 0x7305 ajustes_de_fila  seis: 0xFC, 0xFD, 0xFE y tres ceros; 0x72E3 los indexa con (0xE1D2) y los suma a (0xE1D4)
+F 0x72ff 6
+D 0x7305 0x7311 tabla_de_las_seis_figuras  seis punteros; cierra en 0x7311
+F 0x7305 w
+D 0x7311 0x732f seis_figuras  las que apunta, y cierran al byte en 0x732F; 6 figura(s), medidas con tools/formatos.py
+F 0x7311 6,5,4,4,5,6
+D 0x74f1 0x74f5 los_cuatro_del_extra  38 78 e0 0f; 0x74D4 los copia con ldir y llama a 0x7518. Es el premio de haber encontrado el Yie Ar Kung-Fu I en la otra ranura
+F 0x74f1 4
+D 0x7525 0x752d figura_del_extra  la figura de 3x4 que 0x7518 pinta en (0xE170) = 0x0E06; 1 figura(s), medida con tools/formatos.py
+F 0x7525 8
+D 0x75e3 0x75eb cuatro_palabras  0x0400, 0x0360, 0x0250 y 0x0080; 0x75C8 las indexa con dos bits de (0xE003)
+F 0x75e3 w
+D 0x77b0 0x77c4 diez_parejas  0x7780 entra con 2*(ix+15): del primer byte saca (ix+2) sumandole 0x9A, y del segundo (ix+4) sumandole (ix+14)
+F 0x77b0 2
+D 0x78de 0x78e6 cuatro_parejas_a  0x7897 las indexa y copia las dos mitades seguidas
+F 0x78de 2
+D 0x78e6 0x78ea dos_parejas_b  las que carga 0x78A4 justo despues
+F 0x78e6 2
+D 0x7b58 0x7b60 cuatro_por_0xe1c3  0x7B09 entra con 2*(0xE1C3) y NIEGA el valor si (0xE1C4) no es cero
+F 0x7b58 2
+D 0x7b60 0x7b68 ocho_mas  los que carga 0x7B49
+F 0x7b60 8
+
+# ======================================================================
+# EL LOGOTIPO DEL TITULO
+# ======================================================================
+# `monta_el_titulo` (0x4CE9) lo pone con tres trozos seguidos que cierran al
+# byte: 523 + 17 + 58 = 598, y 0x4D43 + 598 = 0x4F99.
+#
+# Los dos primeros van por L_48AE, que NO vuelca una vez sino DOS: el mismo
+# guion en HL y en HL+0x800, o sea en los dos primeros tercios de pantalla.
+# Por eso el titulo se ve entero aunque solo haya un juego de patrones.
+D 0x4d43 0x4f4e patrones_del_logotipo  un guion RLE de 544 bytes de VRAM -68 patrones-; 0x4CF4 lo suelta en 0x2400 y L_48AE lo repite en 0x2C00; 1 guion(es), medidos con tools/formatos.py
+F 0x4d43 523
+D 0x4f4e 0x4f5f colores_del_logotipo  el mismo tamano de VRAM en 17 bytes, que es lo que se comprime un color plano; 0x4CFD lo suelta en 0x0400 y 0x0C00
+F 0x4f4e 17
+D 0x4f5f 0x4f99 casillas_del_logotipo  la figura de 7x18 que coloca esos patrones en la pantalla; 0x4D10 la pinta con L_675D en (0xE170) = 0x0704, o sea fila 7 y columna 4; 1 figura(s), medida con tools/formatos.py
+F 0x4f5f 58
+
+# ======================================================================
+# EL DECORADO DE LA PANTALLA DE OLEADAS
+# ======================================================================
+# Esta pantalla no comparte nada con la del combate: no va por bandas ni tiene
+# espejo, y lo suyo son casillas de la tabla de nombres, no patrones. Son dos
+# tablas de cuatro, las dos indexadas por (0xE2E0):
+#
+#   0x5F38  -> 0x5BD5 lo vuelca en 0x3AA0, 64 casillas: las dos filas de abajo
+#   0x5FFE  -> 0x5B5B lo vuelca en 0x38A0, de la fila 5 para abajo
+#
+# Los ocho guiones encajan uno detras de otro en sus dos cadenas, y los cuatro
+# de la primera vuelcan exactamente 64 casillas cada uno. Los de la segunda
+# vuelcan 352, 352, 512 y 352: once filas los tres primeros y dieciseis el de
+# 0x6230, que es un escenario mas alto.
+D 0x5f38 0x5f40 tabla_de_las_dos_filas_de_abajo  cuatro punteros; la tabla cierra justo en 0x5F40, su entrada mas baja
+F 0x5f38 w
+D 0x5f40 0x5ffe guiones_de_las_dos_filas_de_abajo  los cuatro, en orden de direccion; los cuatro vuelcan 64 casillas, o sea dos filas enteras; 4 guion(es), medidos con tools/formatos.py
+F 0x5f40 66,53,66,5
+D 0x5ffe 0x6006 tabla_del_decorado_de_arriba  cuatro punteros; cierra en 0x6006... que no es su entrada mas baja sino el guion que carga 0x5B42, pegado delante de las cuatro
+F 0x5ffe w
+D 0x6006 0x601a guion_de_la_fila_3  una fila entera de 32 casillas en 0x3860; lo suelta 0x5B42 con guion_rle, o sea con el destino metido dentro; 1 guion(es), medidos con tools/formatos.py
+F 0x6006 20
+D 0x601a 0x6464 guiones_del_decorado_de_arriba  los cuatro de 0x5FFE, en orden de direccion; vuelcan 352, 352, 512 y 352 casillas y la cadena acaba al byte en 0x6464; 4 guion(es), medidos con tools/formatos.py
+F 0x601a 256,278,248,316
+
+# ======================================================================
+# LOS FOTOGRAMAS DEL JUGADOR
+# ======================================================================
+# 0x6B79 monta el muneco entero: 0x6C83 le da el fotograma con (0xE118) y de
+# ahi sale todo -los sprites, los colores y los patrones que hay que subir a
+# la VRAM-. La tabla cierra sola en 0x6CAB, a 40 bytes justos, y los veinte
+# tramos que apunta acaban los veinte donde dice el puntero siguiente.
+#
+# Un fotograma PAR es:
+#
+#   cuatro sprites   el formato de 0x6829, el mismo que el de los enemigos:
+#                    los tres primeros [y][x][patron][color], el cuarto solo
+#                    [y][x], y 0x80 para el que no se pinta
+#   un byte          el juego de colores; 0x6C13 lo usa para elegir una de
+#                    las tiras de 0x6C51 o de 0x6C66
+#   trios [y][x][patron]  hasta un byte cuyo nibble alto sea 8
+#   ese byte         y su nibble BAJO dice cuantos guiones vienen detras
+#   esos guiones     words que 0x6BEF pasa a guion_rle, o sea con el destino
+#                    de VRAM metido dentro
+#
+# El impar son dos bytes: un puntero al par de delante. Lo sigue el `ld e,(hl)`
+# de 0x6B9A, y solo cuando (0xE114) no es cero.
+#
+# LOS 34 GUIONES QUE SE NOMBRAN AQUI SON TODOS INICIO DE GUION DE SPRITE, y
+# eso se comprueba solo: la lista de inicios se saca por otro lado -encadenando
+# la cadena de 0xA48E hasta 0xA9FB- y las 34 words caen todas dentro. Es la
+# segunda prueba de que ese bloque empieza en 0xA48E y no en 0xA490: aqui se
+# llaman con guion_rle (0x48E1), que lee el destino del propio guion.
+D 0x6c51 0x6c57 tabla_de_los_colores_a  tres punteros a las tiras de colores de detras; 0x6C34 la elige cuando 0x6C13 no tiene por que parpadear
+F 0x6c51 w
+D 0x6c57 0x6c66 colores_a  tres tiras de ocho colores, SOLAPADAS: empiezan en 0x6C57, 0x6C58 y 0x6C5E, y la ultima acaba justo en 0x6C66. Ocho porque L_6C45 copia ocho, de cuatro en cuatro, sobre el cuarto byte de los atributos de sprite (0xE09F)
+F 0x6c57 15
+D 0x6c66 0x6c6c tabla_de_los_colores_b  los otros tres; 0x6C2F la elige, y 0x6C2D alterna entre las dos con el bit 1 de (0xE003): eso es el parpadeo
+F 0x6c66 w
+D 0x6c6c 0x6c7b colores_b  otras tres tiras de ocho solapadas, en 0x6C6C, 0x6C6D y 0x6C73; la ultima acaba en 0x6C7B
+F 0x6c6c 15
+D 0x6c7b 0x6c83 patrones_del_jugador  los ocho numeros de patron, de 4 en 4 porque los sprites son de 16x16; 0x6B79 los copia sobre el tercer byte de los atributos (0xE09E)
+F 0x6c7b 8
+D 0x6c83 0x6e1d fotogramas_del_jugador  veinte punteros -la tabla cierra en 0x6CAB- y los veinte tramos: diez dibujos y diez remisiones de dos bytes al dibujo de delante
+F 0x6c83 40,44,2,45,2,36,2,36,2,36,2,34,2,37,2,38,2,22,2,22,2
+
+# ======================================================================
+# LOS OCHO ENEMIGOS
+# ======================================================================
+# Cada escenario tiene el suyo, y todo lo que hace falta para pintarlo cuelga
+# de dos tablas de ocho entradas que se indexan igual, con `call 0x7EA0` -o
+# sea con (0xE2C0 + (0xE066)), el escenario que le toca a la ronda-:
+#
+#   0x6922  -> los fotogramas del enemigo   (lo carga 0x68A8)
+#   0x7FDB  -> como reacciona                (lo carga 0x7FD0)
+#
+# Y el indice DENTRO de esa segunda tabla no es un estado: es la DISTANCIA.
+# 0x6E1D resta la x del jugador (0xE156) y la del enemigo (0xE113) y clasifica
+# lo que salga en siete tramos con seis cortes -0x13 y 0x40 y 0x48 fijos, y
+# otros tres que salen de la tira del escenario, en 0x6E5F-. Deja el tramo en
+# B, y 0x7FD7 entra con el en la tabla. O sea: cada escenario tiene su propia
+# tabla de que hace el enemigo segun lo cerca que lo tenga.
+#
+# LOS FOTOGRAMAS. Cada bloque empieza por 22 punteros y sigue con los tramos
+# que apuntan. La tabla cierra sola: su entrada mas baja cae justo a 44 bytes
+# del principio. Y los tramos teselan lo que queda sin un hueco ni un solape,
+# los ocho bloques -143 de 144 tramos; el que sobra no es un fallo, es la
+# tabla de 0x82D8, que vive detras del primer bloque y la carga otro-.
+#
+# Un fotograma PAR es un dibujo entero: [dy][dx], cuatro sprites y una figura
+# de casillas. Uno IMPAR son tres bytes, [dy][word], y la word apunta al
+# SEGUNDO byte de otra entrada. Lo decide el `bit 0,a / ret z` de 0x677C
+# mirando el indice, y el mismo bit hace otra cosa en 0x686A: NEGAR la x de
+# los sprites. O sea que el fotograma impar es el par mirando al otro lado,
+# con su propia altura.
+#
+# De los cuatro sprites, los tres primeros son [y][x][patron][color] y el
+# CUARTO solo [y][x]: el `ld a,b / cp 1` de 0x6879 sale del bucle antes de
+# leer patron y color. Cualquiera vale 0x80, y entonces ocupa un byte y no
+# pinta nada.
+#
+# Y la figura NO es la de 0x67F5 sino la de su hermana 0x67A7, que trata el
+# 0xE0..0xEF de otra manera: escribe ceros y ocupa UN byte, en vez de repetir
+# el byte de detras y ocupar dos. Leerlas con la otra no falla a lo bestia,
+# se pasa por dos o tres bytes por figura, que es exactamente lo que costaba
+# cuadrar los bloques.
+D 0x6922 0x6932 tabla_de_los_enemigos  ocho punteros a los ocho bloques de fotogramas; los carga 0x68A8 con el escenario
+F 0x6922 w
+D 0x7fdb 0x7feb tabla_de_las_reacciones  ocho punteros a las ocho tablas de reacciones; los carga 0x7FD0 con el escenario, y luego 0x7FD8 entra en la que salga con el TRAMO DE DISTANCIA en B, el que acaba de medir 0x6E1D
+F 0x7fdb w
+D 0x7feb 0x7ff9 reacciones_del_escenario_0  7 entradas, desde 0x7FDB[0]; detras sigue la primera que no es 0x8000, 0x7FF9
+F 0x7feb w
+D 0x8304 0x8312 reacciones_del_escenario_1  7 entradas, desde 0x7FDB[1]; detras sigue 0x8312
+F 0x8304 w
+D 0x86f6 0x8704 reacciones_del_escenario_2  7 entradas, desde 0x7FDB[2]; detras sigue 0x8704
+F 0x86f6 w
+D 0x8b39 0x8b47 reacciones_del_escenario_4  7 entradas, desde 0x7FDB[4]; detras sigue 0x8B47
+F 0x8b39 w
+D 0x8d32 0x8d40 reacciones_del_escenario_5  7 entradas, desde 0x7FDB[5]; detras sigue 0x8D40
+F 0x8d32 w
+D 0x84e4 0x84f2 reacciones_del_escenario_6  7 entradas, desde 0x7FDB[6]; detras sigue 0x84F2
+F 0x84e4 w
+D 0x8eea 0x8ef8 reacciones_del_escenario_7  7 entradas, desde 0x7FDB[7]; detras sigue 0x8EF8
+F 0x8eea w
+D 0x8142 0x82d8 fotogramas_del_enemigo_0  el enemigo del escenario 0, desde 0x6922[0]. Delante, 22 punteros que cierran la tabla justo en 0x816E; detras, 22 tramos (11 dibujos y 11 remisiones) que teselan el bloque sin un hueco ni un solape; medidos con formatos.entrada_del_enemigo
+F 0x8142 44,30,3,27,3,33,3,34,3,30,3,26,3,27,3,36,3,36,3,29,3,21,3
+D 0x839d 0x84dd fotogramas_del_enemigo_1  el enemigo del escenario 1, desde 0x6922[1]. Delante, 22 punteros que cierran la tabla justo en 0x83C9; detras, 20 tramos (10 dibujos y 10 remisiones) que teselan el bloque sin un hueco ni un solape; medidos con formatos.entrada_del_enemigo
+F 0x839d 44,17,3,20,3,22,3,28,3,28,3,24,3,29,3,31,3,31,3,16,3
+D 0x87c7 0x88fe fotogramas_del_enemigo_2  el enemigo del escenario 2, desde 0x6922[2]. Delante, 22 punteros que cierran la tabla justo en 0x87F3; detras, 18 tramos (9 dibujos y 9 remisiones) que teselan el bloque sin un hueco ni un solape; medidos con formatos.entrada_del_enemigo
+F 0x87c7 44,21,3,22,3,28,3,22,3,23,3,33,3,35,3,34,3,22,3
+D 0x89f3 0x8b32 fotogramas_del_enemigo_3  el enemigo del escenario 3, desde 0x6922[3]. Delante, 22 punteros que cierran la tabla justo en 0x8A1F; detras, 18 tramos (9 dibujos y 9 remisiones) que teselan el bloque sin un hueco ni un solape; medidos con formatos.entrada_del_enemigo
+F 0x89f3 44,21,3,25,3,32,3,25,3,35,3,31,3,29,3,28,3,22,3
+D 0x8baf 0x8d2b fotogramas_del_enemigo_4  el enemigo del escenario 4, desde 0x6922[4]. Delante, 22 punteros que cierran la tabla justo en 0x8BDB; detras, 20 tramos (10 dibujos y 10 remisiones) que teselan el bloque sin un hueco ni un solape; medidos con formatos.entrada_del_enemigo
+F 0x8baf 44,22,3,24,3,30,3,38,3,37,3,28,3,38,3,34,3,33,3,22,3
+D 0x8dac 0x8ee7 fotogramas_del_enemigo_5  el enemigo del escenario 5, desde 0x6922[5]. Delante, 22 punteros que cierran la tabla justo en 0x8DD8; detras, 20 tramos (10 dibujos y 10 remisiones) que teselan el bloque sin un hueco ni un solape; medidos con formatos.entrada_del_enemigo
+F 0x8dac 44,23,3,16,3,24,3,30,3,29,3,22,3,26,3,29,3,28,3,14,3
+D 0x857b 0x86cb fotogramas_del_enemigo_6  el enemigo del escenario 6, desde 0x6922[6]. Delante, 22 punteros que cierran la tabla justo en 0x85A7; detras, 18 tramos (9 dibujos y 9 remisiones) que teselan el bloque sin un hueco ni un solape; medidos con formatos.entrada_del_enemigo
+F 0x857b 44,26,3,25,3,26,3,30,3,36,3,37,3,32,3,31,3,22,3
+D 0x8f74 0x901c fotogramas_del_enemigo_7  el enemigo del escenario 7, desde 0x6922[7]. Delante, 22 punteros que cierran la tabla justo en 0x8FA0; detras, 8 tramos (4 dibujos y 4 remisiones) que teselan el bloque sin un hueco ni un solape; medidos con formatos.entrada_del_enemigo
+F 0x8f74 44,27,3,33,3,24,3,28,3
+D 0x82d8 0x82fd fotogramas_del_golpe  siete punteros -que cierran la tabla en 0x82E6- y siete tiras cortas. 0x6E84 entra con (0xE135) y le suma 0 a 3 segun donde este (0xE137) contra los tres umbrales de 0x6EB2; lo que saca es el fotograma, que deja en (0xE138)
+F 0x82d8 14,3,3,3,3,3,4,4
+
+# ======================================================================
+# LA PANTALLA DE COMBATE: MEDIA PANTALLA Y UN ESPEJO
+# ======================================================================
+# 0x597F monta el escenario entero. Son 7.657 bytes de guiones y no hay uno
+# suelto: CUARENTA guiones RLE apuntados por CUARENTA punteros repartidos en
+# seis tablas contiguas de 0x592F a 0x597E. La biyeccion es exacta -ni un
+# guion sin puntero ni un puntero sin guion- y ademas cada pareja
+# patron/color vuelca EL MISMO numero de bytes, las veinte.
+#
+# El escenario se parte en cuatro bandas, y cada banda tiene su pareja de
+# tablas (una de patrones, otra de colores). Los bancos van al reves, asi que
+# los patrones se escriben en 0x2000+ y los colores en 0x0000+:
+#
+#   banda      patrones          colores                       elige
+#   ---------  ----------------  ----------------------------  ------------
+#   de arriba  0x594F -> 0x2260  0x5957 -> 0x0260 y 0x0560     (0xE2E0), 4
+#   del medio  0x595F -> 0x2880  0x5967 -> 0x0880 y 0x0C40     (0xE2E0), 4
+#   de abajo   0x596F -> 0x33C0  0x5977 -> 0x13C0 y 0x1780     (0xE2E0), 4
+#   el suelo   0x592F -> 0x3080  0x593F -> 0x1080 y 0x1440     0x7EA0, 8
+#
+# EL ESPEJO. Solo se dibuja la mitad. 0x5A4D copia tres tramos de la tabla de
+# patrones sobre si misma pasando cada byte por vuelve_los_bits, que le da la
+# vuelta a los ocho bits: 0x2200->0x2500 (0x300 bytes), 0x2880->0x2C40 y
+# 0x3080->0x3440 (0x3C0 cada uno). No se refleja la pantalla, se reflejan los
+# PATRONES: la mitad de la derecha son los mismos dibujos del reves.
+#
+# Y de ahi sale por que el color se escribe DOS veces: el espejo copia
+# patrones y no toca los colores, asi que hay que poner el color a mano en el
+# sitio reflejado. La cuenta cuadra en las tres bandas -0x0560-0x0260 = 0x300,
+# 0x0C40-0x0880 = 0x3C0 y 0x1780-0x13C0 = 0x3C0- y es exactamente el
+# desplazamiento de cada copia.
+#
+# El suelo lo elige 0x7EA0, que lee (0xE2C0 + (0xE066)): una tira en RAM con
+# el suelo que le toca a cada ronda. 0x597F deja de entrada el de 0xB819 y
+# 0x5A93 lo cambia por el que toque de los ocho.
+D 0x592f 0x593f tabla_de_patrones_del_suelo  ocho punteros; los carga 0x5AAC y van a la VRAM de patrones 0x3080
+F 0x592f w
+D 0x593f 0x594f tabla_de_colores_del_suelo  ocho punteros, los mismos ocho suelos en color; los carga 0x5A97 y van a 0x1080 y a 0x1440
+F 0x593f w
+D 0x594f 0x5957 tabla_de_patrones_de_la_banda_alta  cuatro punteros; los carga 0x59E0 y van a 0x2260
+F 0x594f w
+D 0x5957 0x595f tabla_de_colores_de_la_banda_alta  cuatro punteros; los carga 0x59CA y van a 0x0260 y a 0x0560
+F 0x5957 w
+D 0x595f 0x5967 tabla_de_patrones_de_la_banda_media  cuatro punteros; los carga 0x5A04 y van a 0x2880
+F 0x595f w
+D 0x5967 0x596f tabla_de_colores_de_la_banda_media  cuatro punteros; los carga 0x59EE y van a 0x0880 y a 0x0C40
+F 0x5967 w
+D 0x596f 0x5977 tabla_de_patrones_de_la_banda_baja  cuatro punteros; los carga 0x5A27 y van a 0x33C0
+F 0x596f w
+D 0x5977 0x597f tabla_de_colores_de_la_banda_baja  cuatro punteros; los carga 0x5A12 y van a 0x13C0 y a 0x1780
+F 0x5977 w
+D 0x94c3 0xa48e guiones_de_los_suelos  los dieciseis guiones de las dos tablas de 0x592F y 0x593F: ocho suelos, cada uno en patrones y en color. Emparejados como los ordenan las tablas, los dos de cada pareja vuelcan lo mismo -752, 368, 528, 489, 552, 376, 368 y 240 bytes-, y eso es lo que los cierra, no que la cadena termine donde termina; 16 guion(es), medidos con tools/formatos.py
+F 0x94c3 673,171,328,129,342,31,421,97,441,89,453,135,337,158,223,15
+D 0xa9fb 0xb819 guiones_de_las_bandas  los veinticuatro guiones de las seis tablas de 0x594F a 0x597E: tres bandas x cuatro escenarios x (patrones y color). Las doce parejas vuelcan lo mismo las doce: 112, 128, 304, 88, 672, 672, 712, 456, 32, 40, 56 y 16 bytes; 24 guion(es), medidos con tools/formatos.py
+F 0xa9fb 65,50,82,21,64,3,266,53,560,384,509,54,342,135,614,232,34,17,38,3,53,14,18,3
+
+# ======================================================================
+# QUIEN SALE Y CUANDO: LA CASCADA DE 0x9276
+# ======================================================================
+# 0x901C decide el siguiente enemigo bajando por tres tablas encadenadas, y
+# las tres cierran al byte una contra otra:
+#
+#   0x9276  ocho punteros, uno por ronda            <- (0xE066)
+#      -> 0x9286..0x9305, ocho tiras de ocho punteros  <- (0xE061)
+#         -> 0x9306..0x93A5, diez tiras de ocho parejas <- (0xE10A)
+#
+# Las ocho tiras del segundo nivel son contiguas y de 16 bytes, y los diez
+# destinos distintos del tercero son exactamente 0x9306, 0x9316, ... 0x9396:
+# diez tiras de 16 bytes que acaban justo en 0x93A6, donde empieza la tabla
+# siguiente. Ni un hueco.
+#
+# De cada pareja del tercer nivel, 0x9042 se queda el primer byte en (0xE1A3)
+# -que es lo que sale- y 0x9095 el segundo en (0xE1A1), la cuenta atras que
+# 0x9023 mira para no soltar el siguiente antes de tiempo. 0x9080 avanza
+# (0xE10A) de 0 a 7 y al dar la vuelta sube (0xE061), que se queda en 6 al
+# llegar a 8: la coreografia no se acaba nunca, se repite por el final.
+D 0x926e 0x9272 valores_del_campo_1  cuatro, indexados por los dos bits bajos de (0xE1A3); 0x910D los mete en el campo 1 de la ranura del enemigo
+F 0x926e 4
+D 0x9272 0x9276 valores_del_campo_4  los otros cuatro, mismo indice, desde 0x9118
+F 0x9272 4
+D 0x9276 0x9286 tabla_de_las_rondas  ocho punteros a las ocho tiras de 0x9286; los carga 0x902A con (0xE066)
+F 0x9276 w
+D 0x9286 0x9306 tiras_de_la_ronda  ocho tiras contiguas de ocho punteros; 0x9037 elige con (0xE061) la tira de parejas que toca
+F 0x9286 w
+D 0x9306 0x93a6 parejas_de_lo_que_sale  diez tiras de ocho parejas (que sale, cuanto se espera); 0x903F entra con (0xE10A)
+F 0x9306 16
+D 0x93a6 0x93b6 tabla_de_figuras_del_enemigo  ocho punteros que 0x9258 carga con 2*(campo 4) + (1 si el campo 3 no es cero); la ultima figura sale dos veces
+F 0x93a6 w
+D 0x93b6 0x93e4 figuras_del_enemigo  siete figuras de casillas, y cierran al byte en 0x93E4. Delante de cada una hay un byte que NO es del formato: 0x9262 lo suma a la fila antes de pintar, o sea es un ajuste con signo (0xFF = una fila arriba, 0xFE = dos); 7 figura(s), medidas con tools/formatos.py
+F 0x93b6 8,9,5,7,5,7,5
+
+# ======================================================================
+# EL FINAL DEL JUEGO
+# ======================================================================
+# Dos guiones literales pegados al bloque de tablas de arriba: el segundo
+# acaba justo en 0x592F, donde arranca la primera tabla de punteros.
+D 0x58ef 0x58f9 guion_de_las_cuatro_casillas  dos tramos de dos casillas en la tabla de nombres, 0x3A2F y 0x3A4F: filas 17 y 18, columnas 15 y 16, o sea un bloque de 2x2 en el centro. 0x58DC lo pinta y lo borra segun el bit 2 de (0xE003), asi que parpadea; 1 guion(es), medidos con tools/formatos.py
+F 0x58ef 10
+D 0x58f9 0x592f rotulos_del_final  cuatro tramos que 0x58B0 pinta de una vez, con el alfabeto de la casa (la letra es el ASCII menos 0x20): "CONGRATULATIONS!" en 0x3888, "THANK YOU" en 0x38CB, "FOR" en 0x390E y "YOUR BRAVERY!!" en 0x3949; 1 guion(es), medidos con tools/formatos.py
+F 0x58f9 54
+
+
+# ======================================================================
+# LAS OLEADAS: QUE SALE EN CADA PANTALLA
+# ======================================================================
+# 0x5B70 monta una pantalla, y lo hace en tres saltos:
+#
+#  1. `puntero_numero_a` sobre 0x5BE8 con el numero de escena, y luego
+#     DE += (0xE060)*4: se queda con una tira de CUATRO bytes.
+#  2. de esa tira saca OCHO NIBBLES, uno por objeto, alto primero y bajo
+#     despues (el `bit 0,b` del bucle de 0x5B9E lo alterna).
+#  3. cada nibble indexa la tabla que le toque de 0x5C20, y lo que sale es la
+#     figura; con ella llama a 0x675D, que la pinta en el buffer de 0xE480.
+#
+# O sea que una pantalla entera son CUATRO BYTES.
+D 0x5be4 0x5be8 cabecera_de_las_oleadas  cuatro bytes que carga 0x5BC6
+F 0x5be4 4
+D 0x5be8 0x5bf0 tabla_de_las_tiras  cuatro punteros a las tiras de nibbles
+F 0x5be8 w
+D 0x5bf0 0x5c20 las_cuatro_tiras  doce bytes cada una: tres posiciones de cuatro bytes, y cada byte son dos objetos
+F 0x5bf0 12
+D 0x5c20 0x5c64 tablas_de_figuras  cinco tablas seguidas: una de 4 punteros a las otras y luego las de 8, 8, 8 y 6 figuras; las 34 entradas ocupan justo hasta 0x5C64, donde empieza la primera figura
+F 0x5c20 w
+D 0x5c64 0x5f38 las_treinta_figuras  las figuras que se pintan en las oleadas, en el formato de 0x67F5: alto, ancho y las casillas con dos ordenes de RLE -repetir y SECUENCIA ASCENDENTE-. Las treinta encajan una detras de otra y la ultima acaba justo en 0x5F38, que es la siguiente direccion que el codigo carga (desde 0x5BD5)
+F 0x5c64 36,38,38,30,32,38,37,37,12,14,12,17,14,15,19,16,37,28,25,33,28,28,26,24,24,17,16,6,20,7
+
+# ======================================================================
+# LOS PATRONES DE SPRITE
+# ======================================================================
+# 0x5ABA los carga en un bucle de dieciseis vueltas, y cada vuelta cruza DOS
+# tablas: 0x5B02 da el guion y 0x5B22 la direccion de VRAM donde va. Luego
+# 0x48E7 lo descomprime con el destino ya en HL.
+#
+# Cada uno de esos dieciseis guiones lleva ademas UNA PALABRA DE COLA detras
+# del 0x00 que lo cierra, siempre una direccion de 0x18xx. Es lo que hacia que
+# la cadena fallara por dos bytes exactos en cada guion: sin contarla, cada
+# guion "acaba" dos bytes antes del siguiente. Contandola, los dieciseis
+# encajan seguidos y el ultimo cae justo en 0xA7D1, que es la direccion que
+# 0x5AE1 carga a mano.
+#
+# Y sale la cuenta redonda que confirma que son sprites: lo que vuelcan son
+# 32, 64, 96, 128 o 160 bytes, siempre multiplo de 32, que es lo que ocupa un
+# sprite de 16x16.
+D 0x5af2 0x5b02 tabla_de_guiones_del_pozo  ocho punteros a los guiones de 0xA87E en adelante; los carga 0x5AE9
+F 0x5af2 w
+D 0x5b02 0x5b22 tabla_de_guiones_de_sprite  dieciseis punteros a los guiones de 0xA490 en adelante
+F 0x5b02 w
+D 0x5b22 0x5b42 destinos_de_los_sprites  las dieciseis direcciones de VRAM, de 0x1A00 a 0x1EE0, todas dentro de los patrones de sprite (0x1800 por el registro 6)
+F 0x5b22 w
+D 0xa48e 0xa7d1 guiones_de_los_sprites  los dieciseis guiones RLE del bucle de 0x5ABA. La palabra NO es una cola: va DELANTE de cada guion y es su destino en VRAM, que es lo que lee guion_rle (0x48E1) antes de entrar en 0x48E7. Por eso el bloque empieza dos bytes antes de lo que hace pensar la tabla de 0x5B02, que apunta a los datos ya sin cabecera. Los dieciseis destinos embebidos caen entre 0x1800 y 0x1880, todos multiplos de 32: sprites de 16x16
+F 0xa48e 23,26,20,77,73,24,10,75,25,84,105,78,87,15,58,55
+D 0xa7d1 0xa87e guion_de_sprites_suelto  el unico que 0x5AE1 carga a mano, sin pasar por tabla; 288 bytes de VRAM, o sea nueve sprites
+F 0xa7d1 173
+D 0xa87e 0xa9fb guiones_del_pozo_de_sprites  los siete de la tabla de 0x5AF2, estos con la direccion de VRAM metida en el propio guion; los siete van a 0x1F80, el final del pozo
+F 0xa87e 61,33,50,49,68,57,63
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x597f ======================================================================
+B 0x597f MONTAR LA PANTALLA DE COMBATE
+B 0x597f ======================================================================
+B 0x597f Primero lo que no cambia -el marco y los iconos-, luego las tres
+B 0x597f bandas y el suelo, que si dependen del escenario. Y al final el
+B 0x597f espejo, que es lo que permite dibujar solo la mitad.
+B 0x597f Los bancos van al reves: los patrones caen en 0x2000 y los colores en
+B 0x597f 0x0000, asi que un mismo dibujo son dos guiones con el mismo offset.
+L 0x597f monta_la_pantalla_de_combate
+C 0x597f Los colores del marco, en el primer tercio
+C 0x5982 El mismo guion se usa dos veces: por eso se guarda
+C 0x5986 Volcar con el destino ya en HL
+C 0x5989 Y otra vez, medio tercio mas abajo
+C 0x5990 Ahora los patrones del marco, mismo offset pero banco de 0x2000
+C 0x5999 El segundo trozo del marco: color...
+C 0x59a2 ...y patron
+C 0x59ab Los iconos, dos veces en color
+C 0x59bd Y una en patron
+C 0x59c6 El escenario que toca; se usa cinco veces, de ahi el `push`
+C 0x59ca Colores de la banda de arriba
+C 0x59d1 Van a 0x0260...
+C 0x59d8 ...y a 0x0560, que es donde caera el espejo
+C 0x59e0 Patrones de la banda de arriba
+C 0x59e6 Solo una vez: al reflejo lo copia 0x5A4D
+C 0x59ee Colores de la banda del medio
+C 0x59f5 0x0880 y 0x0C40: la misma distancia que la copia, 0x3C0
+C 0x5a04 Patrones de la banda del medio
+C 0x5a12 Colores de la banda de abajo
+C 0x5a19 0x13C0 y 0x1780, otra vez 0x3C0
+C 0x5a27 Patrones de la banda de abajo
+C 0x5a33 El suelo de serie; 0x5A93 lo cambia por el de la ronda
+C 0x5a37 Su color, las dos veces
+C 0x5a44 Y su patron, una
+B 0x5a4d ---------------------------------------------------------------------
+B 0x5a4d EL ESPEJO. Tres tramos de la tabla de patrones copiados sobre si
+B 0x5a4d mismos con los ocho bits del reves. No se refleja la pantalla: se
+B 0x5a4d reflejan los PATRONES, y la mitad derecha son los mismos dibujos.
+L 0x5a4d espeja_el_decorado
+C 0x5a4d La banda de arriba: 0x2200 -> 0x2500
+C 0x5a53 0x300 bytes, o sea 96 patrones
+C 0x5a59 La del medio: 0x2880 -> 0x2C40
+C 0x5a65 Y el suelo: 0x3080 -> 0x3440
+C 0x5a71 Con dos jugadores no hay nada mas que hacer
+C 0x5a77 Escenario 3: ademas hay que poner el marcador de fase
+L 0x5a80 copia_dando_la_vuelta
+C 0x5a80 Leer el patron de origen
+C 0x5a83 Darle la vuelta a los ocho bits
+C 0x5a87 Y escribirlo en el destino
+C 0x5a8d Hasta agotar BC
+L 0x5a93 pon_el_suelo_de_la_ronda
+C 0x5a93 A = el escenario de esta ronda
+C 0x5a97 Su suelo en color...
+C 0x5a9e ...a 0x1080 y a 0x1440
+C 0x5aac ...y en patron
+C 0x5ab2 A 0x3080, que 0x5A65 reflejara a 0x3440
+C 0x5ab8 Y a reflejar
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x597f ======================================================================
+B 0x597f ======================================================================
+B 0x5a4d ---------------------------------------------------------------------
+B 0x66d5 ======================================================================
+B 0x66d5 PINTAR UNA FIGURA DE CASILLAS
+B 0x66d5 ======================================================================
+B 0x66d5 Entra con DE en la figura y la posicion ya puesta en (0xE170) fila y
+B 0x66d5 (0xE171) columna. La figura se descomprime entera a 0xE480 y de ahi
+B 0x66d5 se sube a la tabla de nombres fila a fila, recortando lo que se salga
+B 0x66d5 por los lados.
+B 0x66d5 (0xE176) dice si esto pinta o BORRA: con 0xFF sube el dibujo con
+B 0x66d5 LDIRVM, y con 0 rellena de unos con FILVRM.
+L 0x66d5 borra_la_figura
+C 0x66d5 A = 0: la marca de borrar
+L 0x66d8 pinta_la_figura
+C 0x66d8 A = 0xFF: la de pintar
+C 0x66da Queda apuntado para 0x6733
+C 0x66df Monta los cuatro sprites y deja DE en el alto
+C 0x66e4 B = el alto
+C 0x66e7 C = el ancho
+C 0x66e9 (0xE172) = ancho y (0xE173) = alto, por el orden del `ld (nn),bc`
+C 0x66ed DE ya apunta a las ordenes de la figura
+C 0x66ee Descomprimirla a 0xE480
+L 0x66f1 pon_la_figura_en_la_pantalla
+C 0x66f1 La fila
+C 0x66f6 El principio de la tabla de nombres
+C 0x66f9 Fila 0: no hay que bajar nada -y es la excepcion, porque el `dec a` de abajo hace que las demas caigan UNA FILA MAS ARRIBA de la pedida-
+C 0x66fd Bajar una fila son 32 casillas
+C 0x6704 Ahora la columna
+C 0x6708 Si es negativa, la figura asoma por la izquierda
+C 0x670c Lo que queda dentro es ancho + columna
+C 0x670d Si no queda nada, no se pinta
+C 0x670f B = las casillas que se ven
+C 0x6712 Saltarse en la figura las que se salen
+C 0x6715 C = el ancho recortado
+C 0x6718 Columna 32 o mas: fuera de la pantalla
+C 0x671b Se sale por la derecha?
+C 0x6720 No: la fila entera, desplazada
+C 0x6726 Si: solo hasta el borde
+C 0x672a Y desplazar HL a la columna
+L 0x672e vuelca_una_fila
+C 0x672e Guardar por donde va la figura
+C 0x6733 Pintar o borrar?
+C 0x6739 Pintar: subir C casillas con LDIRVM
+C 0x673e Borrar: rellenar de unos con FILVRM
+C 0x6744 Una fila menos
+C 0x674b Cuando se agotan, listo
+C 0x674c Avanzar la figura el ancho SIN recortar
+C 0x6756 Y bajar una fila en la pantalla
+L 0x675d pinta_figura_sin_sprites
+C 0x675d Siempre pinta; esta no borra nunca
+C 0x6762 B = el alto
+C 0x6765 C = el ancho
+C 0x676b DE, en las ordenes
+C 0x676c El descomprimido va a 0xE480
+C 0x6771 Con el lector que REPITE el byte, no el que pone ceros
+C 0x6776 Y a pintar por el camino de siempre
+B 0x6779 La remision del fotograma impar: si el indice es impar, lo que hay en
+B 0x6779 (HL) no es el dibujo sino un puntero al de al lado.
+L 0x6779 sigue_la_remision
+C 0x6779 El indice del fotograma
+C 0x677c Par: no hay remision que seguir
+C 0x677f Impar: la palabra es la direccion del dibujo bueno
+L 0x6784 descomprime_la_figura
+C 0x6785 El buffer de la figura
+C 0x6788 Descomprimir alto*ancho casillas
+C 0x678d Otra vez el indice
+C 0x6790 Si es impar hay que darle la vuelta
+C 0x679a Espejarla en 0xE500
+C 0x679d Y pintar la espejada
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x597f ======================================================================
+B 0x597f ======================================================================
+B 0x5a4d ---------------------------------------------------------------------
+B 0x66d5 ======================================================================
+B 0x66d5 ======================================================================
+B 0x6829 ======================================================================
+B 0x6829 LOS CUATRO SPRITES DE UN FOTOGRAMA
+B 0x6829 ======================================================================
+B 0x6829 Delante de cada dibujo van cuatro sprites. Los tres primeros son
+B 0x6829 [y][x][patron][color] y el CUARTO solo [y][x]: el `cp 1` de 0x687A
+B 0x6829 sale del bucle antes de leerle patron y color. Un 0x80 en el sitio
+B 0x6829 del [y] significa "este no se pinta" y ocupa un solo byte.
+B 0x6829 Si el fotograma es IMPAR la x se NIEGA: es el mismo dibujo mirando al
+B 0x6829 otro lado.
+L 0x6829 monta_los_cuatro_sprites
+C 0x6829 Pintando o borrando?
+C 0x682f Borrando: los atributos de la copia vieja
+C 0x683c Pintando: los de la nueva
+C 0x6847 El fotograma manda
+L 0x684a monta_los_sprites_con_a
+C 0x684a Queda apuntado: su bit 0 decide el espejo
+C 0x684d Cuatro sprites, ni uno mas
+C 0x6850 C = la x de referencia
+C 0x6853 B = la y de referencia
+C 0x6856 0x80 en el primer byte...
+C 0x6859 ...si no, es un sprite de verdad
+C 0x685b ...quiere decir sprite vacio: y y x a cero
+C 0x6860 Y saltarse su patron y su color
+C 0x6862 Solo ha gastado UN byte
+C 0x6866 La y del sprite, relativa a la del muneco
+C 0x686a El fotograma otra vez
+C 0x686d Impar quiere decir "mirando al otro lado"...
+C 0x6872 ...y entonces la x va cambiada de signo
+C 0x6874 La x, relativa a la del muneco
+C 0x6878 B vuelve a ser la cuenta del bucle
+C 0x687a El cuarto sprite no lleva patron ni color
+C 0x687e El patron
+C 0x6882 Y el color
+C 0x6886 A por el siguiente
+L 0x6888 corrige_las_x_al_espejar
+C 0x6888 Solo si se ha espejado
+C 0x688e Los tres sprites de detras del primero
+C 0x6890 La x de este...
+C 0x6893 ...menos la de dos mas alla
+C 0x6899 Cuatro bytes por atributo
+B 0x68a4 ======================================================================
+B 0x68a4 MOVER AL ENEMIGO
+B 0x68a4 ======================================================================
+B 0x68a4 Primero lo borra donde estaba -con el fotograma y la posicion VIEJOS,
+B 0x68a4 que guarda en 0xE151 y 0xE153- y luego lo pinta donde toca. Los dos
+B 0x68a4 dibujos salen del bloque que le corresponda al escenario.
+L 0x68a4 mueve_al_enemigo
+C 0x68a4 El escenario de la ronda
+C 0x68a8 Su bloque de fotogramas
+C 0x68b0 Hara falta otra vez para pintar
+C 0x68b1 En el escenario 0 el enemigo es especial
+C 0x68b5 Si ya esta puesto, no hay nada que hacer
+C 0x68bd Si no, limpiar la ultima banda de la pantalla
+C 0x68c3 0xA0 casillas a cero
+L 0x68c8 borralo_donde_estaba
+C 0x68c8 El fotograma VIEJO
+C 0x68cf Su entrada en el bloque
+C 0x68d6 La columna vieja...
+C 0x68d7 ...mas el dy de la entrada
+C 0x68dc Si el fotograma era impar, saltar al dibujo bueno
+C 0x68e3 Y la fila, igual
+C 0x68e9 A borrarlo
+L 0x68ec ahora_pintalo_donde_toca
+C 0x68ec La posicion nueva pasa a ser la vieja
+C 0x68f7 Y el fotograma nuevo, tambien
+C 0x68fd El bloque que se habia guardado
+C 0x68fe Ahora se indexa por el fotograma NUEVO
+C 0x690d La columna nueva mas su dy
+C 0x6912 Otra vez la remision si toca
+C 0x6919 Y la fila
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x6b79 ======================================================================
+B 0x6b79 MONTAR AL JUGADOR
+B 0x6b79 ======================================================================
+B 0x6b79 El muneco son ocho sprites y se arma entero en RAM, en la copia de
+B 0x6b79 atributos de 0xE09C; el volcado a la VRAM lo hace otro. El fotograma
+B 0x6b79 (0xE118) elige la entrada en el bloque de 0x6C83.
+B 0x6b79 (0xE114) parte la rutina en dos caminos que se parecen mucho: con el
+B 0x6b79 a cero los trios llevan patron, y con el a uno hay que seguir antes
+B 0x6b79 una remision y la x sale al reves.
+L 0x6b79 monta_al_jugador
+C 0x6b79 Los ocho numeros de patron
+C 0x6b7c Al tercer byte de cada atributo
+C 0x6b82 BC = la posicion del muneco
+C 0x6b86 El fotograma
+C 0x6b89 Su entrada en el bloque
+C 0x6b8c Punteros de dos bytes
+C 0x6b94 Mirando a la derecha o a la izquierda?
+C 0x6b9a Seguir la remision: aqui la entrada es un puntero
+C 0x6b9e Los cuatro sprites de delante
+C 0x6ba1 Y el byte de la paleta
+C 0x6ba4 La copia de atributos en RAM
+L 0x6ba7 trios_con_patron
+C 0x6ba7 El nibble alto a 8 cierra la lista...
+C 0x6bae La y, relativa a la del muneco
+C 0x6bb3 La x va del reves: 0x10 + x, cambiada de signo
+C 0x6bb9 Guardada
+C 0x6bbc Y el patron, que aqui SI viene en el trio
+C 0x6bbe El color se queda como estaba
+C 0x6bc1 A por el siguiente
+L 0x6bc3 cierra_la_lista_de_sprites
+C 0x6bc3 0xD0 en la y: el VDP deja de mirar de aqui para abajo
+L 0x6bc7 monta_al_jugador_mirando_al_otro_lado
+C 0x6bc7 Los cuatro sprites
+C 0x6bca La paleta
+L 0x6bd0 trios_sin_negar_la_x
+C 0x6bd0 Mismo terminador
+C 0x6bd7 La y
+C 0x6bdc Y la x, esta vez tal cual
+C 0x6bdf El patron de este trio se salta
+L 0x6be6 sube_los_patrones_del_fotograma
+C 0x6be6 Cerrar la lista de sprites
+C 0x6be9 Y el nibble BAJO del terminador...
+C 0x6bea ...dice cuantos guiones vienen detras
+C 0x6bec Ninguno: no hay nada que subir
+L 0x6bef sube_un_guion
+C 0x6bef La direccion del guion
+C 0x6bf5 Se vuelca con el destino metido dentro
+C 0x6bfa Hasta agotar la cuenta
+L 0x6bfd monta_los_sprites_del_jugador
+C 0x6bff Los atributos de este muneco
+C 0x6c02 La posicion de referencia
+C 0x6c0a El bit 0 decide el espejo
+L 0x6c13 pon_los_colores_del_fotograma
+C 0x6c15 El byte de la paleta, que va delante de los trios
+C 0x6c17 Invulnerable?
+C 0x6c1e Hay algo que haga parpadear al muneco?
+C 0x6c2a El bit 1 del contador de cuadros...
+C 0x6c2f ...alterna entre los dos juegos de colores: eso es el parpadeo
+C 0x6c34 Sin parpadeo, siempre los mismos
+C 0x6c38 La tira de ocho que toque
+C 0x6c3b Al cuarto byte de cada atributo
+C 0x6c42 Y dejar HL en el primer trio
+L 0x6c45 reparte_de_cuatro_en_cuatro
+C 0x6c45 Ocho sprites
+C 0x6c47 Un byte de la tira...
+C 0x6c48 ...a este atributo
+C 0x6c49 Y saltar al mismo campo del siguiente
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x901c ======================================================================
+B 0x901c QUIEN SALE Y CUANDO
+B 0x901c ======================================================================
+B 0x901c Baja por las tres tablas encadenadas de 0x9276 -ronda, tanda y paso-
+B 0x901c y saca una pareja: que sale y cuanto hay que esperar. Luego busca
+B 0x901c hueco en las seis ranuras de 0xE200 y lo mete ahi.
+L 0x901c decide_el_siguiente
+C 0x901c Hay uno a medio salir?
+C 0x9023 Todavia queda espera?
+C 0x902a La tabla de las rondas
+C 0x902d La ronda...
+C 0x9030 ...da la tanda
+C 0x9034 Y (0xE061), la tira de parejas
+C 0x903a El paso dentro de la tira
+C 0x903e Las parejas ocupan dos bytes
+C 0x9042 El primer byte: lo que sale
+C 0x9049 Cuantos jugadores hay
+C 0x904d Uno: los cortes son 3 y 6
+C 0x9053 Dos: 1 y 5
+C 0x9058 Y si no, 1 y 4
+L 0x905b elige_el_ritmo
+C 0x905b Por que tanda va la cosa
+C 0x905e Antes del primer corte: lo suave
+C 0x9067 Antes del segundo: lo de en medio
+C 0x9070 Y del segundo en adelante, lo bravo
+L 0x9076 apunta_el_ritmo
+C 0x9077 Lo que aguanta
+C 0x907b Y lo que corre
+C 0x9080 Un paso mas en la tira
+C 0x9082 A los ocho pasos se agota
+C 0x9086 Vuelta a empezar la tira...
+C 0x9088 ...y a la tanda siguiente
+C 0x908d Pasada la octava tanda...
+C 0x9091 ...se queda en la sexta: la coreografia no acaba nunca
+L 0x9094 apunta_la_espera
+C 0x9094 El segundo byte de la pareja
+C 0x9096 Los valores altos llevan descuento
+C 0x909a ...el del ritmo de esta tanda
+C 0x909b La cuenta atras hasta el siguiente
+C 0x909e Recuperar lo que sale
+C 0x909f El bit 3 marca a los que salen de dos en dos
+C 0x90a3 Alternar el lado por el que asoma
+C 0x90ac Tres cuadros de aviso
+C 0x90b0 Los normales, uno solo
+L 0x90b4 apunta_el_aviso
+C 0x90b4 Lo que falta para que aparezca
+C 0x90b8 Y por que lado
+C 0x90bb Si no viene por ningun lado, nada mas
+C 0x90c1 Poner a cero la espera de ese lado
+L 0x90c6 mete_al_que_toque
+C 0x90c9 Todavia no le toca
+C 0x90d0 Un cuadro menos de aviso
+C 0x90d1 Las seis ranuras de enemigo
+C 0x90d6 Esta ocupada?
+C 0x90da Cada ranura son doce bytes
+C 0x90e0 No cabe ninguno mas
+L 0x90e6 ocupa_la_ranura
+C 0x90e6 Marcarla como usada
+C 0x90ec Lo que sale
+C 0x90ed El bit 3 otra vez: los de dos en dos...
+C 0x90ef ...esperan lo que diga el ritmo
+C 0x90f4 Los demas no esperan nada
+C 0x90f8 El bit 2 dice por que lado entra
+C 0x90fb Por la derecha: 0xFE
+C 0x9101 Por la izquierda: 0x22
+C 0x9106 La columna de entrada
+C 0x9108 Y el sentido en el que anda
+C 0x9109 Los dos bits bajos...
+C 0x910d ...eligen el campo 1
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x6e1d ======================================================================
+B 0x6e1d A QUE DISTANCIA ESTA EL JUGADOR
+B 0x6e1d ======================================================================
+B 0x6e1d De aqui sale todo el comportamiento del enemigo. Se resta una x de la
+B 0x6e1d otra y lo que salga se mete en uno de SIETE tramos; ese numero es el
+B 0x6e1d indice con el que 0x7FD8 entra en la tabla del escenario.
+B 0x6e1d Tres de los seis cortes son fijos -0x13, 0x40 y 0x48- y los otros tres
+B 0x6e1d salen de la tira de 0x6E5F, o sea que cada escenario tiene su alcance.
+L 0x6e1d mide_la_distancia
+C 0x6e1d La x del jugador
+C 0x6e20 Y la del enemigo
+C 0x6e23 C = 1: el jugador queda a la derecha
+C 0x6e25 Quien esta mas a la derecha?
+C 0x6e28 C = 0: queda a la izquierda
+C 0x6e2b La distancia, siempre positiva
+C 0x6e2e Y por el otro lado igual
+L 0x6e2f clasifica_la_distancia
+C 0x6e30 El escenario de la ronda
+C 0x6e33 Su tira de tres cortes
+C 0x6e3b B = el tramo, de 0 a 6
+C 0x6e3d Pegado: menos de 0x13
+C 0x6e42 Primer corte del escenario
+C 0x6e47 Segundo corte
+C 0x6e4c Corte fijo en 0x40
+C 0x6e51 Y en 0x48
+C 0x6e56 Tercer corte del escenario
+L 0x6e5a apunta_el_lado
+C 0x6e5b De que lado ha quedado; el TRAMO se lo lleva quien llamo, en B
+B 0x7fc7 ======================================================================
+B 0x7fc7 QUE HACE EL ENEMIGO ESTE CUADRO
+B 0x7fc7 ======================================================================
+B 0x7fc7 Dos niveles: el escenario elige la tabla y la distancia elige la
+B 0x7fc7 entrada. Ninguna de las ocho tablas va detras de un `call 0x4066`,
+B 0x7fc7 asi que hay que declararlas a mano en el .entries.
+L 0x7fc7 decide_que_hace_el_enemigo
+C 0x7fc7 Copiar el lado en el que esta el jugador
+C 0x7fca Medir la distancia; deja el tramo en B
+C 0x7fcd El escenario de la ronda...
+C 0x7fd0 ...elige una de las ocho tablas
+C 0x7fd7 Y el tramo de distancia, la entrada
+C 0x7fd8 A la reaccion que toque
+L 0x7ff9 copia_el_lado
+C 0x7ff9 El lado que dejo 0x6E5A
+C 0x7ffc Es lo que mira medio cartucho
+L 0x8000 empuja_si_esta_al_borde
+C 0x8000 La x del enemigo
+C 0x8003 Todavia no ha llegado al borde
+C 0x8006 Al borde: la orden 5
+L 0x8008 apunta_la_orden
+C 0x8008 Por donde anda el jugador
+C 0x800b De la mitad para aca?
+C 0x800d El lado
+C 0x8012 Si esta al otro lado, al reves
+C 0x8015 La cola de ordenes de un lado...
+C 0x801a ...o la del otro
+C 0x801e Y ahi se deja la orden
+L 0x8020 pon_la_subescena
+C 0x8020 En que va el enemigo
+C 0x8024 Quieto: subescena 0
+C 0x8025 La 5 se queda como esta
+C 0x8028 Y si el cuadro va muy avanzado...
+C 0x8030 ...tambien vale
+C 0x8031 Si no, la 0
+L 0x8033 espera_y_reparte
+C 0x8033 Uno de cada 32 cuadros...
+C 0x8038 ...se salta el reparto
+L 0x803b reparte_la_subescena
+C 0x803b Que subescena toca
+C 0x803e Y a ella; la tabla va justo detras
+L 0x804d cuenta_atras
+C 0x804d La espera del enemigo
+C 0x8050 Un cuadro menos
+L 0x8054 dos_bits_del_cuadro
+C 0x8054 El contador de cuadros...
+C 0x805a ...partido por ocho y quedandose con dos bits
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x4070 Nada de interrupciones mientras se monta
+C 0x4073 En que ranura primaria esta este cartucho
+C 0x4076 El dato de la pagina 1 esta en los bits 2 y 3
+C 0x407d La tabla de subranuras de la BIOS
+C 0x4081 Juntar ranura y subranura
+C 0x4087 Cuatro entradas mas alla, la de la pagina 2
+C 0x408b Guardada: hara falta para volver aqui desde otra ranura
+C 0x408e H = 0x80: la pagina 2
+C 0x4090 Conmutar la pagina 2 a esta misma ranura
+C 0x4093 Buscar el Yie Ar Kung-Fu I en las otras
+C 0x4096 Un `jp` en el gancho de interrupcion...
+C 0x409b ...hacia el bucle de cuadro: de aqui cuelga el juego entero
+C 0x40a1 La pila, en lo alto de la RAM del juego
+C 0x40a4 Y toda la RAM de 0xE000 a cero
+C 0x40b1 Marca de "arrancando"
+C 0x40b6 Encender la pantalla
+C 0x40bd Leer el registro de estado para no perder la primera interrupcion
+C 0x40c3 El registro de la pantalla
+C 0x40c6 Apagarla y pedir la pieza igual
+C 0x40cb El contador de cuadros
+C 0x40cf El bit 6 de la marca de escena...
+C 0x40d4 ...elige el remate que no hace nada
+C 0x40d9 ...o el que lee los mandos
+C 0x40dc La escena y la subescena
+C 0x40e1 En la escena 3 no se remata
+C 0x40e5 El remate se EMPUJA: la escena volvera por ahi
+C 0x40e6 Y a la escena que toque
+C 0x40f9 B es la subescena
+C 0x40fb Un cuadro de cada dos
+C 0x4100 Bajar el rotulo un paso
+C 0x4104 Cuando llega, pintar los rotulos
+C 0x410f La espera de la presentacion
+C 0x4114 Montar la pantalla del titulo
+C 0x411b Callar la musica
+C 0x4123 Los registros del VDP
+C 0x4126 Limpiar la pantalla...
+C 0x4129 ...y subir la fuente
+C 0x412c Y arrancar la presentacion
+C 0x4131 Ir apuntando el codigo secreto
+C 0x4134 La espera
+C 0x4138 Todavia no: seguir animando
+C 0x413b Se acabo: a la escena siguiente
+C 0x4140 Preparar la partida
+C 0x4146 Hay demostracion en marcha?
+C 0x414c Escena 0: vuelta a la presentacion
+C 0x414f Con veinte y pico cuadros de espera
+C 0x4157 Mirar si hay que empezar
+C 0x415a Todavia no
+C 0x415e Montar la pantalla de la partida
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x4163 Dejar la espera que traiga A
+C 0x4166 Y pasar a la subescena siguiente
+C 0x416d La espera del "PLAY SELECT"
+C 0x4173 Se agoto: otros 0x20 cuadros y a la subescena siguiente
+C 0x417a Uno o dos jugadores?
+C 0x417f El rotulo de uno...
+C 0x4184 ...o el de dos
+C 0x4187 El bit 2 de la espera lo hace parpadear
+C 0x4189 Pintarlo...
+C 0x418c ...o borrarlo
+C 0x4191 Ha pulsado?
+C 0x4194 Todavia no
+C 0x4195 Preparar la partida
+C 0x4198 Y subir los sprites del muneco
+C 0x419b Con dos jugadores...
+C 0x41a2 ...hay que montar ademas la pantalla de presentacion
+C 0x41a9 Mirar si toca demostracion
+C 0x41ac No toca
+C 0x41b5 Con un jugador...
+C 0x41bc ...suena la musica del titulo
+C 0x41c1 Y 0x30 cuadros de espera
+C 0x41c7 Esperar a que la musica acabe
+C 0x41cc 0x20 cuadros
+C 0x41d1 Esperar a que suelte el boton
+C 0x41d7 Montar el marcador
+C 0x41da Y los sprites
+C 0x41dd La pantalla de combate entera
+C 0x41e0 Y la fila del decorado
+C 0x41e3 Los dos jugadores, vivos
+C 0x41eb Segun por que ronda vaya...
+C 0x41f0 ...suena una musica u otra
+C 0x41f9 0x20 cuadros de espera
+C 0x41fe Una escena mas
+C 0x4202 Y la subescena, a cero
+C 0x4207 Esperar al boton
+C 0x420b Las vidas del jugador 1...
+C 0x420f ...una menos, en BCD
+C 0x4213 Y las del 2, igual
+C 0x421b Repintar el marcador
+C 0x421e El rotulo de dos jugadores...
+C 0x4226 ...o el de uno
+C 0x422f Poner el numero de vidas
+C 0x4232 Si no suena nada...
+C 0x4238 ...arrancar la musica
+C 0x4240 Repartir por la subescena
+C 0x4243 Los dos jugadores siguen vivos?
+C 0x424a Si: seguir jugando
+C 0x424d Le queda alguna vida a alguien?
+C 0x4254 A nadie: fin de la partida
+C 0x4257 La musica de "se acabo"
+C 0x4260 El rotulo del final de ronda
+C 0x4266 Comparar las vidas de los dos...
+C 0x426f ...y marcar en pantalla al que va ganando
+C 0x4277 La musica de ronda superada
+C 0x427c 0x60 cuadros para leerlo
+C 0x4283 La espera
+C 0x4288 Se acabo el descanso
+C 0x428c Animar el paso de ronda
+C 0x428f Ha terminado?
+C 0x4297 Con dos jugadores...
+C 0x429e ...mirar cual sigue vivo
+C 0x42a2 Las vidas de uno...
+C 0x42a5 ...y las del otro
+C 0x42aa Cambiarlos si le toca al segundo
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x42ab Las vidas del que acaba de perder
+C 0x42ac Le queda mas de una?
+C 0x42b0 Si: le toca al otro
+C 0x42b2 Y a este se le suma una ronda, en BCD
+C 0x42b6 Subir el marcador
+C 0x42bc Una vida menos y a seguir
+C 0x42c0 Con un jugador: sigue vivo?
+C 0x42c6 Le quedan vidas?
+C 0x42ca No: se acabo
+C 0x42cc La tanda de la coreografia...
+C 0x42d0 ...baja dos, sin pasarse de cero
+C 0x42d6 Y una ronda mas
+C 0x42dc Subir el marcador del que gano
+C 0x42df Y la ronda
+C 0x42e2 Empezar de cero la tanda...
+C 0x42e6 ...y el paso
+C 0x42e9 Si la ronda ha vuelto a cero...
+C 0x42ef ...toca la subescena 3
+C 0x42f4 Subir el marcador del jugador 1
+C 0x42fc El del jugador 2
+C 0x4300 Una ronda mas, en BCD
+C 0x4305 Subir el nivel
+C 0x4308 No habia que subirlo
+C 0x4309 La ronda...
+C 0x430c ...y la vuelta
+C 0x4311 A las ocho rondas...
+C 0x4314 ...vuelta a la primera...
+C 0x4318 ...y una vuelta mas, hasta un maximo de dos
+C 0x4321 El nivel, en BCD
+C 0x4329 Devolver "no cero"
+C 0x432c El nivel, uno menos
+C 0x4335 Subescena 4
+C 0x433c Esperar a que calle la musica
+C 0x4341 La marca de escena...
+C 0x4345 ...pierde el bit 6: vuelve a leerse el mando
+C 0x434b Esperar al boton
+C 0x434f El rotulo de "continuar"
+C 0x4358 Con el truco puesto no se lee el mando
+C 0x4364 El mando y el teclado
+C 0x4368 Y el segundo mando
+C 0x436c Quedarse solo con lo que se acaba de pulsar
+C 0x4373 Solo interesan el disparo y algunas teclas
+C 0x4376 Reiniciar la espera
+C 0x437f Que subescena hay?
+C 0x4382 Se pulso disparo?
+C 0x4386 Uno o dos jugadores?
+C 0x4388 0x41: un jugador
+C 0x438c 0x60: dos jugadores
+C 0x438e La marca de escena
+C 0x4391 Subescena 3
+C 0x4398 Y a montar la eleccion
+C 0x439b Subescena 1
+C 0x439d Callar la musica
+C 0x43a2 Y montar el titulo
+C 0x43a5 Cambiar de uno a dos jugadores
+C 0x43aa Los 0x20 bytes del truco...
+C 0x43b3 ...todos a cero
+C 0x43b8 Cuantas pulsaciones lleva apuntadas
+C 0x43bc Ya son diez: no se apunta mas
+C 0x43bf La ultima pulsacion
+C 0x43c2 Sin pulsar nada no cuenta
+C 0x43c6 La lista de las diez
+C 0x43ce Apuntada
+C 0x43cf Una mas
+C 0x43d1 Todavia no son diez
+C 0x43d4 Con diez, comparar contra la secuencia buena
+C 0x43dc Byte a byte
+C 0x43de A la primera que falle, nada
+C 0x43e3 Las diez cuadran: truco puesto
+C 0x43e9 Y a un jugador
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x43f7 Con dos jugadores no hay demostracion
+C 0x43fe Devolver "no"
+C 0x4401 La tira de escenarios por ronda
+C 0x4405 Lo que se acaba de pulsar
+C 0x4408 La opcion en la que esta el cursor
+C 0x440b Mover el cursor
+C 0x440e Y repintarlo
+C 0x4411 Se ha elegido algo?
+C 0x4416 El mando...
+C 0x4418 ...y el teclado
+C 0x441d Arriba?
+C 0x4421 Una opcion menos...
+C 0x4426 ...y de la primera se pasa a la ultima
+C 0x442b Abajo?
+C 0x4430 Una opcion mas...
+C 0x4431 ...y de la ultima a la primera
+C 0x4438 Disparo?
+C 0x443b La opcion elegida...
+C 0x443c ...se guarda como escenario de la primera ronda
+C 0x4440 Y marca de "elegido"
+C 0x4445 En que opcion esta el cursor
+C 0x4446 Las tres opciones
+C 0x4448 Donde va la primera
+C 0x444b Es esta la del cursor?
+C 0x444d Si: la casilla del cursor
+C 0x4451 No: casilla vacia
+C 0x4455 Bajar una fila
+C 0x445e "LEE YOUNG", el que se maneja
+C 0x4464 La tira de escenarios
+C 0x4467 Y la tabla de nombres de rival
+C 0x446a La ronda...
+C 0x446d ...dice que escenario toca
+C 0x4471 Y el escenario, que rival
+C 0x4475 Su nombre va en la VRAM 0x3885
+C 0x4478 Se pinta sin palabra de destino delante
+C 0x44d9 Escenario 0 para empezar
+C 0x44dd Con dos jugadores no se toca la tira
+C 0x44e4 Los diez escenarios...
+C 0x44e9 ...en orden, del 0 al 9
+C 0x44ef Los patrones de la presentacion
+C 0x44f2 A 0x2200, y L_48AE repite en 0x2A00
+C 0x44f8 Los colores
+C 0x4503 Y otras dos veces mas a mano...
+C 0x450b ...en 0x0500 y 0x0DC0, que es donde caera el espejo
+C 0x4511 Espejar los patrones
+C 0x4514 El decorado de la presentacion
+C 0x451a Su rotulo
+C 0x4520 En la fila 12, columna 7: el `ld (nn),bc` deja C -la fila- en 0xE170 y B -la columna- en 0xE171
+C 0x4527 Y la figura de 4x4
+C 0x452d La posicion del muneco
+C 0x4536 Mirando a la derecha
+C 0x453c Montarlo
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x4699 Desde la columna 0x40...
+C 0x469b ...y 22 filas
+C 0x469f Desde 0xA0 y 18 filas
+C 0x46a5 Desde 0 y las 24
+C 0x46a9 La cuenta de la cortina
+C 0x46ad Ya llego al final
+C 0x46b1 Al reves: la cortina sube
+C 0x46b3 Sumado el desplazamiento de la banda
+C 0x46b6 Bajar una fila son 32 casillas
+C 0x46b9 Casilla vacia
+C 0x46bf El primer atributo de sprite...
+C 0x46c2 ...con 0xD0 en la y aparca todos los demas
+C 0x46c9 DE = lo que se suma
+C 0x46cb Los puntos del jugador que juega
+C 0x46d0 De quien son los puntos?
+C 0x46d5 Las unidades y decenas, en BCD
+C 0x46da Las centenas, con el acarreo
+C 0x46df Y los millares
+C 0x46e3 Se paso de 999999?
+C 0x46e5 Entonces se clava en 999999
+C 0x46f3 El proximo premio
+C 0x46f6 Todavia no llega
+C 0x46fa Subir el liston cinco mil...
+C 0x46ff ...hasta que no cabe mas
+C 0x4703 Una vida de regalo
+C 0x470b Y la musica del premio
+C 0x4710 Repintar las vidas
+C 0x4714 Comparar tres bytes
+C 0x4716 La mejor marca
+C 0x471b Byte a byte, del mas alto al mas bajo
+C 0x471d Si es menor, no hay marca nueva
+C 0x471f Si es mayor, ya esta
+C 0x4726 Marca nueva: copiar los tres bytes
+C 0x472f El armazon del marcador
+C 0x4735 Con dos jugadores...
+C 0x473c ...ademas el rotulo del segundo
+C 0x4745 Y limpiar cinco casillas
+C 0x474e Pintar el nivel
+C 0x4751 Con un jugador...
+C 0x4758 ...pintar tambien las vidas
+C 0x475b Los puntos del jugador 1...
+C 0x475e ...en la VRAM 0x382D
+C 0x4764 Los del 2, en 0x3823
+C 0x476a Tres bytes de BCD
+C 0x476e El nivel va en 0x381C
+C 0x4771 Un solo byte
+C 0x4778 Las vidas, en 0x383B
+C 0x4780 Preparar el puerto de la VDP
+C 0x4783 C = 0: de momento se comen los ceros
+C 0x4785 El byte de BCD
+C 0x4786 El nibble alto...
+C 0x478c ...si no es cero, ya no se come ninguno mas
+C 0x4790 El ultimo digito se pinta siempre
+C 0x4796 Los digitos empiezan en la casilla 0x10
+C 0x4798 Con C = 0 sale una casilla vacia
+C 0x479a Directo al puerto de datos
+C 0x479d Y ahora el nibble bajo
+C 0x47ab Los bytes van del mas alto al mas bajo
+C 0x47b0 Un byte de aqui...
+C 0x47b2 ...por otro de alli
+C 0x47ba Que modo de juego es
+C 0x47c1 Copiar el atributo del muneco
+C 0x47cc Y los tres que le siguen
+C 0x47e4 Este sprite esta aparcado?
+C 0x47e8 La y del muneco...
+C 0x47eb ...menos la de este
+C 0x47f0 A mas de 16 no se solapan
+C 0x47f3 Un cuadro si y otro no...
+C 0x47f7 ...se aparca, para que parpadee
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x48ae Dos veces: los dos primeros tercios
+C 0x48b2 Tres veces: la pantalla entera
+C 0x48b6 Volcar el guion
+C 0x48b9 Y subir un tercio en la VRAM
+C 0x48c2 Sin borrar, y SIN leer la palabra de destino
+C 0x48c6 C = 0xFF: pintar de verdad
+C 0x48c9 La palabra de delante es el destino en la VRAM
+C 0x48cd Y detras van las casillas
+C 0x48ce Una casilla
+C 0x48d1 0xFF cierra el guion
+C 0x48d4 0xFE abre otro tramo, con su destino delante
+C 0x48d6 Con C = 0 sale un cero: eso es borrar
+C 0x48dd C = 0: todo lo que se escriba sale vacio
+C 0x48e2 El destino, metido en el propio guion
+C 0x48e7 Aqui el destino ya viene en HL
+C 0x48ea Una orden
+C 0x48ec 0x00 cierra el guion
+C 0x48ef Quitarle el bit alto...
+C 0x48f1 ...y si no cambia, es una repeticion
+C 0x48f5 El 0x80 pelado abre otro tramo, con otro destino
+C 0x48f7 Si no, son B bytes seguidos
+C 0x48f8 Uno a uno...
+C 0x48fb ...directos al puerto de datos
+C 0x4902 El byte que se repite
+C 0x4905 B veces al puerto
+C 0x490c Espejar un sprite
+C 0x490f Y saltar al siguiente, 32 bytes mas alla
+C 0x4914 Hasta agotar C
+C 0x4919 Media pareja: 16 filas
+C 0x491b Leer la fila de la izquierda
+C 0x491e Darle la vuelta a los ocho bits
+C 0x4922 Y escribirla a la derecha
+C 0x492a Volver 32 bytes atras
+C 0x492e Si no se ha cruzado el limite, la otra mitad
+C 0x4935 El byte a dar la vuelta
+C 0x4936 Ocho bits
+C 0x4938 Sale por abajo...
+C 0x493a ...y entra por arriba
+C 0x493f El mezclador del PSG
+C 0x4944 Un pitido
+C 0x4949 Y toda la VRAM...
+C 0x494c ...los 16 KB...
+C 0x494f ...a cero
+C 0x4952 La tabla de ocho registros
+C 0x4955 Del 0 al 7
+C 0x4959 El valor
+C 0x495a Al registro C
+C 0x496b El registro 7, el del borde
+C 0x4970 Leer el teclado
+C 0x4973 El mando y las teclas
+C 0x4977 El segundo mando
+C 0x497b Donde se guarda lo pulsado
+C 0x497e Lo que habia
+C 0x497f Guardar lo de ahora
+C 0x4980 Lo que ha cambiado...
+C 0x4981 ...y ademas esta pulsado: eso es "recien pulsado"
+C 0x4983 Un byte antes queda lo recien pulsado
+C 0x4985 E = 0x8F: el mando 1
+C 0x4987 El registro 15 del PSG...
+C 0x4989 ...elige que mando se lee
+C 0x498c Y el 14 trae el estado
+C 0x4993 Los bits vienen al reves
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x4f99 ---------------------------------------------------------------------
+B 0x4f99 Preparar el marcador antes de una ronda.
+L 0x4f99 prepara_el_marcador
+C 0x4f99 Los diez bytes del marcador...
+C 0x4fa2 ...a cero
+C 0x4fa6 La casilla vacia del marcador
+C 0x4fab Las cuatro primeras
+C 0x4fb1 El escenario de esta ronda
+C 0x4fb4 Partido por dos: cada decorado sirve para dos escenarios
+C 0x4fb6 Ese es el decorado
+C 0x4fb9 Con dos jugadores...
+C 0x4fc0 ...el modo de juego es el 3
+C 0x4fc5 Y pasarlo a (0xE107)
+B 0x4fc8 ---------------------------------------------------------------------
+B 0x4fc8 Partida nueva: se borra toda la RAM del combate y se colocan los dos
+B 0x4fc8 munecos en su sitio de salida.
+C 0x4fc8 De 0xE10B en adelante...
+C 0x4fce ...0x194 bytes...
+C 0x4fd1 ...a cero
+C 0x4fd5 El jugador arranca en 0x87, 0xD0
+C 0x4fdc Y el enemigo en 0x11, 0x04
+C 0x4fe3 Que es tambien su posicion "vieja"
+C 0x4fe7 0x18 cuadros de espera
+C 0x4fed El contador de cuadros, a cero
+C 0x4ff1 Los dos mirando al mismo lado...
+C 0x4ff4 ...y los dos en el fotograma 1
+C 0x4ffd Que vuelta es
+C 0x5000 Los ajustes de esa vuelta...
+C 0x5007 ...los diez bytes van a 0xE160
+C 0x500f Los 0x80 bytes de atributos de sprite...
+C 0x5012 ...con 0xE0 en la y: aparcados
+C 0x501a Y los 16 de la copia de al lado, igual
+C 0x5023 La ronda
+C 0x5027 Sus dos bytes...
+C 0x502a ...a 0xE300
+C 0x5036 Poner el modo de juego
+C 0x5039 Es el modo 3?
+C 0x5041 Entonces hay que marcar esto
+C 0x5044 Y el jugador 1 empieza vivo
+C 0x5048 Los cuatro modos
+C 0x504b El que este elegido
+C 0x5052 Queda en (0xE107)
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x508e ======================================================================
+B 0x508e EL BUCLE DEL COMBATE
+B 0x508e ======================================================================
+B 0x508e Es la escena 5, y va por tres subescenas: montar, pelear y recoger.
+L 0x508e el_combate
+C 0x508e El reloj
+C 0x5091 Los golpes en marcha
+C 0x5094 El indicador
+C 0x5097 Y repartir por la subescena
+C 0x50a3 Poner la RAM del combate a cero
+C 0x50a6 El paso de la coreografia
+C 0x50aa Venia a mitad de tira?
+C 0x50ad Entonces una tanda mas...
+C 0x50b2 ...sin pasar de la octava
+C 0x50b9 Y el paso, a cero
+C 0x50bb El modo de juego
+C 0x50c0 En el modo 3...
+C 0x50c4 ...el suelo lo pone la ronda
+C 0x50ca Si ya se ha llegado lejos...
+C 0x50d1 ...suena otra musica
+C 0x50d6 Montar el decorado
+C 0x50d9 Y guardar las casillas que tapa el marcador
+C 0x50dc Subescena siguiente
+C 0x50e1 Un cuadro de combate
+C 0x50e4 Se acabo?
+C 0x50e9 Donde esta el enemigo
+C 0x50ec Todavia no ha llegado al borde
+C 0x50ef 0x20 cuadros y a recoger
+C 0x50f6 Bajar la cortina
+C 0x50f9 Todavia no ha acabado
+C 0x50fa Una fase mas
+C 0x50fe Y vuelta a la primera subescena
+C 0x5103 Los golpes del jugador
+C 0x5106 El reloj
+C 0x510c Un cuadro si y otro no
+C 0x5113 Los cuadros pares: el jugador
+C 0x5116 Montarlo
+C 0x5119 Y subir sus sprites
+C 0x511e Los impares: segun el modo...
+C 0x5125 ...mover lo que haya
+C 0x512d Modo 1: nada mas
+C 0x5133 Modo 2: los seis enemigos de golpe
+C 0x5138 Y si no, el enemigo del escenario
+C 0x513b En el escenario 0...
+C 0x5140 ...hay ademas algo que mover
+C 0x5143 Los proyectiles
+C 0x5146 En el escenario 3...
+C 0x514b ...tambien
+C 0x514e Aparcar los sprites que se solapen
+C 0x5151 Y subirlo todo a la VRAM
+C 0x5157 Tres filas de cuatro casillas
+C 0x515e Donde se guardan
+C 0x5161 Y de donde se leen
+C 0x5169 Leer la casilla...
+C 0x516c ...y guardarla
+C 0x5171 Saltar al principio de la fila siguiente
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x517a Con dos jugadores no hay barra
+C 0x5180 Donde va la barra
+C 0x5183 Ocho casillas
+C 0x518b El bit 2 del cuadro...
+C 0x5190 ...la hace parpadear
+C 0x5191 El principio de la barra
+C 0x5194 La fase por la que va
+C 0x5198 Al reves: se llena de derecha a izquierda
+C 0x519b Dos casillas por fase
+C 0x519e La casilla del tope
+C 0x51ab Con dos jugadores no hay indicador
+C 0x51b1 El atributo del sprite
+C 0x51b4 Los tres primeros bytes
+C 0x51bc El bit 2 del cuadro elige el color...
+C 0x51c1 ...0x0A...
+C 0x51c5 ...o 0x06: parpadea
+C 0x5201 La escena y la subescena del jugador
+C 0x5207 Si no es la cero...
+C 0x5208 ...el borde se pone negro
+C 0x520e Y repartir por la subescena
+C 0x521a Esta el jugador en pie?
+C 0x521f Y de una pieza?
+C 0x5224 El modo de juego
+C 0x522b El modo 2 va por otro lado
+C 0x522e Leer lo que se pide
+C 0x5231 Y moverlo
+C 0x5234 En que escenario
+C 0x5237 El 3 tiene lo suyo
+C 0x523c Los escenarios 0, 6 y 7...
+C 0x5248 ...no llegan aqui: mirar los choques
+C 0x524b Y el agarre
+C 0x524e Le queda invulnerabilidad?
+C 0x5253 No
+C 0x5254 Bajarla un punto
+C 0x5257 Y apuntar si sigue
+C 0x5260 Otra vez la invulnerabilidad
+C 0x5266 Se esta pulsando el disparo?
+C 0x526d Entonces baja de cuatro en cuatro
+C 0x5273 Si no, de uno en uno
+C 0x5275 Una escena mas del jugador...
+C 0x5279 ...y la subescena a cero
+C 0x527e Una subescena mas
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x5294 ---------------------------------------------------------------------
+B 0x5294 El jugador ha encajado un golpe: se le quita energia y se le pone a
+B 0x5294 levantarse. Lo que se quita depende de la ronda y del modo.
+L 0x5294 encaja_el_golpe
+C 0x5294 Ir gastando la invulnerabilidad
+C 0x5297 La espera
+C 0x529c La barra que se toca
+C 0x529f Que tipo de golpe fue
+C 0x52a2 El del tipo 1 va contra la otra barra
+C 0x52a6 Salvo que ya estuviera tocado
+C 0x52ac La otra barra
+C 0x52af Ocho de castigo
+C 0x52b1 Segun la ronda...
+C 0x52b4 ...de la quinta en adelante, ocho
+C 0x52b8 De la tercera a la cuarta, seis
+C 0x52be Y antes, cuatro
+C 0x52c0 El modo de juego
+C 0x52c5 Fuera del modo 3...
+C 0x52c9 ...solo dos
+C 0x52cc Restarlo de la barra...
+C 0x52cf ...sin bajar de cero
+C 0x52d4 A levantarse
+C 0x52d7 Y los dos contadores de golpe...
+C 0x52dc ...a uno
+C 0x52df Repintar la barra
+C 0x52e2 Con un jugador...
+C 0x52e9 ...y si no queda de pie...
+C 0x52ef ...mirar si hay ordenes pendientes
+C 0x52f9 Pasar el turno
+C 0x52fe Reparto por subescena
+C 0x5300 La espera
+C 0x5305 El fotograma de caer
+C 0x5307 Y su duracion
+C 0x5313 El fotograma de estar en el suelo
+C 0x531e La barra esta llena?
+C 0x5323 Entonces se levanta entero
+C 0x5327 Si no, tocado
+C 0x5328 Queda apuntado
+C 0x532b Y a la subescena siguiente
+C 0x5330 Levantarse
+C 0x5333 Todavia no
+C 0x5334 Ya de pie
+C 0x533c La espera
+C 0x5341 El jugador deja de estar vivo
+C 0x5346 El pitido de levantarse
+C 0x534b Ya no hay nadie agarrado
+C 0x534f Y el contador de golpe a uno
+C 0x5353 0x30 cuadros
+C 0x5355 El fotograma y su duracion
+C 0x5358 Ponerlos
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x539a ---------------------------------------------------------------------
+B 0x539a Mirar si el golpe del ENEMIGO alcanza al jugador, y al reves.
+L 0x539a alcanza_el_enemigo
+C 0x539a La marca de "tocado" del jugador
+C 0x539d Donde esta el jugador
+C 0x53a0 Muy a la izquierda: no llega
+C 0x53a4 De 0x86 en adelante siempre puede
+C 0x53a8 Si no, mirar por que fotograma va
+C 0x53ad Antes del tercero no hay golpe
+C 0x53af Y del sexto en adelante, tampoco
+C 0x53b3 La caja del golpe
+C 0x53b7 Y la del jugador
+C 0x53ba Dos, la altura de la caja
+C 0x53bf Se tocan?
+C 0x53c5 No
+C 0x53c7 Ya estaba tocado?
+C 0x53ca Marcarlo
+C 0x53cc El fotograma de encajar y su duracion
+C 0x53d2 Restar la energia
+C 0x53d7 Y sumar el tanteo
+C 0x53da En el escenario 3...
+C 0x53e1 ...ademas se suelta lo que hubiera agarrado
+C 0x53e5 Tres cuadros de aturdimiento
+C 0x53ed El pitido del golpe
+C 0x53f2 No hay toque: limpiar la marca
+C 0x53f4 Hay algo que lo impida?
+C 0x53f9 El jugador esta a lo suyo?
+C 0x53fe La marca de "tocado" del enemigo
+C 0x5401 En el escenario 3...
+C 0x5408 ...manda otra cosa
+C 0x540e Por que fotograma va el golpe
+C 0x5411 Antes del tercero no hace dano
+C 0x5415 Y del septimo en adelante, tampoco
+C 0x5419 La caja del golpe del jugador
+C 0x541d Y la del enemigo
+C 0x5422 Altura dos
+C 0x5425 Se tocan?
+C 0x542a La marca del enemigo
+C 0x542e No hay toque
+C 0x5431 Ya estaba tocado?
+C 0x5435 Marcarlo
+C 0x5436 El fotograma de encajar
+C 0x543d Si viene del camino corto...
+C 0x5441 ...sumar el tanteo
+C 0x5444 El pitido de acertar
+C 0x5449 Sin toque, limpiar la marca
+C 0x544b Sin tanteo
+C 0x544f Con tanteo
+C 0x5454 Sonar
+C 0x5457 0x18 cuadros
+C 0x545c Y apuntar de que tipo fue el golpe
+C 0x5462 A la escena siguiente del jugador
+C 0x5465 Mover la tanda entera
+C 0x5468 Las seis ranuras...
+C 0x546a ...que empiezan en 0xE200
+C 0x5472 Cada una son doce bytes
+C 0x547e Por donde va este
+C 0x5481 Ya paso de largo
+C 0x5484 Esta ocupada?
+C 0x5489 Su caja
+C 0x548c La fila...
+C 0x548f ...por ocho, que es lo que mide una casilla
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x54e8 La primera ranura
+C 0x54eb Y su cabecera
+C 0x54ef Cinco de las seis
+C 0x54f7 Doce bytes por ranura
+C 0x5500 Esta ranura vale?
+C 0x5505 La caja de este
+C 0x5508 Su columna...
+C 0x5509 ...por ocho
+C 0x550f Y su fila
+C 0x5510 De la 32 para abajo no hay nada que mirar
+C 0x5516 Media casilla de ajuste
+C 0x551a Por que lado mira
+C 0x551f Al reves, media casilla menos
+C 0x5522 La caja de este...
+C 0x5526 ...contra la del jugador
+C 0x5529 Altura tres
+C 0x552b Se tocan?
+C 0x5531 Ya estaba tocado?
+C 0x5538 Marcarlo
+C 0x553e Y a la escena 3: cayendose
+C 0x5544 Sin tanteo
+C 0x5547 Al camino de encajar
+C 0x554b No hay toque: limpiar su marca
+C 0x554f Y la del enemigo
+C 0x5555 La coordenada siguiente
+C 0x5558 Montar la caja
+C 0x555b Y mirar el toque
+C 0x5560 Altura dos
+C 0x5562 Donde se monta la caja
+C 0x5566 La columna...
+C 0x5567 ...mas media casilla
+C 0x5571 Y la fila, igual
+C 0x5578 Contra la caja del jugador
+C 0x557b Y la altura que se pidio
+C 0x5580 La coordenada
+C 0x5583 Mirar si esta a tiro
+C 0x5588 Hay algo que lo impida?
+C 0x558d Ya hay cuatro cosas volando?
+C 0x5593 Lanzar
+C 0x5596 La coordenada del proyectil
+C 0x5599 Toca al jugador?
+C 0x559c No
+C 0x559d La caja del proyectil
+C 0x55a4 Seis de ajuste
+C 0x55ab Y la fila igual
+C 0x55ae Al camino de encajar, sin tanteo
+C 0x55b4 Esta a tiro?
+C 0x55b8 Cuatro cuadros
+C 0x55bd Y el sentido en el que sale
+C 0x55c4 Sumar el tanteo
+C 0x55c7 Y el pitido
+C 0x55cc El jugador esta a lo suyo?
+C 0x55d1 Mirar el toque
+C 0x55d7 En el escenario 2...
+C 0x55e2 ...el agarre dura 0xB0 cuadros
+C 0x55e7 El salto, a cero
+C 0x55ee Y el jugador vuelve a 0x87
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x5620 Con dos jugadores no hay tanteo aqui
+C 0x5626 Tres puntos
+C 0x562b B = 0: todavia no ha tocado nada
+C 0x562e El enemigo ya esta tocado?
+C 0x5634 La primera de las tres cosas que vuelan
+C 0x5637 Su estado
+C 0x563a Y donde se apunta
+C 0x5641 La segunda
+C 0x564e Y la tercera
+C 0x5659 Con la coordenada de al lado
+C 0x565b Montar la caja
+C 0x565f En que estado esta
+C 0x5660 Solo cuentan las que estan sueltas
+C 0x5666 Toca al jugador?
+C 0x566d No
+C 0x566f Es el momento de agarrar?
+C 0x5675 Entonces pasa al estado 2: agarrada
+C 0x567c El pitido
+C 0x5681 Estado 3, y once cuadros
+C 0x5689 Juntar lo de esta con lo de las de antes
+C 0x568d La primera
+C 0x569a La segunda
+C 0x56a7 Y la tercera
+C 0x56b1 Solo las sueltas
+C 0x56b6 Ha llegado a su sitio?
+C 0x56bb Todavia no
+C 0x56bc Con un jugador...
+C 0x56c4 ...un punto de tanteo
+C 0x56ca El pitido
+C 0x56cf Estado 6, y 0x13 cuadros
+C 0x56d5 Con dos jugadores no hay recuento
+C 0x56dc La barra
+C 0x56df Uno de cada cuatro cuadros
+C 0x56e5 Queda algo que descontar?
+C 0x56e9 Un punto menos de barra...
+C 0x56ea ...y dos de tanteo
+C 0x56ef El pitido de la cuenta
+C 0x56f4 Devolver "todavia queda"
+C 0x56f7 Devolver "se acabo"
+C 0x56fa Con dos jugadores no hay perfecto
+C 0x5701 Se acabo la fase sin un rasguno?
+C 0x5707 Limpiar la fila
+C 0x5710 Y pintar "PERFECT 5000"
+C 0x5716 La musica del perfecto
+C 0x571b 0x50 de tanteo, que son los 5000
+C 0x5720 Y 0x50 cuadros para leerlo
+C 0x5724 Sin perfecto, solo 0x10
+C 0x5739 A que distancia esta
+C 0x573d De cerca no se acerca mas
+C 0x5740 La x del jugador
+C 0x5744 Y la del enemigo
+C 0x5748 Quien esta a la derecha
+C 0x5749 Ocho de paso
+C 0x574f Y si esta al otro lado, al reves
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x5776 El reloj a 0x0100
+C 0x577c La ronda, a cero
+C 0x5781 Y el primer escenario, tambien
+C 0x5785 La vuelta...
+C 0x5788 ...y el paso de la demostracion
+C 0x578b El jugador 1 empieza vivo
+C 0x5790 La marca de escena...
+C 0x5794 ...pierde el bit 5 -un jugador- y gana el 0
+C 0x5799 Modo 3
+C 0x579e Preparar el marcador
+C 0x57a1 Subir los sprites
+C 0x57a4 Montar el decorado
+C 0x57a7 La pantalla de combate
+C 0x57aa La fila del decorado
+C 0x57ad Y el marcador
+C 0x57b4 El jugador esta a lo suyo?
+C 0x57b9 La cuenta de la orden grabada
+C 0x57bd Todavia dura
+C 0x57c0 La tira de duraciones
+C 0x57c3 Por que orden va
+C 0x57ca Su duracion
+C 0x57cb Una orden mas
+C 0x57cd Guardada
+C 0x57cf Y una posicion mas en la tira de mandos
+C 0x57d1 Por que mando va
+C 0x57d3 La tira de mandos grabados
+C 0x57da El 0xFF cierra la demostracion
+C 0x57dc Si no, meterlo como si se hubiera pulsado
+C 0x57e0 Se acabo: el jugador deja de estar vivo
+C 0x5826 Montar al muneco
+C 0x5829 Y subir sus sprites
+C 0x582c La escena y la subescena del final
+C 0x5831 Repartir
+C 0x5840 Bajar la cortina
+C 0x5843 Todavia no
+C 0x5844 El muneco, en 0x77
+C 0x584c Y el enemigo, en la fila 0
+C 0x5855 Subir la fuente
+C 0x5858 Y los sprites
+C 0x585b 0x30 cuadros
+C 0x585f Si no, el muneco a 0xC0
+C 0x5866 La espera que traiga A
+C 0x5869 Y a la subescena siguiente
+C 0x586e Un cuadro de cada dos
+C 0x5875 Parpadear las cuatro casillas
+C 0x587b El fotograma 4
+C 0x5880 Andar
+C 0x5883 Donde va el otro
+C 0x5886 Todavia no ha llegado
+C 0x5889 Pintar las cuatro casillas fijas
+C 0x588c 0x40 cuadros
+C 0x588e La espera
+C 0x5891 Una escena mas...
+C 0x5895 ...y la subescena a cero
+C 0x589c La espera
+C 0x58a7 0x80 cuadros
+C 0x58b0 Los rotulos del final
+C 0x58b6 Y la musica
+C 0x58bb 0x50 cuadros
+C 0x58c5 Animar
+C 0x58cd 0x40 cuadros
+C 0x58d6 Y marcar que se acabo
+C 0x58dc Las cuatro casillas
+C 0x58e2 El bit 2 del cuadro...
+C 0x58e4 ...las borra...
+C 0x58e7 ...o las pinta: parpadean
+C 0x58ea Aqui siempre se pintan
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x5aba Los dieciseis guiones de sprite
+C 0x5abd La tabla de guiones...
+C 0x5ac1 ...que va de 0 a 15
+C 0x5ac6 Y la de destinos, en paralelo
+C 0x5ad0 Volcar con el destino en HL
+C 0x5ad6 Los patrones de 0x1A00...
+C 0x5ad9 ...se espejan sobre 0x1910
+C 0x5adc 0x30 sprites
+C 0x5ae1 El guion suelto, el que no pasa por tabla
+C 0x5ae6 El escenario de la ronda...
+C 0x5ae9 ...elige uno de los siete del pozo
+C 0x5aef Se vuelca con el destino metido dentro
+C 0x5b42 La fila 3 del decorado
+C 0x5b48 El contador de vidas
+C 0x5b4b Y los nombres de los dos que pelean
+C 0x5b4e El modo de juego
+C 0x5b55 El decorado que toca
+C 0x5b58 Fuera del modo 3 son las oleadas
+C 0x5b5b El decorado de arriba
+C 0x5b61 De la fila 5 para abajo
+C 0x5b68 Los decorados 0 y 3...
+C 0x5b6d ...llevan ademas las dos filas de abajo
+B 0x5b70 ---------------------------------------------------------------------
+B 0x5b70 UNA PANTALLA DE OLEADAS SON CUATRO BYTES. La tira de 0x5BE8 trae ocho
+B 0x5b70 nibbles, cada nibble elige una figura de las treinta de 0x5C64, y las
+B 0x5b70 ocho se pintan en fila de cuatro en cuatro columnas.
+L 0x5b70 monta_la_oleada
+C 0x5b71 Las cuatro tiras
+C 0x5b74 La que toque por decorado
+C 0x5b77 La fase...
+C 0x5b7a ...por cuatro: cada fase son cuatro bytes
+C 0x5b82 Y la tabla de figuras
+C 0x5b8c El decorado 2...
+C 0x5b8e ...pinta en la fila 6 en vez de la 7
+C 0x5b94 Ahi va la fila
+C 0x5b97 Empezando por la columna 0
+C 0x5b99 Ocho figuras
+C 0x5b9e El byte de la tira
+C 0x5b9f Las pares van en el nibble bajo...
+C 0x5ba3 ...y las impares en el alto
+C 0x5ba7 Ese nibble elige la figura
+C 0x5bad La columna
+C 0x5bb0 Y a pintarla
+C 0x5bb5 Cada dos figuras...
+C 0x5bb9 ...se gasta un byte de la tira
+C 0x5bba Cuatro columnas de separacion
+C 0x5bc2 En el decorado 2 no hay mas
+C 0x5bc6 Y si no, la cabecera de la oleada
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x6464 La escena y la subescena del enemigo
+C 0x6469 Repartir
+C 0x6478 Esta agarrado?
+C 0x647d No: a lo suyo
+C 0x6480 Su columna
+C 0x6483 El bit 1 del cuadro...
+C 0x648a ...lo mueve a un lado...
+C 0x648c ...o al otro: tiembla
+C 0x648e El contador de cuadros
+C 0x6492 Su bit 3 elige el fotograma
+C 0x649c Hay un golpe en marcha?
+C 0x64a3 Por que paso va la caida
+C 0x64a7 Pasado el sexto se acabo
+C 0x64ac Los seis fotogramas
+C 0x64b3 El que toque
+C 0x64b7 Nueve cuadros
+C 0x64bc Y un paso mas
+C 0x64c4 Aparcar los sprites
+C 0x64c7 El muneco vuelve a 0x87
+C 0x64ce Que fotograma le toca
+C 0x64d5 La escena y la subescena
+C 0x64da Repartir
+C 0x64e7 El modo de juego
+C 0x64ee El modo 2: la coreografia
+C 0x64f1 Si no, mover al enemigo
+C 0x64f7 Su fila
+C 0x64fa Y hacerla temblar
+C 0x64fd El fotograma 0x14
+C 0x6502 Hay algo volando?
+C 0x6507 Entonces aparcar los sprites...
+C 0x650c ...los dieciseis
+C 0x650e Un byte
+C 0x6513 Hay golpe en marcha?
+C 0x6517 Si: seguirlo
+C 0x651a Por que paso va
+C 0x651e Pasado el sexto...
+C 0x6522 ...manda el lado
+C 0x652b Los seis pares
+C 0x652e El que toque
+C 0x6533 El nibble alto...
+C 0x6537 ...mas uno si no es cero
+C 0x6538 Es la orden
+C 0x653b Y el nibble bajo...
+C 0x653e ...la mueve
+C 0x6541 Un paso mas
+C 0x6549 Arrancar el golpe
+B 0x654f ---------------------------------------------------------------------
+B 0x654f SE TOCAN DOS CAJAS? IX trae la caja que ataca -x, y y su radio- y HL
+B 0x654f la lista de hasta TRES cajas del otro. Cada caja son cuatro bytes:
+B 0x654f alto, algo, ancho y algo. Devuelve cero si no hay toque.
+L 0x654f se_tocan
+C 0x654f Hay algo que lo impida?
+C 0x6555 El jugador esta en pie?
+C 0x655b Tres cajas
+C 0x655f El alto de esta
+C 0x6563 Un cero quiere decir "no hay caja"
+C 0x6566 Mas el ancho: el borde derecho
+C 0x6569 Y lo mismo por el otro eje
+C 0x656f La x de la caja que ataca...
+C 0x6572 ...menos su radio
+C 0x6575 Se sale por abajo: no toca
+C 0x6577 Y por arriba tampoco
+C 0x657a Dos radios: el otro borde
+C 0x6580 Comparado con el alto
+C 0x6583 Ahora el otro eje
+C 0x6593 Todo cuadra: hay toque
+C 0x6597 La caja siguiente, cuatro bytes mas alla
+C 0x659d Devolver cero: no hay toque
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x65a6 La otra coordenada
+C 0x65a8 Hay algo que lo impida?
+C 0x65af Dos de margen por arriba...
+C 0x65b3 ...y once de ancho
+C 0x65b6 Lo mismo por el otro eje
+C 0x65be La coordenada del jugador
+C 0x65c5 Vale cero?
+C 0x65c9 Se sale por un lado...
+C 0x65cc ...o por el otro
+C 0x65cf Y ahora el otro eje
+C 0x65d6 Dentro: si toca
+B 0x65d8 ---------------------------------------------------------------------
+B 0x65d8 LAS DOS BARRAS DE ENERGIA. Cada una son nueve casillas y cada casilla
+B 0x65d8 cuatro puntos, de ahi el `sub 4` repetido de 0x661D. Se pintan una
+B 0x65d8 hacia un lado y la otra hacia el otro, y el bit 0 de B es lo que
+B 0x65d8 decide cual.
+L 0x65d8 pinta_las_barras
+C 0x65d8 La barra del jugador 1
+C 0x65db Y su aviso
+C 0x65de Pitar si esta a punto de acabarse
+C 0x65e1 Lo que hay que pintar
+C 0x65e4 Ha cambiado?
+C 0x65e7 No: nada que hacer
+C 0x65e9 Donde va la barra
+C 0x65ec B = 0: hacia un lado
+C 0x65f1 La del jugador 2
+C 0x65f7 Solo si hay dos jugadores
+C 0x6608 B = 1: hacia el otro
+C 0x660a Y en otra fila
+C 0x660d Menos de 13 puntos...
+C 0x660f ...casillas de cifra alta...
+C 0x6614 ...o de cifra baja
+C 0x6617 C = cuantas casillas llenas
+C 0x6619 Cuatro puntos por casilla
+C 0x661d Uno menos...
+C 0x661f ...y una casilla mas
+C 0x6624 Ninguna llena?
+C 0x6628 Si la barra va al reves...
+C 0x662c ...restar en vez de sumar
+C 0x6630 La casilla de "lleno"
+C 0x6631 C veces
+C 0x6636 Lo que sobra
+C 0x6639 Cero cuenta como cuatro
+C 0x663b Y elige la casilla del resto
+C 0x663f Con nueve llenas se acabo
+C 0x6645 Ajustar la posicion...
+C 0x6646 ...segun el lado
+C 0x6651 En el lado de la derecha las casillas van 0x60 mas alla
+C 0x6653 Escribirla
+C 0x6656 La barra
+C 0x6657 El tope son 0x24 puntos
+C 0x665e Ya esta donde tiene que estar?
+C 0x6661 Si no, acercarla de uno en uno
+C 0x666e Le queda poca?
+C 0x6671 Todavia no
+C 0x6672 Ya avisado?
+C 0x6675 Hay algo que lo impida?
+C 0x667a Marcar que ya se aviso
+C 0x667d Y pitar
+C 0x6680 Hay algo que lo impida?
+C 0x6685 La barra del jugador 1
+C 0x6688 Su escena de "muerto"
+C 0x668d La del 2
+C 0x6692 Le queda algo?
+C 0x6694 Si: sigue vivo
+C 0x6696 Y si no, a la escena de caerse
+C 0x6699 La cuenta del destello
+C 0x669d No hay
+C 0x66a0 Una menos
+C 0x66a1 Por debajo de 0x20 hay que animarlo
+C 0x66a6 Se acabo: aparcar su sprite
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x6932 ======================================================================
+B 0x6932 LO QUE PIDE EL JUGADOR
+B 0x6932 ======================================================================
+B 0x6932 El mando entra por (0xE009) con cinco bits -cuatro direcciones y el
+B 0x6932 disparo- y esos cinco bits SON el indice de la tabla de 32 de 0x6990.
+B 0x6932 Por eso la tabla es tan grande: no hay que traducir nada.
+L 0x6932 lee_lo_que_pide
+C 0x6932 Hay algo en marcha?
+C 0x6938 Apuntar lo que se pide
+C 0x693b Lo que se acaba de pedir
+C 0x693f Nada
+C 0x6942 Las cuatro direcciones solas...
+C 0x694c ...no interrumpen lo que haya
+C 0x694f Lo mismo que antes?
+C 0x6952 Entonces se para
+C 0x6959 Lo que se pedia
+C 0x695e Se guarda como "lo de antes"
+C 0x695f El mando, con sus cinco bits
+C 0x6965 Guardado
+C 0x6966 Sin pulsar nada...
+C 0x6969 ...un cuadro
+C 0x696c Pulsando algo, nueve
+C 0x696e Es lo que dura la orden
+C 0x6972 Y el paso, a cero
+C 0x6976 Ya no se pide nada nuevo
+C 0x697d La orden 8 -el salto- ...
+C 0x6981 ...suena
+C 0x6986 La orden en marcha
+C 0x698c Un cuadro menos
+C 0x698d Y a la orden que sea
+C 0x69d0 Se acabo el salto...
+C 0x69d4 ...y el fotograma es el 0
+C 0x69d8 Por que paso va
+C 0x69dc En los dos primeros...
+C 0x69e0 ...si ademas se pulsa disparo...
+C 0x69e7 ...la orden pasa a ser la 0x11
+C 0x69ec C = 1: salto en el sitio
+C 0x6a0c Fotograma 8, quieto
+C 0x6a12 Deja de mirar a un lado
+C 0x6a19 Donde esta
+C 0x6a1d Pegado al borde derecho: no se mueve mas
+C 0x6a23 A que distancia queda el otro
+C 0x6a2a Si esta pegado, tampoco
+C 0x6a2f Dos columnas a la derecha
+C 0x6a33 El fotograma de andar
+C 0x6a36 Cada cuatro cuadros...
+C 0x6a3e ...alterna entre el 0 y el 0x0E: las dos piernas
+C 0x6a47 Nada en marcha
+C 0x6a4c Mirando al otro lado
+C 0x6a53 Pegado al borde izquierdo
+C 0x6a59 O al otro muneco
+C 0x6a65 Dos columnas a la izquierda
+C 0x6a6d C = 0: salto con carrera
+C 0x6a6f El mando
+C 0x6a72 Se suelta el disparo?
+C 0x6a77 Marcar que se solto
+C 0x6a7c Ya se esta pegando en el aire?
+C 0x6a83 Se ha soltado alguna vez?
+C 0x6a88 Con carrera, a partir del paso 11
+C 0x6a8e En el sitio, del 3
+C 0x6a93 Todavia es pronto
+C 0x6a96 Empezar la patada del salto
+C 0x6a9c Y sonar
+C 0x6aa2 Por que paso va el salto
+C 0x6aa3 La curva
+C 0x6aaa El 0xA0 la cierra
+C 0x6ab0 Se acabo el salto
+C 0x6ab9 Un paso mas
+C 0x6aba Y sumar el desplazamiento a la columna
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x6abf Un cuadro de la orden
+C 0x6ac4 Por que paso va
+C 0x6ac7 Antes del tercero no se avanza
+C 0x6acb La columna
+C 0x6ace Y el lado al que mira
+C 0x6ad3 Mirando a la derecha
+C 0x6ad5 B = 1: se llego al borde
+C 0x6ad7 Salto en el sitio: no se mueve
+C 0x6adb Cuatro columnas a la izquierda
+C 0x6ade Del 0x22 no se pasa
+C 0x6ae5 Fotograma 5
+C 0x6ae7 Y 0x0B si esta pegando
+C 0x6aeb Al llegar al borde, dar la vuelta
+C 0x6af0 Salto en el sitio
+C 0x6af5 Cuatro columnas a la derecha
+C 0x6af7 Sin pasar de 0xE0
+C 0x6afe Fotograma 4
+C 0x6b00 Y 0x0A pegando
+C 0x6b03 Esta pegando en el aire?
+C 0x6b0b Un cuadro menos
+C 0x6b0c El fotograma de la patada
+C 0x6b0d Y la orden 5
+C 0x6b13 Poner el fotograma
+C 0x6b16 Fotograma 4: cayendo
+C 0x6b1b Mirando a la izquierda
+C 0x6b1e Mirando a la derecha
+C 0x6b20 El golpe 1
+C 0x6b22 Y su fotograma
+C 0x6b26 A la izquierda
+C 0x6b29 A la derecha
+C 0x6b2b El golpe 2
+C 0x6b31 A la izquierda
+C 0x6b34 A la derecha
+C 0x6b36 El golpe 3
+C 0x6b3c Hacia donde mira ya
+C 0x6b44 La orden
+C 0x6b47 Y el fotograma que le toca
+C 0x6b4c Mirando a un lado o al otro
+C 0x6b50 B es el de base...
+C 0x6b52 ...y el de al lado es el espejado
+C 0x6b54 Poner el lado
+C 0x6b57 Y el tipo de golpe
+C 0x6eb9 El contador de cuadros
+C 0x6ebc Su bit 3 alterna el fotograma
+C 0x6ec4 Y el lado suma otro
+C 0x6ecc Ese es el fotograma del enemigo
+C 0x6ed6 En que escenario
+C 0x6ee7 Solo los escenarios 1, 2, 4 y 5 lanzan cosas
+C 0x6ee8 Por que fotograma va el golpe
+C 0x6eeb Solo en el sexto se suelta
+C 0x6eee Cual de las tres
+C 0x6ef1 Ya estan las tres fuera
+C 0x6ef5 Su estado
+C 0x6efb Ocupada?
+C 0x6eff Apuntar cual sale
+C 0x6f07 Su sitio
+C 0x6f0f Y su casilla
+C 0x6f2e El lado al que sale
+C 0x6f31 Y estado 1: suelta
+C 0x6f32 Donde esta el jugador
+C 0x6f38 Nueve columnas a la derecha...
+C 0x6f3c ...o a la izquierda
+C 0x6f41 Ahi arranca
+C 0x6f42 Segun el escenario...
+C 0x6f51 ...sale a una altura y a una velocidad
+C 0x6f5f En el escenario 5, ademas, suena
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0xb8d3 Nada de interrupciones tocando la RAM del sonido
+C 0xb8d5 La marca de escena
+C 0xb8d8 Con el bit 6 puesto no suena nada
+C 0xb8de Aqui se pide siempre, mire quien mire
+C 0xb8e3 C = la pieza que se pide
+C 0xb8e4 Dos voces
+C 0xb8e6 D = 0x3F: la mascara de la pieza
+C 0xb8e8 La voz 0
+C 0xb8ec Las piezas por debajo de 0x13...
+C 0xb8f0 ...y de 0x19 son cortas
+C 0xb8f4 Las demas ocupan tres voces
+C 0xb8f7 La pieza 0x11 es especial
+C 0xb8fb Que suena ahora
+C 0xb8fd Y que sono antes
+C 0xb903 Si es la misma, se deja
+C 0xb906 Si no, se cambia por la 0x19
+C 0xb90a La voz de los efectos
+C 0xb90d La pieza que esta sonando
+C 0xb910 Es corta?
+C 0xb914 Y la que se pide?
+C 0xb91b Solo entra la de numero mas alto
+C 0xb91d Si no, se descarta
+C 0xb91f Dos bytes por pieza
+C 0xb920 La tabla de piezas
+C 0xb928 Marcar la voz como ocupada
+C 0xb92e Que pieza es
+C 0xb930 Y donde empieza su guion
+C 0xb936 Cinco bytes mas alla...
+C 0xb93c ...el paso, a cero
+C 0xb93d Y siete mas, la voz siguiente
+C 0xb943 Todas las voces de la pieza
+C 0xb949 Y a dejar sonar
+C 0xb94b El limite del bucle
+C 0xb94c Cuantas vueltas lleva
+C 0xb950 Ya son las que pedia?
+C 0xb957 Una mas
+C 0xb95b Y volver al principio del trozo
+C 0xb968 Se acabo el bucle: la cuenta a cero
+C 0xb96c Y seguir con el guion
+C 0xb96f Un paso mas
+C 0xb974 El mezclador
+C 0xb978 Que voz
+C 0xb97e El bit del ruido va tres posiciones mas alla
+C 0xb981 Encender o apagar?
+C 0xb984 Apagar: quitar el bit
+C 0xb988 Encender: ponerlo
+C 0xb989 Queda apuntado
+C 0xb98d El registro 7 del PSG
+C 0xb992 El mezclador de siempre
+C 0xb998 Empezando por la voz 1
+C 0xb99a Y por la primera de las tres
+C 0xb99f Las tres voces
+C 0xb9a1 Dieciseis bytes cada una
+C 0xb9a5 Esta voz suena?
+C 0xb9ab No: callarla
+C 0xb9b0 Si: un paso de su guion
+C 0xb9b3 La voz siguiente
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0xb9bb El bit 6 de la orden
+C 0xb9bd D = 1: apagar
+C 0xb9bf Callar la voz
+C 0xb9c2 Que pieza lleva esta voz
+C 0xb9c6 El bit 7 marca las piezas largas
+C 0xb9c9 El destello, a cero
+C 0xb9cd Un cuadro menos de nota
+C 0xb9d0 Todavia dura
+C 0xb9d1 Por donde va el guion
+C 0xb9d7 La orden
+C 0xb9d8 0xFE abre un bucle
+C 0xb9dd Y 0xFF cierra la pieza
+C 0xb9df Pieza larga?
+C 0xb9e6 El nibble alto a 2...
+C 0xb9ed ...trae la duracion de la nota
+C 0xb9f4 A 1...
+C 0xb9fa ...trae el ruido
+C 0xb9fd Por dos: el registro 6 del PSG
+C 0xba01 Escribirlo
+C 0xba04 Y encender el ruido en el mezclador
+C 0xba0b Un cero es un silencio
+C 0xba0e Sin nota, sin volumen y sin periodo
+C 0xba13 El nibble alto es el volumen
+C 0xba16 Y el bajo, la octava
+C 0xba19 Detras va la nota
+C 0xba1a Hay destello en marcha?
+C 0xba21 Avanzar el guion
+C 0xba25 El periodo de esa nota
+C 0xba29 El volumen, al nibble bajo
+C 0xba2e Con destello no se toca la envolvente
+C 0xba34 La duracion de la nota...
+C 0xba37 ...arranca la cuenta
+C 0xba3a Y el ataque...
+C 0xba3e ...marca cuando empieza a bajar
+C 0xba43 D = 1: apagar
+C 0xba48 La voz queda libre
+C 0xba52 Un cuadro menos
+C 0xba55 Se agoto: a por la orden siguiente
+C 0xba58 Con destello no hay envolvente
+C 0xba5f Bajar el volumen
+C 0xba65 Ha llegado al final de la nota?
+C 0xba6b El suelo de la envolvente
+C 0xba6e Por debajo no se baja
+C 0xba73 Si no, bajar dos
+C 0xba76 El volumen de ahora
+C 0xba7a Ya esta a cero
+C 0xba7f La voz...
+C 0xba81 ...da el registro de volumen del PSG
+C 0xba84 Escribirlo
+C 0xba88 Solo tras la ultima voz
+C 0xba8b Hay una pieza en cola?
+C 0xba94 Si es la 0x19, se deja
+C 0xba98 Sacarla de la cola...
+C 0xba9c ...y pedirla
+C 0xba9f La orden
+C 0xbaa2 Nibble alto a 0xD...
+C 0xbaa7 ...trae el destello
+C 0xbaae Y a 0xF...
+C 0xbab2 ...la envolvente
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x74a3 ======================================================================
+B 0x74a3 EL PREMIO DE TENER EL YIE AR KUNG-FU I EN LA OTRA RANURA
+B 0x74a3 ======================================================================
+B 0x74a3 0xBF6C rastrea las cuatro ranuras al arrancar y compara dos sumas de
+B 0x74a3 16 bytes contra las dos parejas de 0xBFD9, que son las de las DOS
+B 0x74a3 compilaciones del RC-725. Si lo encuentra, deja (0xE450) = 1, y este
+B 0x74a3 es el UNICO sitio de todo el cartucho que mira esa marca.
+B 0x74a3 Ademas exige nivel 3 o mas y un solo jugador (eso lo filtra 0x732F).
+C 0x74a3 La marca del cartucho vecino
+C 0x74a7 Sin el, no hay premio
+C 0x74a8 El nivel
+C 0x74ad Antes del tercero, tampoco
+C 0x74ae Un cuadro de cada dos
+C 0x74b4 El atributo donde va
+C 0x74b7 Ya se cogio?
+C 0x74bd La barra del jugador...
+C 0x74c0 ...tiene que estar bajo mininos
+C 0x74c4 Y la otra tambien
+C 0x74cb Por que paso va
+C 0x74d4 Los cuatro bytes del atributo
+C 0x74da Copiados
+C 0x74dc Pintar la figura
+C 0x74e2 Y un paso mas
+C 0x74e4 Aparcar el sprite
+C 0x74e8 Y el paso, a cero
+C 0x74f5 El atributo del premio
+C 0x74f8 Y su cuenta
+C 0x74ff 0x72 cuadros
+C 0x7504 La coordenada del premio
+C 0x7507 Lo ha cogido el jugador?
+C 0x750c El paso, a cero
+C 0x7510 Y marcarlo como cogido
+C 0x7518 La figura del premio
+C 0x751b En la fila 6, columna 14
+C 0x752d Los ocho bytes del premio...
+C 0x7533 ...a los atributos de sprite
+C 0x7539 El contador de cuadros
+C 0x753c Su bit 1 alterna el color...
+C 0x7544 ...entre 0x0F y 0x0D: parpadea
+C 0x7548 El jugador esta a lo suyo?
+C 0x754e Montar su caja
+C 0x7555 Y mirar el toque
+C 0x7558 Sin toque
+C 0x755b El pitido del premio
+C 0x7560 El sprite, aparcado
+C 0x7563 Y la coordenada fuera
+C 0x756a Cinco puntos de tanteo
+C 0x756f En que escenario
+C 0x7574 Solo el 6
+C 0x7575 Por que fotograma va el golpe
+C 0x757a Solo el sexto
+C 0x757b Cual de las tres
+C 0x7580 Ya estan las tres fuera
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0xbf6c Buscar el cartucho hermano
+C 0xbf6f La ranura de este cartucho, guardada por INIT
+C 0xbf72 H = 0x40: la pagina 1
+C 0xbf74 Y volver a dejarla como estaba
+C 0xbf77 De entrada, no esta
+C 0xbf7b La tabla de subranuras de la BIOS
+C 0xbf7e Las cuatro ranuras primarias
+C 0xbf80 Empezando por la 0
+C 0xbf84 Que hay en esta
+C 0xbf86 Con el bit 7 puesto hay subranuras
+C 0xbf89 Sin subranuras: mirarla y ya
+C 0xbf8f Con subranuras: quedarse el bit de expandida
+C 0xbf92 Y mirar las cuatro
+C 0xbf9a La subranura siguiente va cuatro mas alla
+C 0xbfa0 La ranura siguiente
+C 0xbfa6 H = 0x40: la pagina 1
+C 0xbfa8 Conmutarla a esa ranura
+C 0xbfab La suma de 16 bytes desde 0x5300...
+C 0xbfb1 ...en D
+C 0xbfb2 Y la de 0x6700...
+C 0xbfb8 ...en E
+C 0xbfb9 Las dos compilaciones conocidas
+C 0xbfbb Sus dos parejas de sumas
+C 0xbfbe La primera suma de esta pareja
+C 0xbfc0 Cuadra?
+C 0xbfc3 Y la segunda?
+C 0xbfc7 Las dos: esta el cartucho hermano
+C 0xbfcd La pareja siguiente
+C 0xbfd1 Dieciseis bytes
+C 0xbfd3 Empezando en cero
+C 0xbfd4 Sumar sin acarreo: da igual, solo hace de firma
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x6fa4 ======================================================================
+B 0x6fa4 LAS TRES COSAS QUE VUELAN
+B 0x6fa4 ======================================================================
+B 0x6fa4 Cada escenario lanza lo suyo, pero las tres ranuras se mueven con el
+B 0x6fa4 mismo codigo: el estado (0xE1A7..0xE1A9) reparte, y de ahi salen la
+B 0x6fa4 casilla, el color y lo que avanza.
+L 0x6fa4 mueve_lo_que_vuela
+C 0x6fa4 En que escenario
+C 0x6fa9 El 7 tiene lo suyo
+C 0x6fae Y el 6, tambien
+C 0x6fb3 Los escenarios 0 y 3 no lanzan nada
+C 0x6fb7 La primera de las tres
+C 0x6fba Su cuenta
+C 0x6fbd Su estado
+C 0x6fc0 Su sitio
+C 0x6fc4 Y su coordenada
+C 0x6fcb La segunda
+C 0x6fdf Y la tercera
+C 0x6ff1 La espera
+C 0x6ff5 Ya esta a cero
+C 0x6ff7 Una menos
+C 0x6ffb El estado
+C 0x6ffd Cero: no hay nada volando
+C 0x6ffe Estado 1: volando
+C 0x7001 Estado 2: se apaga
+C 0x7004 Estado 3
+C 0x7007 Estado 4: se apaga tambien
+C 0x700a Estado 5
+C 0x700d Y si no, la casilla 0xD4
+C 0x7015 Estado 3: casilla 0xC4 y color 0x0D
+C 0x701d Estado 5: casilla 0xC8, color 0x0F...
+C 0x7024 ...y la de al lado a 0x6F
+C 0x7028 Poner la casilla
+C 0x702b Y el color
+C 0x702f Todavia no le toca cambiar
+C 0x7032 Un estado menos
+C 0x7035 Apagarlo todo: casilla...
+C 0x7037 ...estado...
+C 0x7038 ...sitio y cuenta
+C 0x703f Y aparcar su sprite
+C 0x7043 En que escenario
+C 0x7046 El 4 va por otro lado
+C 0x704d En el 1, ademas, ondea
+C 0x7051 El escenario 5 va mas deprisa
+C 0x7054 Hacia que lado va
+C 0x7056 Y en que vuelta
+C 0x705c A la derecha: cuatro columnas...
+C 0x705e ...o cinco en la segunda vuelta
+C 0x7065 Y dos mas en el escenario 5
+C 0x7068 Pasado 0xF8 se acabo
+C 0x7070 A la izquierda, igual pero restando
+C 0x707a Y por debajo de 8 se acabo
+C 0x707f La fila
+C 0x7080 Hacia arriba o hacia abajo?
+C 0x7086 Una fila arriba...
+C 0x7089 ...o abajo
+C 0x708a Un paso mas de la onda
+C 0x7090 A los dieciseis...
+C 0x7095 ...vuelta a empezar...
+C 0x709b ...y cambia el sentido: eso es lo que la hace ondear
+C 0x70a2 Uno de cada ocho cuadros...
+C 0x70a9 ...suena el silbido
+C 0x70ae El contador de cuadros...
+C 0x70b3 ...da dos bits...
+C 0x70b6 ...que eligen la casilla: gira
+C 0x70c9 La casilla
+C 0x70d1 Otro silbido
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x70e8 Color 6
+C 0x70ed La parte de abajo de la velocidad
+C 0x70f0 Restarle 0x20: eso es la gravedad
+C 0x70f5 Si se pasa...
+C 0x70f7 ...se lleva una a la parte de arriba
+C 0x70fa La velocidad entera
+C 0x70ff Sube o baja?
+C 0x7103 Subiendo: en positivo
+C 0x7105 El tope son seis
+C 0x710b Y otra vez en negativo
+C 0x710f Bajando: mismo tope
+C 0x7115 Guardar la velocidad recortada
+C 0x7118 Hacia que lado va
+C 0x711c Sube o baja?
+C 0x7123 La fila
+C 0x7125 Entre 0xE0 y 0xEF esta tapando algo...
+C 0x712d ...y si lo que hay debajo es 0xC0...
+C 0x7132 ...se devuelve la casilla que se habia guardado
+C 0x7139 Bajando: de 0xF0 en adelante
+C 0x7140 Ya esta tapado?
+C 0x7144 Guardar la casilla de debajo...
+C 0x7147 ...y poner la de tapar
+C 0x714a Sumar la velocidad a la fila
+C 0x7150 Por el otro lado igual...
+C 0x7157 ...pero mirando el borde de arriba
+C 0x717e Aqui se resta en vez de sumar
+C 0x7183 La fila nueva
+C 0x7184 Ocho de margen
+C 0x7187 De que lado viene
+C 0x718a Trece de alcance...
+C 0x718f ...o seis
+C 0x7191 Donde esta el jugador
+C 0x7196 Se ha pasado
+C 0x7197 Y por el otro lado
+C 0x719b Ha llegado: aparcar el sprite...
+C 0x719f ...y apagar el estado
+C 0x71a2 Hay algo que lo impida?
+C 0x71a7 Y pedir la pieza
+C 0x71ab En que escenario
+C 0x71b0 Solo el 0
+C 0x71b1 Por que fotograma va el golpe
+C 0x71b6 Solo el sexto
+C 0x71b7 Cual de las tres
+C 0x71bc Ya estan las tres fuera
+C 0x71bd Las tres casillas
+C 0x71c4 La que toque
+C 0x71c7 Su lado
+C 0x71ca Y su estado
+C 0x71d0 El lado del que sale
+C 0x71d3 Estado 1: suelta
+C 0x71d4 La fila del enemigo
+C 0x71da Una mas...
+C 0x71de ...o tres menos, segun el lado
+C 0x71e1 Ahi arranca
+C 0x71e4 0x12 cuadros
+C 0x71e9 Y el pitido
+C 0x71f4 Le queda tiempo?
+C 0x71f8 Se acabo: apagarlo
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x732f Con dos jugadores no hay nada de esto
+C 0x7335 El jugador esta a lo suyo?
+C 0x733b El descanso entre asaltos
+C 0x733e Solo en el modo 3...
+C 0x7344 ...hay bicho volando...
+C 0x7347 ...y premio del cartucho hermano
+C 0x734a Y subir sus atributos
+C 0x734d La cuenta del descanso
+C 0x7351 No hay descanso
+C 0x7354 Una menos
+C 0x7356 Las dos barras, llenas otra vez
+C 0x735e Y el aviso, apagado
+C 0x7362 De quien era el turno
+C 0x7367 Del jugador
+C 0x7369 Del otro: una vida suya menos
+C 0x736e Limpiar el turno
+C 0x736f Y a la escena 0
+C 0x7375 Le queda barra al jugador?
+C 0x737a Y al otro?
+C 0x737f Le quedan vidas al otro?
+C 0x7384 Se pulso la tecla de rendirse?
+C 0x738a B = 0: se rinde el jugador
+C 0x738c 0x10 cuadros de descanso
+C 0x7391 Y de quien fue
+C 0x7395 El fotograma de caerse
+C 0x739b Es la primera vez?
+C 0x73a2 El modo de juego...
+C 0x73a9 ...elige la musica de despues
+C 0x73af Queda en cola
+C 0x73b2 Y suena la de ahora
+C 0x73b7 La fila del marcador de vidas
+C 0x73ba Dieciseis casillas...
+C 0x73bd ...a cero
+C 0x73c0 Las vidas del jugador
+C 0x73c4 Ninguna
+C 0x73c7 Se pintan desde 0x3AE7...
+C 0x73ca ...con la casilla 0x84
+C 0x73cf El bit 2 del cuadro...
+C 0x73d4 ...las hace parpadear
+C 0x73d5 Las del otro
+C 0x73db Desde 0x3AE3...
+C 0x73de ...con la 0x83
+C 0x73e3 Un cuadro de cada dos
+C 0x73e9 La escena y la subescena del bicho
+C 0x73ee Repartir
+C 0x73fd Ya hay uno fuera?
+C 0x7402 Esta el jugador a tiro?
+C 0x7408 No
+C 0x7409 Su atributo
+C 0x740c Fila 0x28
+C 0x740f El contador de cuadros...
+C 0x7418 ...por 1,5 y mas 0x20: por ahi sale
+C 0x741d Casilla 0xDC
+C 0x7421 Y color 0x0F
+C 0x7427 Su atributo
+C 0x742a Y su escena
+C 0x7431 0x62 cuadros de vida
+C 0x7433 Sigue valiendo?
+C 0x7438 No: a la escena 5
+C 0x743c Un cuadro mas
+C 0x743e Se le acabo?
+C 0x7440 Entonces 0xB0 de espera...
+C 0x7446 ...y a la escena siguiente
+C 0x7448 En que anda el jugador
+C 0x7455 Devolver "vale"
+C 0x7458 La coordenada del bicho
+C 0x745b Toca al jugador?
+C 0x7460 0xA8 cuadros de castigo
+C 0x746b Sonar y apagarlo
+C 0x746e Una escena mas
+C 0x7473 Sigue valiendo?
+C 0x7478 La cuenta
+C 0x747d Escena 5
+C 0x7483 La cuenta
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x7581 Cual de las dos ranuras toca
+C 0x7585 Ocupada?
+C 0x7588 Entonces la otra
+C 0x758e La primera
+C 0x7593 Y apuntar cual queda para la vez siguiente
+C 0x7595 Ya estaba fuera?
+C 0x7597 Estado 1: suelta
+C 0x759c Fila 0x87
+C 0x75a1 Donde esta el jugador
+C 0x75a5 Por que lado sale
+C 0x75a9 Dieciseis a un lado...
+C 0x75ad ...o veinticuatro al otro
+C 0x75b1 Sumado a la columna del jugador
+C 0x75b4 Sin desplazamiento
+C 0x75b7 Casilla 6
+C 0x75bb Color 0xF0
+C 0x75bf Y ancho 7
+C 0x75c3 El lado
+C 0x75c8 Las cuatro velocidades
+C 0x75cb El contador de cuadros...
+C 0x75d4 ...da dos bits...
+C 0x75d6 ...y cada velocidad son dos bytes
+C 0x75dd La parte de arriba
+C 0x75e1 Y la de abajo
+C 0x75eb Mover lo del escenario 6
+C 0x75ee La primera ranura
+C 0x75f8 Moverla
+C 0x75fb Y subir sus sprites
+C 0x75fe La segunda
+C 0x760b Y sus sprites
+C 0x760e El jugador esta a lo suyo?
+C 0x7614 En que estado esta
+C 0x7618 Apagada
+C 0x7619 Estado 1
+C 0x761c Estado 2
+C 0x7620 Estado 3
+C 0x7624 Estado 4
+C 0x7628 Estado 5
+C 0x762c Estado 6
+C 0x7630 Estado 7
+C 0x7634 Y si no, aparcar el sprite
+C 0x763a Casilla 0xC8...
+C 0x763c ...y color 0x0F
+C 0x7641 Todavia no ha acabado
+C 0x7642 Un estado mas
+C 0x764a La casilla
+C 0x764d Y el color
+C 0x7650 Y una cuenta menos
+C 0x7652 Casilla 0xD4
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x7654 Y color 7
+C 0x7659 Todavia no
+C 0x765a Estado 7
+C 0x765f Y 0x10 de cuenta
+C 0x7663 Aparcar el sprite
+C 0x7669 Y el estado, a cero
+C 0x766d Hacia que lado va
+C 0x7673 A la derecha: sumar la parte de abajo...
+C 0x7679 ...y la de arriba con el acarreo
+C 0x767b Pasado 0xF0 hay que dar la vuelta
+C 0x7681 A la izquierda: restar
+C 0x7689 Y por debajo de 0x10, igual
+C 0x7690 Cambiar de sentido
+C 0x7696 La velocidad de caida
+C 0x7698 Menos 0x60: la gravedad
+C 0x769c Con el acarreo a la parte de arriba
+C 0x76a0 La fila...
+C 0x76a3 ...menos lo que cae
+C 0x76a7 Por encima de 0xA0 sigue en el aire
+C 0x76ac Ha tocado suelo: guardar el rebote
+C 0x76b2 Estado 2
+C 0x76b7 Y 0x10 de cuenta
+C 0x76bb Casilla 0xF4...
+C 0x76bf ...y color 0x0F
+C 0x76c4 Sin rebotes todavia
+C 0x76c7 El pitido del golpe contra el suelo
+C 0x76cc Mirar si le da al enemigo
+C 0x76cf Y si le da al jugador
+C 0x76d2 La primera ranura
+C 0x76dc Mirarla
+C 0x76df Y la segunda
+C 0x76e9 Esta suelta?
+C 0x76ec Toca al jugador?
+C 0x76f0 Si: limpiar sus cuentas...
+C 0x76f7 ...y tumbarlo
+C 0x76fa Montar la caja...
+C 0x76fc ...de dos de alto...
+C 0x76ff ...y mirar el toque
+C 0x7702 La coordenada de la primera
+C 0x770b Y la de la segunda
+C 0x7711 Esta suelta?
+C 0x7715 Su coordenada
+C 0x7717 Le da al enemigo?
+C 0x771b No
+C 0x771d Un punto de tanteo
+C 0x7722 El pitido
+C 0x7728 Estado 6
+C 0x772b Y trece bytes mas alla...
+C 0x7730 ...un 5
+C 0x7734 Hay algo que lo impida?
+C 0x7739 La primera
+C 0x7743 Y la segunda
+C 0x774a En que estado esta
+C 0x774f Antes del 2 no se puede golpear
+C 0x7752 Y del 5 en adelante, tampoco
+C 0x7755 Caja de ocho de alto
+C 0x775a Le da el jugador?
+C 0x775d No
+C 0x775e Sumar el tanteo
+C 0x7761 Estado 5: rota
+C 0x7766 Y el pitido de romperla
+C 0x776b Color 0x0F
+C 0x776f Color 7
+C 0x7773 Color 4
+C 0x7775 Casilla 0xF4
+C 0x777c Por que rebote va
+C 0x777f Dos bytes por rebote
+C 0x7787 La fila del rebote, mas 0x9A
+C 0x7790 Y la columna
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x77c4 Los atributos que se van a subir
+C 0x77c7 La primera ranura
+C 0x77cd Y la segunda
+C 0x77d0 La fila
+C 0x77d5 La columna
+C 0x77db La casilla
+C 0x77df Y el color
+C 0x77e3 En que escenario
+C 0x77e8 Solo el 7
+C 0x77e9 Por que fotograma va el golpe
+C 0x77ee Solo el sexto
+C 0x77ef Cual de las tres
+C 0x77f4 Ya estan las tres fuera
+C 0x77f5 Tres a la vez
+C 0x77fb El jugador esta a lo suyo?
+C 0x7801 En que escenario
+C 0x7806 Solo el 7
+C 0x7807 La espera entre una y otra
+C 0x780b Ya se agoto
+C 0x780e Una menos
+C 0x7810 Cuantas quedan por soltar
+C 0x7815 Ninguna
+C 0x7817 La primera ranura
+C 0x7820 La segunda
+C 0x782a Y la tercera
+C 0x7833 Ocupada?
+C 0x7836 Nueve cuadros de espera
+C 0x7838 La barra del jugador
+C 0x783b Cuanto mas llena...
+C 0x783f ...mas espera: seis...
+C 0x7845 ...o tres
+C 0x7847 En que vuelta
+C 0x7850 De la tercera en adelante, tres fijos
+C 0x7855 En la segunda, tres menos
+C 0x785b Ahi queda la espera
+C 0x785e Una menos por soltar
+C 0x7861 Estado 1: suelta
+C 0x7866 Fila 0x20
+C 0x7867 La columna del enemigo
+C 0x786e El bit 5 del cuadro...
+C 0x7872 ...y el 2 deciden si se desplaza
+C 0x7874 0x20 columnas
+C 0x7884 El contador de cuadros...
+C 0x7886 ...da dos bits
+C 0x7890 Sin desplazamiento
+C 0x7892 Ancho 5
+C 0x7897 Las cuatro parejas
+C 0x789e La casilla
+C 0x78a1 Y el color
+C 0x78a4 Y las dos de la otra tabla
+C 0x78ad El bit 1 del cuadro elige el sentido
+C 0x78b4 A la izquierda, si cabe
+C 0x78b8 Sentido 0 y casilla 0xF4
+C 0x78be A la derecha
+C 0x78c2 Sentido 1 y casilla 0xF0
+C 0x78c6 El sentido
+C 0x78c9 La columna
+C 0x78cc Y la casilla
+C 0x78cf Dos cosas mas por soltar
+C 0x78d4 El borde se pone claro: eso es el fogonazo
+C 0x78d9 Y suena
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x78ea El jugador esta a lo suyo?
+C 0x78f1 Queda fogonazo?
+C 0x78f8 Uno menos
+C 0x78fb Se acabo: el borde, negro otra vez
+C 0x7900 Subir los atributos
+C 0x7903 Y repartir por el estado
+C 0x790d Mirar si le da al jugador
+C 0x7910 La primera de las tres
+C 0x791d La segunda
+C 0x792a Y la tercera
+C 0x7934 El jugador esta a lo suyo?
+C 0x793a En que estado esta
+C 0x793c Apagada
+C 0x793d Estado 1: cayendo
+C 0x7940 Y si no, apagarla...
+C 0x7942 ...y aparcar su sprite
+C 0x7949 La fila, parte de abajo...
+C 0x794e ...y de arriba, con el acarreo
+C 0x7951 Pasado 0xA0 se acabo
+C 0x7957 Hacia que lado va
+C 0x795d A la derecha: sumar la columna
+C 0x7965 Sin pasar de 0xF0
+C 0x796b A la izquierda: restar
+C 0x7973 Sin bajar de 0x10
+C 0x7977 Estado 2: se apaga
+C 0x797d El bit 1 del cuadro...
+C 0x7982 ...alterna el color entre 0x0F...
+C 0x7986 ...y 6: destella
+C 0x798a Ahi va el color
+C 0x798c Hay algo que lo impida?
+C 0x7991 La primera
+C 0x799e La segunda
+C 0x79ab Y la tercera
+C 0x79b5 Toca al jugador?
+C 0x79b8 No
+C 0x79bb Estado 1 del rayo
+C 0x79c0 Y esta, apagandose
+C 0x79c3 El pitido
+C 0x79c8 Apagar el rayo
+C 0x79cc El enemigo pasa a la escena 4
+C 0x79d2 Y el jugador queda a lo suyo...
+C 0x79d6 ...con la escena 1
+C 0x79dc Los tres atributos...
+C 0x79df ...a la copia que se sube
+C 0x79ee La fila
+C 0x79f3 La columna
+C 0x79fb La casilla
+C 0x79ff Y el color
+C 0x7a03 En que escenario
+C 0x7a08 Solo el 3
+C 0x7a09 Por que fotograma va el golpe
+C 0x7a0e Solo el sexto
+C 0x7a0f Cual de las tres
+C 0x7a14 Ya estan las tres fuera
+C 0x7a15 La segunda ranura
+C 0x7a1a Estado 1
+C 0x7a1d La fila del enemigo
+C 0x7a23 Y su columna
+C 0x7a27 Casilla 0xF0
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x7a75 La columna, parte de abajo
+C 0x7a79 Menos 0xA0
+C 0x7a7d Y la de arriba, con el acarreo
+C 0x7a81 Todavia no ha llegado a 0x30
+C 0x7a84 La velocidad
+C 0x7a90 0x15 a lo ancho
+C 0x7a99 0x40 de referencia
+C 0x7a9f La columna de ahora...
+C 0x7aa2 ...menos esa referencia
+C 0x7aa4 Y la fila
+C 0x7aae La misma fila...
+C 0x7ab1 ...menos ella misma: cero
+C 0x7ab5 Siete de ancho...
+C 0x7ab9 ...y siete de alto
+C 0x7aba 0x20 de espera
+C 0x7ac2 Un estado mas
+C 0x7ac4 Mover lo que hay
+C 0x7ac7 El desplazamiento
+C 0x7acb Ya esta en 0x80?
+C 0x7acf Subirlo...
+C 0x7ad1 ...y si se paso, dos atras
+C 0x7ad4 La espera
+C 0x7adb Una menos
+C 0x7add La columna
+C 0x7ae0 Todavia no ha llegado
+C 0x7ae3 El contador de cuadros...
+C 0x7ae9 ...da dos bits para la velocidad...
+C 0x7aef ...y otro para el sentido
+C 0x7af6 La columna vuelve a 0x32
+C 0x7afb La velocidad
+C 0x7b01 Tres
+C 0x7b05 La velocidad elegida
+C 0x7b09 Sus dos bytes
+C 0x7b0f Y el sentido...
+C 0x7b16 ...la cambia de signo
+C 0x7b18 Ahi va
+C 0x7b1b Lo mismo con el segundo byte
+C 0x7b2b La columna...
+C 0x7b2e ...menos 0x64
+C 0x7b31 Y la fila
+C 0x7b3b La misma fila menos ella: cero
+C 0x7b41 0x64 de referencia
+C 0x7b45 La velocidad otra vez
+C 0x7b49 Su tamano
+C 0x7b50 Ancho...
+C 0x7b54 ...y alto
+C 0x7b68 Mover lo que hay
+C 0x7b6b La columna
+C 0x7b70 Todavia no
+C 0x7b73 Estado 1
+C 0x7b77 Ya esta sonando?
+C 0x7b7d El jugador esta a lo suyo?
+C 0x7b84 El zumbido
+C 0x7b89 La velocidad angular
+C 0x7b8d La posicion de ahora
+C 0x7b90 Y la velocidad
+C 0x7b94 Girarla
+C 0x7b97 Guardar la posicion...
+C 0x7b9a ...y la velocidad
+C 0x7b9e La referencia...
+C 0x7ba1 ...sumada a la parte alta
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x7bc4 ---------------------------------------------------------------------
+B 0x7bc4 Un giro hecho a base de sumas: HL y DE son las dos componentes y B
+B 0x7bc4 dice cuantos pasos se dan. Cada paso suma a una lo que vale la otra
+B 0x7bc4 partido por 128, que es como se aproxima un seno sin tablas.
+L 0x7bc4 gira_un_paso
+C 0x7bc4 La otra componente
+C 0x7bc5 Guardar la parte alta
+C 0x7bc6 Por dos, mirando el signo
+C 0x7bc9 Negativa: bajar la parte alta
+C 0x7bca Sumarla a esta componente
+C 0x7bcf Se desbordo?
+C 0x7bd3 Entonces se deja como estaba
+C 0x7bd6 Y ahora la otra, cambiada de signo
+C 0x7be7 Tantos pasos como diga B
+C 0x7bea Casilla 0xC4
+C 0x7bf1 Y color 6
+C 0x7bf4 La cuenta
+C 0x7bf8 Todavia dura
+C 0x7bf9 Se acabo: casilla 0xF0
+C 0x7bfe Y un estado mas
+C 0x7c01 La columna
+C 0x7c04 Una mas
+C 0x7c06 Hasta 0x98
+C 0x7c09 Ahi se acaba
+C 0x7c0c La fila
+C 0x7c0f Donde esta el jugador
+C 0x7c13 Ocho por arriba...
+C 0x7c17 ...y ocho por abajo
+C 0x7c1c Dieciseis de alto
+C 0x7c1f Se sale por abajo
+C 0x7c21 Y por arriba
+C 0x7c23 Le ha dado: apagarlo...
+C 0x7c27 ...y soltar lo que llevara agarrado
+C 0x7c2a Y a repintar el marcador
+C 0x7c2d La coordenada
+C 0x7c30 Y donde se copia
+C 0x7c33 La fila
+C 0x7c38 La columna
+C 0x7c3d Cinco bytes mas alla...
+C 0x7c40 ...la casilla
+C 0x7c44 Y el color
+C 0x7c47 En que escenario
+C 0x7c4c Solo el 3
+C 0x7c4d Hay algo agarrado?
+C 0x7c51 No
+C 0x7c52 Uno de cada dos cuadros...
+C 0x7c59 ...se salta el retorno: eso frena al enemigo
+C 0x7c5b El lado al que mira
+C 0x7c5e La columna del jugador
+C 0x7c62 Y la de lo agarrado
+C 0x7c66 A la derecha: 1
+C 0x7c6a A la izquierda: 0
+C 0x7c6b Ahi va el lado
+C 0x7c6d El bit 2 del cuadro decide el fotograma
+C 0x7c76 El rotulo de la fase, en color...
+C 0x7c79 ...y en patrones
+C 0x7c7e La version corta: color...
+C 0x7c81 ...y patrones
+C 0x7c86 El color va a 0x12D8...
+C 0x7c8d ...y a 0x1698
+C 0x7c95 Y el patron a 0x32D8
+C 0x7c9b Que se espeja sobre 0x3698
+C 0x7ca1 0x28 patrones
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x7d46 ======================================================================
+B 0x7d46 EL ENEMIGO SE MANEJA COMO EL JUGADOR
+B 0x7d46 ======================================================================
+B 0x7d46 Los cinco bits del mando entran directos en una tabla de 32, igual
+B 0x7d46 que en 0x6990. La diferencia es de donde vienen: con dos jugadores
+B 0x7d46 los pone el SEGUNDO MANDO en (0xE052), y con uno se los inventa la
+B 0x7d46 maquina en 0x7E7E.
+C 0x7d17 En que escenario
+C 0x7d1e En el 0, si hay algo agarrado...
+C 0x7d22 ...se mueve eso
+C 0x7d25 Lo del escenario 3
+C 0x7d28 Lo del 7
+C 0x7d2b Y lo de los demas
+C 0x7d2e Hay golpe en marcha?
+C 0x7d34 Si: seguirlo por cada escenario
+C 0x7d40 Y sacar el fotograma de la tabla
+C 0x7d46 En que escenario
+C 0x7d4b En el 0 hay ademas que agarrar
+C 0x7d4e Por que fotograma va el jugador
+C 0x7d51 De 0x10 en adelante no se hace nada
+C 0x7d56 El modo de juego
+C 0x7d5c Modo 1: lo maneja la maquina
+C 0x7d5f A que distancia esta
+C 0x7d63 De lejos vale cualquier orden
+C 0x7d65 El mando del segundo
+C 0x7d6a De cerca, las ordenes 0x11, 0x12...
+C 0x7d75 ...0x14 y 0x18...
+C 0x7d7d ...se cambian por el 0x10 pelado
+C 0x7d80 Lo que se pedia
+C 0x7d85 Se guarda como "lo de antes"
+C 0x7d87 Y lo de ahora, con sus cinco bits
+C 0x7d8b Nada
+C 0x7d8e Las cuatro direcciones solas...
+C 0x7d98 ...no interrumpen lo que haya
+C 0x7d9b Lo mismo que antes?
+C 0x7d9e Entonces vale la orden entera
+C 0x7d9f Y a la que sea
+C 0x7de2 Fotograma 0: quieto
+C 0x7de7 Mirando a la derecha
+C 0x7deb Mirando a la izquierda
+C 0x7dec El lado
+C 0x7def Golpe 3
+C 0x7df3 Golpe 0
+C 0x7df6 Fotograma 0x12
+C 0x7dfa A la izquierda
+C 0x7dfd A la derecha
+C 0x7dff El lado
+C 0x7e02 Y golpe 5
+C 0x7e06 Uno de cada cuatro cuadros
+C 0x7e0d La fila
+C 0x7e11 De 0x1C no pasa...
+C 0x7e15 ...y ahi se queda en 5
+C 0x7e1b A que distancia esta
+C 0x7e23 Pegado: no se acerca mas
+C 0x7e27 Una fila mas
+C 0x7e2b Uno de cada cuatro
+C 0x7e32 La fila
+C 0x7e36 Por debajo de 5...
+C 0x7e3a ...da la vuelta a 0x1B
+C 0x7e40 A que distancia
+C 0x7e4b Una fila menos
+C 0x7e4c Y mirando al otro lado
+C 0x7e4e El lado
+C 0x7e51 Poner el fotograma
+C 0x7e54 Golpe 4
+C 0x7e58 Golpe 2
+C 0x7e5c A la izquierda
+C 0x7e5f A la derecha
+C 0x7e61 El lado
+C 0x7e64 En que escenario
+C 0x7e67 El 1 usa el golpe 2...
+C 0x7e6d ...y los demas el 1
+C 0x7e6e Arrancar el golpe
+C 0x7e71 Siete cuadros
+C 0x7e75 El tipo de golpe
+C 0x7e78 Y dieciseis cuadros
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x7e7e ======================================================================
+B 0x7e7e CUANDO LO MANEJA LA MAQUINA
+B 0x7e7e ======================================================================
+B 0x7e7e Aqui no hay mando: el escenario elige una de las ocho rutinas de
+B 0x7e7e apuntadas que se van gastando.
+L 0x7e7e lo_maneja_la_maquina
+C 0x7e7e Corregir la fila si se salio
+C 0x7e81 Gastar la cola de un lado
+C 0x7e84 Y la del otro
+C 0x7e87 Lo del escenario 3
+C 0x7e8a El escenario de la ronda
+C 0x7e8d Y a su rutina
+C 0x7ea0 La tira de escenarios
+C 0x7ea4 Indexada por la ronda
+C 0x7eaa Ese es el escenario
+C 0x7ead Dos veces
+C 0x7eb0 El ultimo byte del registro
+C 0x7eb5 Sale un bit por arriba...
+C 0x7eba ...y va bajando por los diez bytes
+C 0x7ec0 ...hasta volver al primero
+C 0x7ec5 Y los dos bits bajos son el resultado
+C 0x7ecb La cola de este lado
+C 0x7ed0 Vacia
+C 0x7ed1 Uno de cada dos cuadros...
+C 0x7ed8 ...se salta el retorno
+C 0x7eda Una orden menos
+C 0x7edb Un cuadro de espera
+C 0x7ee3 El lado, cambiado
+C 0x7ee9 Y el bit 2 del cuadro elige el fotograma
+C 0x7ef2 La fila del enemigo
+C 0x7ef5 En que escenario
+C 0x7ef8 El 7 tiene sus limites
+C 0x7efc De que lado viene
+C 0x7f01 Por encima de la fila 3...
+C 0x7f06 ...y por debajo de la 0x1D, no hay que corregir
+C 0x7f09 La cola de un lado...
+C 0x7f0c ...y la del otro
+C 0x7f10 Se elige por el lado
+C 0x7f14 0x10 ordenes en una...
+C 0x7f17 ...y ninguna en la otra
+C 0x7f1a La fila
+C 0x7f1c En la 2...
+C 0x7f20 ...se pasa a la 0x1C
+C 0x7f22 Y de la 0x1D...
+C 0x7f26 ...a la 3: el escenario 7 da la vuelta
+C 0x7f2a La cola de este lado
+C 0x7f2f Vacia
+C 0x7f31 En que escenario
+C 0x7f34 Una menos
+C 0x7f35 El 7 va aparte
+C 0x7f39 Devolverla
+C 0x7f3a Uno de cada dos cuadros
+C 0x7f43 Una orden menos
+C 0x7f44 Un cuadro de espera
+C 0x7f4c A que distancia esta
+C 0x7f52 Pegado?
+C 0x7f56 Marcarlo
+C 0x7f5b Ya estaba pegado?
+C 0x7f5f Entonces vaciar la cola
+C 0x7f65 Poner la subescena
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x805d ======================================================================
+B 0x805d LAS REACCIONES DEL ESCENARIO 0
+B 0x805d ======================================================================
+B 0x805d Cada una de las seis entradas de 0x8041 es lo que hace el enemigo a
+B 0x805d una distancia. Lo que casi todas acaban haciendo es apuntar una orden
+B 0x805d en la cola de 0xE184 o arrancar un golpe.
+L 0x805d reacciona_de_lejos
+C 0x805d La espera
+C 0x8060 Todavia no le toca
+C 0x8061 Dos bits del contador de cuadros
+C 0x8064 A cero: esperar
+C 0x8066 A uno: acercarse
+C 0x8069 Y si no, la orden 3
+C 0x806e Tres pasos
+C 0x8071 En que vuelta
+C 0x8077 Uno mas por vuelta...
+C 0x807b ...hasta dos mas
+C 0x807d Ahi va lo que anda
+C 0x8081 Orden 3
+C 0x8085 0x20 cuadros de espera
+C 0x8087 Ahi va la espera
+C 0x808a El tipo de golpe
+C 0x808e Uno mas
+C 0x808f Los golpes 0, 1 y 2...
+C 0x8093 ...y del 3 al 5
+C 0x8097 Fuera de rango, se queda en 3
+C 0x809a Arrancarlo
+C 0x809d Dos bits del registro
+C 0x80a0 A uno: la orden 6
+C 0x80a3 A dos: acercarse
+C 0x80a6 A tres: la orden 4
+C 0x80a9 Y si no, la 6
+C 0x80ab Ahi queda apuntada
+C 0x80af Orden 4
+C 0x80b3 Orden 6
+C 0x80b7 Y a la de lejos
+C 0x80b9 Orden 4
+C 0x80bb Arrancar el golpe
+C 0x80be Y ponerlo en el sexto cuadro
+C 0x80c4 Dos bits del registro
+C 0x80d2 Orden 5
+C 0x80d6 Dos bits del registro
+C 0x80ea Orden 3
+C 0x80ee La espera
+C 0x80f2 Todavia dura
+C 0x80f3 0x10 cuadros
+C 0x80f6 El tipo de golpe
+C 0x80f9 Dos bits del contador de cuadros
+C 0x80ff El 3 se cambia por el 0
+C 0x8104 Ahi va
+C 0x8105 Y a arrancarlo
+C 0x8108 El contador de cuadros
+C 0x810b Su bit 6 decide
+C 0x810f Copiar el lado
+C 0x8116 Uno de cada ocho cuadros
+C 0x8119 Y su bit 4 elige el fotograma
+C 0x811b Fotograma 0...
+C 0x811f ...o 2
+C 0x8121 El lado...
+C 0x8128 ...suma uno
+C 0x8129 La fila
+C 0x812c Ahi va el fotograma
+C 0x812f Hacia arriba o hacia abajo?
+C 0x8134 Sin pasar de la fila 0x1D...
+C 0x8138 ...una mas
+C 0x813c Y por el otro lado, sin bajar de cero
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x8312 El contador de cuadros
+C 0x8315 Uno de cada 32...
+C 0x8317 ...se salta el reparto
+C 0x831a Poner la subescena
+C 0x831d Y a ella; la tabla va detras
+C 0x832c La espera
+C 0x832f Todavia no
+C 0x8330 Dos bits del cuadro
+C 0x8333 A cero: parar
+C 0x8336 A uno: acercarse
+C 0x8338 Y si no, la orden 3
+C 0x833a Cuatro pasos
+C 0x833f 0x30 cuadros de espera
+C 0x8344 Dos bits del registro
+C 0x8347 A uno: la orden 6
+C 0x834b A dos: la 3
+C 0x834e A tres: la 5
+C 0x8350 Y si no, esperar
+C 0x8355 Dos bits del registro
+C 0x8361 Esperar
+C 0x8363 Orden 6
+C 0x8366 Orden 3
+C 0x8369 Dos bits del registro
+C 0x836d A uno: la orden 5
+C 0x8370 A dos: la 4
+C 0x8373 Y a tres: la 3 con golpe
+C 0x837d La espera
+C 0x8381 Todavia dura
+C 0x8382 0x10 cuadros
+C 0x8385 El tipo de golpe
+C 0x838a Alterna entre el 0...
+C 0x838e ...y el 2
+C 0x838f Ahi va
+C 0x8390 Y a arrancarlo
+C 0x8393 El contador de cuadros
+C 0x8396 Su bit 6 decide
+C 0x839a Y si no, el camino de siempre
+C 0x84dd Ocho de un lado...
+C 0x84df ...y tres del otro
+C 0x84e1 A la reaccion comun
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x84f2 El contador de cuadros
+C 0x84f7 Uno de cada 32 se salta el reparto
+C 0x84fa Poner la subescena
+C 0x84fd Y a ella
+C 0x850c La espera
+C 0x850f Todavia no
+C 0x8510 Dos bits del cuadro
+C 0x8513 A cero: golpear
+C 0x8516 A uno: acercarse
+C 0x8519 A dos: la orden 4
+C 0x851b Cuatro pasos
+C 0x8520 Orden 4
+C 0x8523 0x20 cuadros de espera
+C 0x8528 El tipo de golpe
+C 0x852c Uno mas
+C 0x852d De 2 a 5
+C 0x8535 Fuera de rango, se queda en 2
+C 0x8537 Ahi va
+C 0x8538 Y a arrancarlo
+C 0x853b Dos bits del registro
+C 0x853e A uno: la orden 5
+C 0x8542 A dos: la 3 con golpe
+C 0x8545 A tres: la 4
+C 0x8547 Y si no, la orden 3
+C 0x8553 Dos bits del registro
+C 0x855f Y si no, la orden 6
+C 0x8562 Dos bits del registro
+C 0x8570 Dos bits del registro
+C 0x86cb Medir la distancia
+C 0x86ce Y copiar el lado
+C 0x86d1 Esta agarrado?
+C 0x86d8 La cuenta del agarre
+C 0x86dd A cero: lo de siempre
+C 0x86e0 Una menos
+C 0x86e2 0x18 cuadros de espera
+C 0x86e9 Se acabo: la orden 5
+C 0x86ee La cuenta...
+C 0x86ef ...alterna entre 4 y 5
+C 0x8704 El contador de cuadros
+C 0x8709 Uno de cada 32 se salta el reparto
+C 0x870c Poner la subescena
+C 0x870f Y a ella
+C 0x871e La espera
+C 0x8721 Todavia no
+C 0x8722 Dos bits del cuadro
+C 0x8725 A cero: golpear
+C 0x8728 A uno: la orden 4
+C 0x872a Y si no, cinco pasos
+C 0x872f Orden 4
+C 0x8732 0x28 cuadros de espera
+C 0x8737 Dos bits del registro
+C 0x8745 Orden 4
+C 0x8747 Orden 3 con golpe
+C 0x874a Orden 5
+C 0x874d Dos bits del registro
+C 0x8759 Orden 6
+C 0x875c Dos bits del registro
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x8767 Orden 3
+C 0x876a Dos bits del registro
+C 0x876f A dos: la orden 4
+C 0x8771 Y si no, la 5
+C 0x8773 La cuenta de lo que se lanza
+C 0x8778 A cero: hay que recargar
+C 0x877a Una menos
+C 0x877b Las tres ranuras
+C 0x877d La primera
+C 0x8780 Ocupada?
+C 0x8784 La siguiente
+C 0x8787 Las tres llenas: nada
+C 0x8788 Cual ha quedado libre
+C 0x878b Esa se lanza
+C 0x878e Y arrancar el golpe
+C 0x8791 La espera
+C 0x8795 Todavia dura
+C 0x8796 Once cuadros
+C 0x8799 El contador de cuadros...
+C 0x879d ...da dos bits...
+C 0x87a1 ...y el cero se cambia por uno
+C 0x87a2 Esas son las que se lanzan
+C 0x87a6 El contador de cuadros
+C 0x87a9 Su bit 6 decide
+C 0x87ad Y si no, el camino de siempre
+C 0x87b0 Medir la distancia
+C 0x87b4 De lejos...
+C 0x87b7 ...se suelta lo agarrado
+C 0x87bb La espera
+C 0x88fe Medir la distancia
+C 0x8901 Y copiar el lado
+C 0x8904 La cuenta del agarre
+C 0x8909 A cero: lo de siempre
+C 0x890b Una menos
+C 0x890d 0x10 cuadros de espera
+C 0x8912 Se acabo: la orden 5
+C 0x8919 La cuenta...
+C 0x891a ...alterna entre 4 y 5
+C 0x8921 Medir otra vez
+C 0x8924 Y copiar el lado
+C 0x8927 En que estado esta lo que gira
+C 0x892a En el 6...
+C 0x892e ...se marca que ha agarrado
+C 0x8933 El tramo de distancia
+C 0x8934 Y a la reaccion que toque
+C 0x8945 El contador de cuadros
+C 0x894a Uno de cada 32 se salta el reparto
+C 0x894d Poner la subescena
+C 0x8950 Y a ella
+C 0x895f La espera
+C 0x8962 Todavia no
+C 0x8963 Dos bits del cuadro
+C 0x8966 A cero: golpear
+C 0x8969 A uno: acercarse
+C 0x896c Y a dos, golpear tambien
+C 0x896e Cuatro pasos
+C 0x8973 Hay algo girando?
+C 0x8977 No: la orden 3
+C 0x8979 0x20 cuadros de espera
+C 0x897e El tipo de golpe
+C 0x8982 Uno mas
+C 0x8983 De 3 a 5
+C 0x898b Fuera de rango: 3 si hay algo girando...
+C 0x8993 ...y 2 si no
+C 0x8994 Ahi va
+C 0x8995 Y a arrancarlo
+C 0x8998 Orden 3
+C 0x899b Dos bits del registro
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x89a9 Orden 4 con golpe
+C 0x89ac Orden 5
+C 0x89af Orden 3 con golpe
+C 0x89b2 Dos bits del registro
+C 0x89be Orden 6
+C 0x89c1 Y a la orden 3
+C 0x89c3 Dos bits del registro
+C 0x89c6 A cero: la orden 3
+C 0x89c9 Y si no, la 3 con golpe
+C 0x89cb Dos bits del registro
+C 0x89d4 Y si no, la orden 4
+C 0x89d6 Hay algo girando?
+C 0x89da Si: nada que hacer
+C 0x89db Uno de cada dieciseis cuadros
+C 0x89e1 El golpe 2
+C 0x89e6 Arrancarlo
+C 0x89e9 El contador de cuadros
+C 0x89ec Su bit 6 decide
+C 0x89f0 Y si no, el camino de siempre
+C 0x8b32 0x28 de un lado...
+C 0x8b34 ...y cuatro del otro
+C 0x8b36 A la reaccion comun
+C 0x8b47 El contador de cuadros
+C 0x8b4c Uno de cada 64 se salta el reparto
+C 0x8b4f Poner la subescena
+C 0x8b52 Y a ella
+C 0x8b61 La espera
+C 0x8b64 Todavia no
+C 0x8b65 Dos bits del cuadro
+C 0x8b68 A cero: golpear
+C 0x8b6c A uno: la orden 4
+C 0x8b6f A dos: la 4 tambien
+C 0x8b71 Y si no, cuatro pasos
+C 0x8b76 Orden 4
+C 0x8b79 Dos bits del registro
+C 0x8b85 Orden 4
+C 0x8b87 Orden 5
+C 0x8b8a Orden 3 con golpe
+C 0x8b8d Dos bits del registro
+C 0x8b99 Orden 6
+C 0x8b9c Orden 4 con golpe
+C 0x8b9f Dos bits del registro
+C 0x8ba3 A uno: la orden 3 con golpe
+C 0x8ba5 Y si no, la 4
+C 0x8ba7 Dos bits del registro
+C 0x8bab A cero: la orden 4
+C 0x8bad Y si no, la 4 con golpe
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x8d2b 0x28 de un lado...
+C 0x8d2d ...y cuatro del otro
+C 0x8d2f A la reaccion comun
+C 0x8d40 El contador de cuadros
+C 0x8d45 Uno de cada 64 se salta el reparto
+C 0x8d48 Poner la subescena
+C 0x8d4b Y a ella
+C 0x8d5a La espera
+C 0x8d5d Todavia no
+C 0x8d5e Dos bits del cuadro
+C 0x8d61 A cero: golpear
+C 0x8d65 A uno: acercarse
+C 0x8d67 Y si no, la orden 4
+C 0x8d69 Cuatro pasos
+C 0x8d6e Orden 4
+C 0x8d71 Dos bits del registro
+C 0x8d7d Orden 5
+C 0x8d80 Orden 4
+C 0x8d82 Orden 4 con golpe
+C 0x8d85 Orden 3 con golpe
+C 0x8d88 Dos bits del registro
+C 0x8d8d A dos: la orden 5
+C 0x8d90 A tres: la 4 con golpe
+C 0x8d92 Y si no, la 6
+C 0x8d95 Dos bits del registro
+C 0x8da1 Orden 4
+C 0x8da3 Dos bits del registro
+C 0x8da8 A dos: la orden 4
+C 0x8daa Y si no, la 4 con golpe
+C 0x8ee7 Lo de siempre
+C 0x8ef8 Poner la subescena
+C 0x8efb Y a ella
+C 0x8f0a La espera
+C 0x8f0d Todavia no
+C 0x8f0e Dos bits del cuadro
+C 0x8f11 A cero: golpear
+C 0x8f14 A uno: la orden 4
+C 0x8f17 A dos: golpear tambien
+C 0x8f19 Orden 4
+C 0x8f1c Seis cuadros de espera
+C 0x8f21 El golpe 0
+C 0x8f25 Y a arrancarlo
+C 0x8f28 Dos bits del registro
+C 0x8f2b A cero: esperar
+C 0x8f2e Orden 3
+C 0x8f31 Dos bits del registro
+C 0x8f37 Y si no, la orden 6
+C 0x8f3a Dos bits del registro
+C 0x8f43 Y si no, la orden 3
+C 0x8f45 El golpe 0, arrancado
+C 0x8f49 Dos bits del registro
+C 0x8f4f Y si no, la orden 3
+C 0x8f51 La espera
+C 0x8f55 Todavia dura
+C 0x8f56 Ocho cuadros
+C 0x8f58 La barra del jugador...
+C 0x8f5d ...si va baja, solo cuatro
+C 0x8f62 Ahi va la espera
+C 0x8f64 El golpe 0
+C 0x8f67 Y a arrancarlo
+C 0x8f6a El contador de cuadros
+C 0x8f6d Su bit 6 decide
+C 0x8f71 Y si no, el camino de siempre
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x913f ---------------------------------------------------------------------
+B 0x913f Mover las seis ranuras de la oleada. Cada una son doce bytes y su
+B 0x913f primer byte es la escena, que reparte por la tabla de 0x9154.
+L 0x913f mueve_las_seis_ranuras
+C 0x9140 Mover esta
+C 0x9143 Doce bytes por ranura
+C 0x9149 Las seis
+C 0x914b La escena de esta
+C 0x914f Vacia
+C 0x9151 Y a la que sea
+C 0x9166 La subescena
+C 0x916a A uno: caer
+C 0x916e A dos: andar
+C 0x9171 Y si no, bajar por la curva
+C 0x9174 Todavia baja
+C 0x9175 Ya abajo: fotograma 0x14
+C 0x917b Fotograma 3
+C 0x9180 Cuatro cuadros
+C 0x9185 Y una escena mas
+C 0x9189 Un cuadro menos
+C 0x9190 Todavia dura
+C 0x9191 Se acabo: aparcar el sprite...
+C 0x9197 ...y vaciar la ranura
+C 0x919b Hacia que lado va
+C 0x919f Lo que corre
+C 0x91a3 La parte de abajo de la columna
+C 0x91a8 A la izquierda: restar...
+C 0x91ae ...con el acarreo a la parte de arriba
+C 0x91b1 La columna entera
+C 0x91df Bajar por la curva
+C 0x91e2 Uno de cada dos cuadros
+C 0x91e8 Por que paso va
+C 0x91eb Uno mas
+C 0x91ee La curva
+C 0x91f5 El 0xA0 la cierra
+C 0x91f9 Y su valor se suma a la fila
+C 0x9212 Andar
+C 0x9215 Uno de cada dos cuadros
+C 0x921b El fotograma
+C 0x921e Alterna entre 1...
+C 0x9225 ...y 2: las dos piernas
+C 0x922b La ultima banda de la pantalla...
+C 0x922e ...0xA0 casillas...
+C 0x9231 ...a cero
+C 0x9234 Las seis ranuras
+C 0x923b Pintar esta
+C 0x923e Doce bytes por ranura
+C 0x9246 Esta ocupada?
+C 0x924d El fotograma...
+C 0x924e ...por dos
+C 0x9251 Y el lado suma uno
+C 0x9258 La tabla de figuras
+C 0x9261 La fila, que es lo que C lleva a 0xE170...
+C 0x9262 ...mas el ajuste de la figura...
+C 0x9264 ...y la columna, que B lleva a 0xE171
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x4067 Dos bytes por entrada
+C 0x4068 Avanzar hasta la que toca
+C 0x406b Leerla
+C 0x406f Y saltar ahi: el unico salto indirecto del cartucho
+C 0x4830 Dos bytes por entrada
+C 0x4831 Avanzar hasta la que toca
+C 0x4834 Y devolverla en DE
+C 0x4838 La marca de escena
+C 0x483b Con un jugador no hay segundo contador
+C 0x483e El contador del jugador 2...
+C 0x4841 ...con sus vidas
+C 0x4847 Y el del 1
+C 0x484d Las vidas
+C 0x484e Las dos casillas
+C 0x4851 Le queda mas de una?
+C 0x4855 Si: la otra casilla
+C 0x4856 La que salga
+C 0x4857 Y a la VRAM
+C 0x4683 La marca de escena
+C 0x4686 Con un jugador no hay nada que copiar
+C 0x4689 Los dieciseis bytes del jugador 1...
+C 0x468c ...al jugador 2
+C 0x481c El jugador esta a lo suyo?
+C 0x4822 Los 0x1C atributos...
+C 0x4828 ...con 0xE0 en la y: aparcados
+C 0x488d Guardar la cuenta
+C 0x4890 Volcar
+C 0x4893 Y subir un tercio
+C 0x489a Los tres
+C 0x4997 La fila 7 del teclado
+C 0x499c Los bits vienen al reves
+C 0x499e Quedarse con el que interesa
+C 0x49a1 Y ahora la fila 8
+C 0x49bc E = 0xCF: el mando 2
+C 0x49be Leerlo
+C 0x49c2 Y las teclas del segundo
+C 0x49c6 Todo junto en (0xE052)
+C 0x49cb La fila 6
+C 0xbaca 0xE0..0xEF: el destello
+C 0xbace Su nibble bajo
+C 0xbad0 El bit 3 lo enciende
+C 0xbad4 Y el bit 0...
+C 0xbad8 ...dice si es de subida...
+C 0xbadd ...o de bajada
+C 0xbaf6 La duracion de la nota
+C 0xbafa Avanzar el guion
+C 0xbafd El nibble alto...
+C 0xbaff ...bajado a las unidades: el volumen
+C 0xbb04 Hay destello en marcha?
+C 0xbb34 La tabla de doce periodos
+C 0xbb37 La nota que toca
+C 0xbb3a Su periodo
+C 0xbb3d La octava
+C 0xbb41 La cero es la de la tabla
+C 0xbb44 Cada octava mas es doblar el periodo
+C 0xbb5a Por donde va el guion del destello
+C 0xbb61 El 0xFF lo cierra
+C 0xbb65 Y si no, seguir
+C 0xbb68 Un paso mas
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x4a8d Limpiar la fuente
+C 0x4a90 Los patrones de la fuente...
+C 0x4a93 ...a 0x2080, y L_48B2 los repite en los tres tercios
+C 0x4a99 Color 0xF0
+C 0x4a9b Desde 0x0080...
+C 0x4a9e ...0x160 bytes
+C 0x4aa4 El primer patron
+C 0x4aa7 0x80 bytes
+C 0x4aab A cero
+C 0x4aae La casilla 0
+C 0x4ab1 Ocho bytes por casilla
+C 0x4ab4 Dieciseis casillas
+C 0x4ab7 Ocho bytes
+C 0x4abb Cada una de un color
+C 0x4abf La casilla siguiente
+C 0x4ac0 Y el color siguiente
+C 0x4c0c Los patrones del cartel...
+C 0x4c0f ...a 0x2200, repetidos en los tres tercios
+C 0x4c15 Y su color, desde 0x0200
+C 0x4c20 Por donde va el rotulo
+C 0x4c23 Menos 0x20: baja una fila
+C 0x4c2a La casilla del rotulo
+C 0x4c2c Tres seguidas
+C 0x4c31 Y luego doce
+C 0x4d06 Montar el titulo
+C 0x4d09 Fila 4, columna 7: C va a 0xE170 -la fila- y B a 0xE171 -la columna-, y 0x66FB baja una menos, asi que aterriza en la fila 3
+C 0x4d10 La figura del logotipo
+C 0x4d16 Y los dos rotulos de debajo
+C 0x4d29 La casilla del cursor de un jugador...
+C 0x4d2c ...y la de dos
+C 0x4d2f Cual esta elegido
+C 0x4d35 Cambiarlas si toca
+C 0x5371 Reparto por subescena
+C 0x5373 La espera
+C 0x5378 El fotograma 0x10 y su duracion
+C 0x537f Reparto
+C 0x5386 El jugador deja de estar vivo
+C 0x538b Aparcar los sprites
+C 0x538e El pitido
+C 0x5393 Y el fotograma 0x30
+C 0x535e Reparto
+C 0x5360 La espera
+C 0x5365 La musica de caerse
+C 0x536a El fotograma 0x70
+C 0x55f6 La caja del jugador
+C 0x55f9 0x0F de ancho
+C 0x55fb De quien es
+C 0x55fe La del enemigo, 0x0D
+C 0x5603 De quien fue el tanteo
+C 0x5606 Los atributos del numerito
+C 0x5609 Su columna...
+C 0x560a ...seis a la izquierda
+C 0x560f Y su fila, igual
+C 0x5757 Con dos jugadores...
+C 0x575e ...mover tambien al enemigo
+C 0x5760 Sin pasar de 0xDD...
+C 0x5764 ...ni bajar de 0x23
+C 0x5769 La fila del enemigo
+C 0x576d Mas lo que se pidio
+C 0x576e Sin pasar de 0x1C...
+C 0x5771 ...ni bajar de 5
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+B 0x67a7 ---------------------------------------------------------------------
+B 0x67a7 EL LECTOR DE FIGURAS DE LOS ENEMIGOS. B trae alto*ancho y el bucle
+B 0x67a7 corta en cuanto lo agota, aunque sea a media orden. Su hermano de
+B 0x67f5 es igual salvo en el 0xE0..0xEF: alli repite el byte de detras
+B 0x67a7 y ocupa dos, y aqui escribe CEROS y ocupa uno.
+L 0x67a7 lee_figura_a_ceros
+C 0x67a7 La orden
+C 0x67a8 0xF0..0xFF: secuencia ascendente
+C 0x67ac Cuantas
+C 0x67b0 Y desde que casilla
+C 0x67b1 Escribirla
+C 0x67b3 La siguiente es una mas
+C 0x67b4 Una casilla menos del total
+C 0x67b5 Se acabo la figura
+C 0x67b6 Y una menos de la orden
+C 0x67b9 Saltarse el byte del valor
+C 0x67bc 0xE0..0xEF: ceros
+C 0x67c3 Un cero
+C 0x67c6 Una casilla menos
+C 0x67c7 Se acabo
+C 0x67c8 Y una menos de la orden
+C 0x67cb Esta orden NO gasta byte de valor
+C 0x67ce Y si no, una casilla suelta
+C 0x67d2 Hasta agotar el total
+C 0x67d5 Al final de la fila
+C 0x67d7 Retroceder hasta ahi
+C 0x67dc La casilla de origen
+C 0x67dd Las casillas por debajo de 0x10 no se espejan
+C 0x67e1 Y de 0x88 en adelante...
+C 0x67e5 ...llevan 0x10 mas
+C 0x67e7 El espejo de una casilla esta 0x78 mas alla
+C 0x67e9 Escribirla
+C 0x67eb Leyendo del reves
+C 0x67ec Toda la fila
+C 0x67f1 Y a la fila siguiente
+C 0x67f2 Todas
+L 0x67fa lee_figura_repitiendo
+C 0x67fa La orden
+C 0x67fb 0xF0..0xFF: secuencia ascendente
+C 0x67ff Cuantas
+C 0x6803 Y desde que casilla
+C 0x6804 Escribirla
+C 0x6806 La siguiente es una mas
+C 0x6807 Una casilla menos del total
+C 0x6808 Se acabo
+C 0x680c Saltarse el byte del valor
+C 0x680f 0xE0..0xEF: repetir
+C 0x6813 Cuantas veces
+C 0x6817 Y que byte: AQUI SI hay valor
+C 0x6818 Escribirlo
+C 0x681a Una menos
+C 0x681b Se acabo
+C 0x681f Saltarse el valor
+C 0x6822 Y si no, una casilla suelta
+C 0x6826 Hasta agotar el total
+C 0x66ac Con dos jugadores no
+C 0x66b3 Le queda barra al otro?
+C 0x66b9 Y de quien es el tanteo?
+C 0x66bf Nada que hacer
+C 0x66c2 Los atributos del destello
+C 0x66c5 La columna del jugador...
+C 0x66c8 ...dieciseis a la izquierda
+C 0x66cd Casilla 0xCC
+C 0x66d1 Y color 0x0F
+C 0x6ea2 El tramo que salio
+C 0x6ea6 De que lado viene
+C 0x6eaa El fotograma de la tira
+C 0x6ead El del otro lado es el de al lado
+C 0x6eae Ahi va
+C 0x6f7b La casilla
+C 0x6f7e Y el ancho
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x402e Leer el estado del VDP: eso limpia la peticion de interrupcion
+C 0x4032 Un cuadro de sonido
+C 0x4038 Ya se esta dentro?
+C 0x403c Marcar que se entra
+C 0x403e Leer los mandos
+C 0x4041 Y hacer el cuadro
+C 0x465b Desde 0xE04B...
+C 0x465e ...0x335 bytes...
+C 0x4664 ...a cero
+C 0x4668 Los valores de partida...
+C 0x466b ...a 0xE055
+C 0x4ce9 El borde, negro
+C 0x4cee Limpiar la pantalla
+C 0x4cf1 Y subir la fuente
+C 0x4cf4 Los patrones del logotipo...
+C 0x4cf7 ...a 0x2400, y L_48AE los repite en 0x2C00
+C 0x4cfd Y su color, a 0x0400 y 0x0C00
+C 0x6e84 Cual de los tres golpes
+C 0x6e87 Su tira de fotogramas
+C 0x6e8c Por que cuadro va
+C 0x6e8f Uno menos
+C 0x6e91 Los tres umbrales
+C 0x6e94 Comparar con el primero
+C 0x7071 Tres columnas a la izquierda
+C 0x7075 En el escenario 5...
+C 0x7077 ...dos mas
+C 0x7204 Un cuadro menos
+C 0x7206 De que lado viene
+C 0x720a Sin ajuste...
+C 0x720e ...o dos
+C 0x7211 Por debajo de 8 se acabo
+C 0x7216 El fotograma 7 va aparte
+C 0x721a La columna
+C 0x721f Segun el lado...
+C 0x7223 ...se ajusta de una manera o de otra
+C 0x723d La columna...
+C 0x7241 ...por ocho, que es lo que mide una casilla
+C 0x7245 De que lado viene
+C 0x724e Ahi va la columna
+C 0x7251 Hay ajuste?
+C 0x7257 La fila, por ocho
+C 0x725d Ahi va la fila
+C 0x7260 La posicion entera
+C 0x7269 La tabla de figuras
+C 0x726d La que toque
+C 0x7270 Y a pintarla
+C 0x728b El fotograma
+C 0x7290 De 4 en adelante, nada
+C 0x7291 La espera
+C 0x7294 Y el paso
+C 0x7298 Todavia espera
+C 0x729b Un paso mas
+C 0x72a4 Una menos
+C 0x72a7 Todavia dura
+C 0x72a8 Se acabo
+C 0x72aa B = 0
+C 0x72ac El fotograma
+C 0x72b1 Los fotogramas 0 y 1 no llevan ajuste
+C 0x72b7 Y su bit 0 lo elige
+C 0x72c8 Mover el agarre
+C 0x72cb Hay golpe en marcha?
+C 0x72d0 El fotograma
+C 0x72d3 De 0x12 en adelante, nada
+C 0x72d6 Limpiar la ultima fila
+C 0x779d Guardar el rebote
+C 0x77a0 Un cuadro menos
+C 0x77a6 Todavia dura
+C 0x77a7 Cinco cuadros
+C 0x77ac Y un estado mas
+C 0x7a3f Casilla 0xF0
+C 0x7a54 La casilla...
+C 0x7a59 ...y el color
+C 0x7a5a El estado
+C 0x7a5e Y a el
+C 0x7bdc Sumar a la otra componente
+C 0x7be1 Se desbordo?
+C 0x7be5 Se deja como estaba
+C 0x7f79 Poner la subescena
+C 0x7f93 La coordenada...
+C 0x7f96 ...por ocho
+C 0x7f9a Todas
+C 0x7fa7 Medir la distancia
+C 0x7fab Y copiar el lado
+C 0x7faf La cuenta del agarre
+C 0x7fb4 A cero: lo de siempre
+C 0x7fb6 Una menos
+C 0x80de Dos bits del registro
+C 0x80e2 A uno: la orden 6
+C 0x80e5 A dos: la 4
+C 0x80e8 A tres: la 5
+
+
+# ======================================================================
+# COMENTARIOS DE LINEA
+# ======================================================================
+C 0x716a La fila
+C 0x716c Entre 0x11 y 0x20 esta tapando algo
+C 0x7174 Lo que hay debajo es la casilla de tapar?
+C 0x7179 Entonces devolver la que se habia guardado

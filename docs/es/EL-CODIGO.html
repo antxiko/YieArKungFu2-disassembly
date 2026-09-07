@@ -1,0 +1,124 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>El codigo — Yie Ar Kung-Fu II (Konami, 1985)</title>
+<style>
+:root{--tinta:#cfd0d4;--suave:#83868f;--fondo:#000;--panel:#0c0e13;--linea:#23262e;
+  --rojo:#ff897d;--cyan:#65dbef;--verde:#3eb849;--oro:#ded087}
+@media (prefers-color-scheme:light){:root{--tinta:#191a1e;--suave:#5a5d66;--fondo:#e9e7e1;
+  --panel:#f7f6f2;--linea:#d0cdc5;--rojo:#b23f34;--cyan:#1c6b7c;--verde:#2b7734;--oro:#8a7420}}
+:root[data-theme="dark"]{--tinta:#cfd0d4;--suave:#83868f;--fondo:#000;--panel:#0c0e13;
+  --linea:#23262e;--rojo:#ff897d;--cyan:#65dbef;--verde:#3eb849;--oro:#ded087}
+:root[data-theme="light"]{--tinta:#191a1e;--suave:#5a5d66;--fondo:#e9e7e1;--panel:#f7f6f2;
+  --linea:#d0cdc5;--rojo:#b23f34;--cyan:#1c6b7c;--verde:#2b7734;--oro:#8a7420}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fondo);color:var(--tinta);padding:0 1.25rem 6rem;
+  font:15px/1.7 ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+.w{max-width:1120px;margin:0 auto}
+.n{max-width:68ch}
+h1,h2,h3,h4{font-weight:400;text-wrap:balance}
+a{color:var(--cyan)}
+img{image-rendering:pixelated;max-width:100%;height:auto;display:block}
+header.top{display:flex;flex-direction:column;align-items:center;gap:1.5rem;
+  padding:4rem 0 2rem;text-align:center}
+header.top img{width:min(100%,642px)}
+.claim{max-width:60ch;color:var(--suave);font-size:1.05rem}
+.claim b{color:var(--tinta);font-weight:400}
+.ficha{display:flex;flex-wrap:wrap;justify-content:center;gap:0 1.5rem;width:100%;
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--suave);
+  border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);padding:.85rem 0}
+.ficha b{color:var(--rojo);font-weight:400}
+nav{display:flex;flex-wrap:wrap;gap:1.25rem;justify-content:center;padding:1.25rem 0;
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+nav a{color:var(--suave);text-decoration:none;border-bottom:1px solid transparent}
+nav a:hover,nav a:focus{color:var(--tinta);border-bottom-color:var(--rojo)}
+nav.docs{border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);
+  margin-bottom:1rem}
+section{margin-top:4.5rem;scroll-margin-top:1rem}
+section>h2{font-size:1rem;letter-spacing:.1em;text-transform:uppercase;
+  border-left:3px solid var(--rojo);padding-left:.9rem;margin:0 0 1.5rem}
+.cifras{display:grid;gap:1px;background:var(--linea);border:1px solid var(--linea);
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.cifra{background:var(--panel);padding:1.1rem}
+.cifra b{display:block;font-size:1.7rem;color:var(--oro);font-weight:400;
+  font-variant-numeric:tabular-nums;line-height:1.2}
+.cifra span{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--suave)}
+.hall{border-top:1px solid var(--linea);padding-top:1.75rem;margin-top:2.5rem}
+.hall:first-of-type{border-top:0;padding-top:0;margin-top:0}
+.hall h3{margin:0 0 .75rem;font-size:1.15rem;color:var(--rojo)}
+.hall h4{color:var(--oro);margin:1.5rem 0 .5rem;font-size:.95rem}
+.hall p{margin:0 0 1rem}
+pre.asm{background:var(--panel);border-left:2px solid var(--verde);margin:1.25rem 0;
+  padding:1rem 1.1rem;overflow-x:auto;font-size:13px;line-height:1.6;color:var(--tinta)}
+.par{display:grid;gap:1.25rem;grid-template-columns:1fr}
+@media(min-width:820px){.par{grid-template-columns:1fr 1fr}}
+.par figure{margin:0}
+table{border-collapse:collapse;width:100%;margin:1.25rem 0;font-size:13px;display:block;
+  overflow-x:auto}
+th,td{text-align:left;padding:.5rem .75rem;border-bottom:1px solid var(--linea)}
+th{color:var(--suave);font-weight:400;font-size:11px;letter-spacing:.07em;text-transform:uppercase}
+td.num{font-variant-numeric:tabular-nums;color:var(--oro)}
+.nivel{margin-top:2rem}
+.nivel h3{margin:0 0 .9rem;font-size:.95rem;letter-spacing:.06em;text-transform:uppercase}
+.nivel em{color:var(--cyan);font-style:normal}
+.sep{color:var(--suave);margin:0 .6rem}
+.rejilla{display:grid;gap:.9rem;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.rejilla figure{margin:0;background:var(--panel);box-shadow:0 0 0 1px var(--linea)}
+.rejilla figcaption{display:flex;justify-content:space-between;padding:.45rem .65rem;
+  font-size:11px;color:var(--suave);border-top:1px solid var(--linea)}
+.dir{font-variant-numeric:tabular-nums;color:var(--verde)}
+footer{margin-top:5rem;padding-top:1.5rem;border-top:1px solid var(--linea);
+  color:var(--suave);font-size:12px}
+
+/* Aviso de trabajo en curso: tiene que verse antes que las cifras, porque un
+   100% mal leido hace mas dano que no ponerlo. */
+.aviso{background:#3a2a10;border-left:3px solid var(--oro);margin:1.5rem auto;
+  padding:1rem 1.2rem;max-width:900px;border-radius:4px}
+.aviso p{margin:0;color:var(--tinta);font-size:15px;line-height:1.65}
+.galeria{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:1.5rem;margin:1.5rem 0}
+.galeria figure{margin:0}
+.galeria img{width:100%;height:auto;image-rendering:pixelated;
+  border:1px solid var(--linea);border-radius:3px}
+.galeria figcaption{color:var(--suave);font-size:13px;margin-top:.5rem}
+audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
+</style>
+<div class="w"><nav class="top"><a href="index.html">Portada</a><a href="EMPEZAR.html">Empezar</a><a href="EL-JUEGO.html">El juego</a><a href="EL-CARTUCHO.html">El cartucho</a><a href="EL-CODIGO.html" style=color:var(--tinta)>El código</a><a href="HALLAZGOS.html">Hallazgos</a><a href="EN-EL-EMULADOR.html">En el emulador</a><a href="PREGUNTAS-ABIERTAS.html">Preguntas abiertas</a><a href="../THE-CODE.html" style="margin-left:auto;color:var(--oro)">English</a></nav>
+<h1 id="el-codigo">El codigo</h1>
+<pre><code>13.725 bytes de codigo   41,89 %
+19.043 bytes de datos    58,11 %
+     0 sin explicar       0,00 %
+ 1.027 rutinas con nombre, ninguna por debajo del 10 % comentada
+ 7.142 instrucciones, 2.919 comentarios de linea — 40,9 %</code></pre>
+<h2 id="todo-cuelga-de-la-interrupcion">Todo cuelga de la interrupcion</h2>
+<p>INIT acaba en un <code>jr $</code> en <code>0x40C1</code>. De ahi en adelante no pasa nada en el flujo principal: <code>0x409B</code> ha escrito un <code>jp cada_cuadro</code> en el gancho de <code>0xFD9A</code>, y <code>cada_cuadro</code> (<code>0x402E</code>) es el juego entero.</p>
+<p>Lee el estado del VDP para limpiar la peticion de interrupcion, hace un cuadro de sonido y se protege con <code>(0xE005)</code> para que un cuadro que tarde de mas no se reentre. Luego lee los mandos y llama a <code>haz_el_cuadro</code>.</p>
+<h2 id="una-escena-una-subescena-y-un-solo-salto-indirecto">Una escena, una subescena y un solo salto indirecto</h2>
+<p><code>haz_el_cuadro</code> (<code>0x40CB</code>) cuenta el cuadro y reparte por <code>(0xE000)</code>, la escena, con la tabla de ocho entradas de <code>0x40E9</code>. Dentro de cada escena se repite el truco con <code>(0xE001)</code>, la subescena, y siempre por la misma rutina:</p>
+<pre><code>reparte_por_tabla:
+    pop hl        ; la tabla ES la direccion de retorno
+    add a,a
+    ...
+    jp (hl)</code></pre>
+<p><code>reparte_por_tabla</code> (<code>0x4066</code>) saca su propia direccion de retorno para encontrar la tabla, y por eso en el listado cada tabla de reparto esta <b>inmediatamente detras del <code>call</code></b>. Y ese <code>jp (hl)</code> de <code>0x406F</code> es el <b>unico salto indirecto del cartucho</b>: todo lo demas se decide estaticamente.</p>
+<p>Hay una vuelta de tuerca mas. Antes de repartir, <code>0x40D4</code> <b>empuja un remate</b> -<code>0x47AF</code> si el bit 6 de <code>(0xE002)</code> esta puesto y <code>0x4358</code> si no-, de modo que la escena vuelve por ahi sin saberlo. La escena 3 es la excepcion: el <code>cp 003h</code> de <code>0x40E1</code> se salta el empujon.</p>
+<h2 id="las-ocho-escenas">Las ocho escenas</h2>
+<table><tr><th><code>(0xE000)</code></th><th>en</th><th>que es</th></tr><tr><td>0</td><td><code>0x40F9</code></td><td>la presentacion, con el cartel bajando</td></tr><tr><td>1</td><td><code>0x4131</code></td><td>el titulo y el PLAY SELECT</td></tr><tr><td>2</td><td><code>0x413E</code></td><td>el juego, y la demostracion</td></tr><tr><td>3</td><td><code>0x416B</code></td><td>la espera antes de jugar</td></tr><tr><td>4</td><td><code>0x41C5</code></td><td>el arranque de una ronda</td></tr><tr><td>5</td><td><code>0x4240</code></td><td>entre rondas</td></tr><tr><td>6</td><td><code>0x425E</code></td><td>los finales</td></tr><tr><td>7</td><td><code>0x433A</code></td><td>el game over</td></tr></table>
+<h2 id="los-cuatro-formatos-de-datos">Los cuatro formatos de datos</h2>
+<p>Aqui no hay nada guardado en plano. Todo es un guion, y los cuatro lectores estan traducidos en <code>tools/formatos.py</code>:</p>
+<p><b>Guion literal</b> — <code>guion_literal</code> (<code>0x48C8</code>). Una palabra de destino de VRAM y detras las casillas, una a una; <code>0xFE</code> cierra el tramo y abre otro con su destino, <code>0xFF</code> cierra el guion. La misma rutina tambien <b>borra</b>: el <code>and c</code> de <code>0x48D6</code> con <code>C = 0</code> convierte en ceros todo lo que se escriba, y eso es <code>borra_guion</code>.</p>
+<p><b>Guion RLE</b> — <code>guion_rle</code> (<code>0x48E1</code>). <code>0x01..0x7F</code> repite N veces el byte que sigue, <code>0x81..0xFF</code> copia los N bytes que siguen, <code>0x80</code> cierra el tramo y abre otro con otro destino, <code>0x00</code> cierra el guion. <code>L_48E7</code> es lo mismo con el destino ya en HL.</p>
+<p>Cuidado con el <code>0x80</code>. Leerlo como &quot;no hace nada&quot; da un guion que tambien parece encajar -<code>0x49F5</code> salia de 53 bytes y llegaba limpiamente a <code>0x4A2A</code>, saltandose de paso el guion de <code>0x4A06</code> que hay en medio- y ademas escupia texto legible. Lo que lo delata es que la cadena entera de guiones consecutivos solo cierra sin huecos ni solapes con la lectura buena.</p>
+<p><b>Figura</b> — hay dos, y no son la misma. Las dos leen alto y ancho delante y las dos tratan <code>0xF0..0xFF</code> como una secuencia ascendente, pero la orden <code>0xE0..0xEF</code> cambia <b>de las dos maneras a la vez</b>: <code>0x67F5</code> repite el byte que viene detras y ocupa dos, y <code>0x67A7</code> escribe <b>ceros</b> y ocupa uno. El primero dibuja las figuras de las oleadas y el segundo las de los rivales.</p>
+<h2 id="montar-una-pantalla">Montar una pantalla</h2>
+<p><code>monta_la_pantalla_de_combate</code> (<code>0x597F</code>) es el trozo de codigo mas claro del cartucho. Primero lo que no cambia -el marco y los iconos- y luego las tres bandas y el suelo, cada uno con su pareja de tablas entre las seis que van seguidas de <code>0x592F</code> a <code>0x597E</code>.</p>
+<p>El color sube <b>dos veces</b> y el patron <b>una</b>, y la razon es el espejo: <code>espeja_el_decorado</code> (<code>0x5A4D</code>) copia tres tramos de la tabla de patrones sobre si mismos pasandolos por <code>vuelve_los_bits</code>, y la mitad derecha del decorado son los mismos dibujos del reves. Las cuentas cuadran: <code>0x0560-0x0260 = 0x300</code> y las otras dos <code>0x3C0</code>, que es exactamente la distancia de cada copia.</p>
+<p>La tabla de nombres se llena aparte: la fila 3 por <code>L_5B42</code>, de la fila 5 para abajo por <code>L_5B4E</code>, y las dos filas de abajo solo en los decorados 0 y 3.</p>
+<h2 id="las-figuras-en-pantalla">Las figuras en pantalla</h2>
+<p><code>pinta_la_figura</code> (<code>0x66D8</code>) descomprime una figura en <code>0xE480</code> y la sube a la tabla de nombres fila a fila, recortando lo que se salga por cada lado -el <code>add a,c</code> de <code>0x670C</code> cuando la columna es negativa y el <code>sub 020h</code> de <code>0x671C</code> cuando se pasa de la 32-.</p>
+<p>Dos detalles faciles de leer al reves, y los dos medidos contra el emulador:</p>
+<ul><li>la posicion llega en <code>(0xE170)</code> <b>fila</b> y <code>(0xE171)</code> <b>columna</b>, en ese orden, porque el <code>ld (nn),bc</code> deja C delante;</li><li>el bucle de <code>0x66FD</code> baja <b><code>fila - 1</code></b> veces, asi que una figura pedida en la fila 4 empieza en la 3. La fila 0 es la excepcion: el <code>jr z</code> de <code>0x66F9</code> se salta el bucle.</li></ul>
+<h2 id="el-sonido">El sonido</h2>
+<p><code>suena_el_cuadro</code> hace un cuadro de musica por interrupcion, y <code>pide_pieza</code> elige la pieza. El mezclador del PSG pasa por <code>escribe_el_mezclador</code>, y <code>suena_con_pantalla_apagada</code> (<code>0x40C3</code>) apaga el bit 6 de la copia del registro del VDP que hay en <code>0x4964</code> para que suene un pitido con la pantalla apagada.</p>
+<h2 id="codigo-que-no-llama-nadie">Codigo que no llama nadie</h2>
+<p>Cinco rutinas -<code>0x47B0</code>, <code>0x4875</code>, <code>0x488A</code>, <code>0x544F</code> y <code>0x6EB5</code>- no las nombra ni un <code>call</code>, ni un <code>jp</code>, ni ninguna tabla. Estan declaradas en <code>src/yiear2.entries</code> con su justificacion escrita, para que el trazador las trate como codigo y no acaben siendo un muro de bytes en mitad del listado.</p>
+<footer><p><em>Yie Ar Kung-Fu II: The Emperor Yie-Gah</em> lo publico Konami para MSX en 1985; su numero de catalogo es RC-737 y son 32 KB. Es la segunda parte de <em>Yie Ar Kung-Fu</em> (RC-725, 1985). Todos los derechos sobre el juego siguen siendo de sus titulares. Este trabajo es de preservacion, estudio y documentacion, y la imagen del cartucho no se distribuye.</p></footer></div>

@@ -1,0 +1,98 @@
+# Puntos de entrada de Yie Ar Kung-Fu II (Konami RC-737, 32 KB).
+#
+# Cada entrada lleva por que esta aqui. Lo que el trazador deduce solo no se
+# apunta; esto es para lo que NO se puede deducir estaticamente.
+
+# La cabecera del cartucho: "AB" y el vector INIT en 0x4002.
+0x4070   ; INIT, el arranque que declara la cabecera del cartucho
+
+# El juego entero corre desde la INTERRUPCION: INIT instala el gancho en H.KEYI
+# (0xFD9A = JP, 0xFD9B = destino) con `ld hl,0x402e` en 0x409B y luego se queda
+# en `jr $` en 0x40C1. Sin esta entrada el trazado muere en el arranque.
+0x402e   ; gancho de interrupcion H.KEYI, instalado por INIT en 0x409B
+
+# ------------------------------------------------- los dos remates del cuadro
+# `haz_el_cuadro` (0x40CB) carga en HL 0x47AF o 0x4358 -segun el bit 6 de
+# (0xE002)- y lo EMPUJA a la pila antes de despachar la escena. No es un
+# puntero a datos: es la direccion de retorno, asi que el `ret` de la escena
+# remata por ahi. Es el mismo truco que Goonies hace en 0x40EA.
+#
+# Comprobado desensamblandolos: 0x4358 lee los mandos con 0x4985/0x4997 y mira
+# la pausa, y 0x47AF es un `ret` pelado -el remate que no hace nada-.
+0x4358   ; remate del cuadro con el bit 6 de (0xE002) a cero, empujado en 0x40D9
+0x47af   ; remate del cuadro con el bit 6 a uno, empujado en 0x40D4
+
+# --------------------------------------------------------- tablas de despacho
+# El armazon despacha con `call 4066h`: alli un `pop hl` recoge la direccion de
+# retorno -que ES la tabla-, la indexa con A*2 y hace `jp (hl)`. Detras de cada
+# una de las 22 llamadas hay, por tanto, una tabla de palabras. El tamano lo
+# deduce tools/tablas_despacho.py con la regla de Goonies: la entrada mas baja
+# cierra la tabla, porque el codigo apuntado viene justo detras.
+#
+# Tres no salian con la regla cruda, porque saltan HACIA ATRAS a codigo
+# compartido muy anterior. Revisadas a mano y cerradas (ver el .notes):
+#   0x7E90 -> 8: la regla ya acertaba; lo que despista es que el codigo de
+#             0x7EA0, justo detras de la tabla, se alcanza por otra via.
+#   0x8041 -> 6, no 7: la septima palabra, 0x5421, no es una entrada sino los
+#             bytes 21 54 de un `ld hl,0xE154`.
+#   0x8937 -> 7, no 1: su primera entrada es 0x8000, hacia atras, pero legitima
+#             porque 0x4D4B hace `call nz,0x8000`.
+# La herramienta ya distingue los dos casos: un destino hacia atras solo cuenta
+# si esa direccion aparece ademas detras de un call/jp en el cartucho.
+!tabla 0x40e9   8   # tras el `call 4066h` de 0x40E6; sigue en 0x40F9
+!tabla 0x509d   3   # tras el `call 4066h` de 0x509A; sigue en 0x50A3
+!tabla 0x5212   4   # tras el `call 4066h` de 0x520F; sigue en 0x521A
+!tabla 0x5834   5   # tras el `call 4066h` de 0x5831; sigue en 0x583E
+!tabla 0x646c   6   # tras el `call 4066h` de 0x6469; sigue en 0x6478
+!tabla 0x64dd   5   # tras el `call 4066h` de 0x64DA; sigue en 0x64E7
+!tabla 0x6990  32   # tras el `call 4066h` de 0x698D; sigue en 0x69D0
+!tabla 0x73f1   6   # tras el `call 4066h` de 0x73EE; sigue en 0x73FD
+!tabla 0x7909   2   # tras el `call 4066h` de 0x7906; sigue en 0x790D
+!tabla 0x7a61   7   # tras el `call 4066h` de 0x7A5E; sigue en 0x7A6F
+!tabla 0x7da2  32   # tras el `call 4066h` de 0x7D9F; sigue en 0x7DE2
+!tabla 0x7e90   8   # tras el `call 4066h` de 0x7E8D; sigue en 0x7FA3
+!tabla 0x8041   6   # tras el `call 4066h` de 0x803E; sigue en 0x805D
+!tabla 0x8320   6   # tras el `call 4066h` de 0x831D; sigue en 0x832C
+!tabla 0x8500   6   # tras el `call 4066h` de 0x84FD; sigue en 0x850C
+!tabla 0x8712   6   # tras el `call 4066h` de 0x870F; sigue en 0x871E
+!tabla 0x8937   7   # tras el `call 4066h` de 0x8934; sigue en 0x8000
+!tabla 0x8953   6   # tras el `call 4066h` de 0x8950; sigue en 0x895F
+!tabla 0x8b55   6   # tras el `call 4066h` de 0x8B52; sigue en 0x8B61
+!tabla 0x8d4e   6   # tras el `call 4066h` de 0x8D4B; sigue en 0x8D5A
+!tabla 0x8efe   6   # tras el `call 4066h` de 0x8EFB; sigue en 0x8F0A
+!tabla 0x9154   3   # tras el `call 4066h` de 0x9151; sigue en 0x915A
+
+# ------------------------- las ocho tablas de estados, una por escenario
+# 0x7FC7 despacha en DOS niveles: `call 0x7EA0` da el escenario de la ronda,
+# 0x7FDB lo convierte en una tabla, y `jp reparte_por_tabla_en_hl` entra en
+# ella con el estado en B. Ninguna de las ocho va detras de un `call 4066h`,
+# asi que la regla de tools/tablas_despacho.py no las ve.
+#
+# Las ocho son de SIETE entradas y cierran igual: la entrada 0 es 0x8000 -el
+# estado comun, hacia atras, legitimo porque 0x4D4B hace `call nz,0x8000`- y
+# el resto de sus destinos empiezan justo en tabla+14, o sea pegados a ella.
+!tabla 0x7feb   7   # escenario 0, desde 0x7FDB[0]; sigue en 0x7FF9
+!tabla 0x8304   7   # escenario 1, desde 0x7FDB[1]; sigue en 0x8312
+!tabla 0x86f6   7   # escenario 2, desde 0x7FDB[2]; sigue en 0x8704
+!tabla 0x8b39   7   # escenario 4, desde 0x7FDB[4]; sigue en 0x8B47
+!tabla 0x8d32   7   # escenario 5, desde 0x7FDB[5]; sigue en 0x8D40
+!tabla 0x84e4   7   # escenario 6, desde 0x7FDB[6]; sigue en 0x84F2
+!tabla 0x8eea   7   # escenario 7, desde 0x7FDB[7]; sigue en 0x8EF8
+
+# ------------------------------------------------------ codigo que no llama nadie
+# Cuatro trozos que son codigo -se desensamblan enteros y los tres primeros
+# acaban en `ret`- pero a los que NO LLEGA NADIE: ni un call, ni un jp, ni una
+# tabla de punteros del cartucho los nombra. Buscada la palabra de cada uno en
+# los 32 KB, la unica aparicion (0x568A para 0x47B0) resulto ser el `or b` /
+# `ld b,a` de una instruccion, no un puntero.
+#
+# Tampoco vienen de The Goonies: sus bytes no estan en aquella ROM. Son codigo
+# muerto de este cartucho.
+#
+# Se declaran como entradas para que salgan como lo que son -codigo- en vez de
+# como una tira de defb.
+0x47b0   ; intercambia B bytes entre (HL) y (DE); nadie lo llama
+0x4875   ; SETRD y luego deja en C el puerto de datos del VDP (0x0006); nadie lo llama
+0x488a   ; vuelca a los TRES tercios de VRAM con LDIRVM, subiendo 0x800 cada vez; es el hermano de 0x48AE, y nadie lo llama
+0x544f   ; `ld b,001h` que cae en 0x5451, la gemela del 0x544B que pone B a cero; nadie salta aqui
+0x6eb5   ; ld b,000h + jr L_6EC4, la gemela del 0x6EBE de al lado; nadie salta aqui

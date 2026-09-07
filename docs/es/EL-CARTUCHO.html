@@ -1,0 +1,118 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>El cartucho — Yie Ar Kung-Fu II (Konami, 1985)</title>
+<style>
+:root{--tinta:#cfd0d4;--suave:#83868f;--fondo:#000;--panel:#0c0e13;--linea:#23262e;
+  --rojo:#ff897d;--cyan:#65dbef;--verde:#3eb849;--oro:#ded087}
+@media (prefers-color-scheme:light){:root{--tinta:#191a1e;--suave:#5a5d66;--fondo:#e9e7e1;
+  --panel:#f7f6f2;--linea:#d0cdc5;--rojo:#b23f34;--cyan:#1c6b7c;--verde:#2b7734;--oro:#8a7420}}
+:root[data-theme="dark"]{--tinta:#cfd0d4;--suave:#83868f;--fondo:#000;--panel:#0c0e13;
+  --linea:#23262e;--rojo:#ff897d;--cyan:#65dbef;--verde:#3eb849;--oro:#ded087}
+:root[data-theme="light"]{--tinta:#191a1e;--suave:#5a5d66;--fondo:#e9e7e1;--panel:#f7f6f2;
+  --linea:#d0cdc5;--rojo:#b23f34;--cyan:#1c6b7c;--verde:#2b7734;--oro:#8a7420}
+*{box-sizing:border-box}
+body{margin:0;background:var(--fondo);color:var(--tinta);padding:0 1.25rem 6rem;
+  font:15px/1.7 ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+.w{max-width:1120px;margin:0 auto}
+.n{max-width:68ch}
+h1,h2,h3,h4{font-weight:400;text-wrap:balance}
+a{color:var(--cyan)}
+img{image-rendering:pixelated;max-width:100%;height:auto;display:block}
+header.top{display:flex;flex-direction:column;align-items:center;gap:1.5rem;
+  padding:4rem 0 2rem;text-align:center}
+header.top img{width:min(100%,642px)}
+.claim{max-width:60ch;color:var(--suave);font-size:1.05rem}
+.claim b{color:var(--tinta);font-weight:400}
+.ficha{display:flex;flex-wrap:wrap;justify-content:center;gap:0 1.5rem;width:100%;
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--suave);
+  border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);padding:.85rem 0}
+.ficha b{color:var(--rojo);font-weight:400}
+nav{display:flex;flex-wrap:wrap;gap:1.25rem;justify-content:center;padding:1.25rem 0;
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+nav a{color:var(--suave);text-decoration:none;border-bottom:1px solid transparent}
+nav a:hover,nav a:focus{color:var(--tinta);border-bottom-color:var(--rojo)}
+nav.docs{border-top:1px solid var(--linea);border-bottom:1px solid var(--linea);
+  margin-bottom:1rem}
+section{margin-top:4.5rem;scroll-margin-top:1rem}
+section>h2{font-size:1rem;letter-spacing:.1em;text-transform:uppercase;
+  border-left:3px solid var(--rojo);padding-left:.9rem;margin:0 0 1.5rem}
+.cifras{display:grid;gap:1px;background:var(--linea);border:1px solid var(--linea);
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.cifra{background:var(--panel);padding:1.1rem}
+.cifra b{display:block;font-size:1.7rem;color:var(--oro);font-weight:400;
+  font-variant-numeric:tabular-nums;line-height:1.2}
+.cifra span{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--suave)}
+.hall{border-top:1px solid var(--linea);padding-top:1.75rem;margin-top:2.5rem}
+.hall:first-of-type{border-top:0;padding-top:0;margin-top:0}
+.hall h3{margin:0 0 .75rem;font-size:1.15rem;color:var(--rojo)}
+.hall h4{color:var(--oro);margin:1.5rem 0 .5rem;font-size:.95rem}
+.hall p{margin:0 0 1rem}
+pre.asm{background:var(--panel);border-left:2px solid var(--verde);margin:1.25rem 0;
+  padding:1rem 1.1rem;overflow-x:auto;font-size:13px;line-height:1.6;color:var(--tinta)}
+.par{display:grid;gap:1.25rem;grid-template-columns:1fr}
+@media(min-width:820px){.par{grid-template-columns:1fr 1fr}}
+.par figure{margin:0}
+table{border-collapse:collapse;width:100%;margin:1.25rem 0;font-size:13px;display:block;
+  overflow-x:auto}
+th,td{text-align:left;padding:.5rem .75rem;border-bottom:1px solid var(--linea)}
+th{color:var(--suave);font-weight:400;font-size:11px;letter-spacing:.07em;text-transform:uppercase}
+td.num{font-variant-numeric:tabular-nums;color:var(--oro)}
+.nivel{margin-top:2rem}
+.nivel h3{margin:0 0 .9rem;font-size:.95rem;letter-spacing:.06em;text-transform:uppercase}
+.nivel em{color:var(--cyan);font-style:normal}
+.sep{color:var(--suave);margin:0 .6rem}
+.rejilla{display:grid;gap:.9rem;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.rejilla figure{margin:0;background:var(--panel);box-shadow:0 0 0 1px var(--linea)}
+.rejilla figcaption{display:flex;justify-content:space-between;padding:.45rem .65rem;
+  font-size:11px;color:var(--suave);border-top:1px solid var(--linea)}
+.dir{font-variant-numeric:tabular-nums;color:var(--verde)}
+footer{margin-top:5rem;padding-top:1.5rem;border-top:1px solid var(--linea);
+  color:var(--suave);font-size:12px}
+
+/* Aviso de trabajo en curso: tiene que verse antes que las cifras, porque un
+   100% mal leido hace mas dano que no ponerlo. */
+.aviso{background:#3a2a10;border-left:3px solid var(--oro);margin:1.5rem auto;
+  padding:1rem 1.2rem;max-width:900px;border-radius:4px}
+.aviso p{margin:0;color:var(--tinta);font-size:15px;line-height:1.65}
+.galeria{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:1.5rem;margin:1.5rem 0}
+.galeria figure{margin:0}
+.galeria img{width:100%;height:auto;image-rendering:pixelated;
+  border:1px solid var(--linea);border-radius:3px}
+.galeria figcaption{color:var(--suave);font-size:13px;margin-top:.5rem}
+audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
+</style>
+<div class="w"><nav class="top"><a href="index.html">Portada</a><a href="EMPEZAR.html">Empezar</a><a href="EL-JUEGO.html">El juego</a><a href="EL-CARTUCHO.html" style=color:var(--tinta)>El cartucho</a><a href="EL-CODIGO.html">El código</a><a href="HALLAZGOS.html">Hallazgos</a><a href="EN-EL-EMULADOR.html">En el emulador</a><a href="PREGUNTAS-ABIERTAS.html">Preguntas abiertas</a><a href="../THE-CARTRIDGE.html" style="margin-left:auto;color:var(--oro)">English</a></nav>
+<h1 id="el-cartucho">El cartucho</h1>
+<pre><code>fichero    yiear2.rom
+tamano     32.768 bytes
+sha256     bcb41b35ec0dddfd81ee9bd46998c0ea9c9435d6292e973d46c1324cc36e6150
+catalogo   RC-737
+maquina    MSX1</code></pre>
+<h2 id="donde-vive">Donde vive</h2>
+<p>Un cartucho de 32 KB en las <b>paginas 1 y 2</b>, <code>0x4000..0xBFFF</code>. Sin paginacion y sin mapper: los 32 KB estan a la vez y el Z80 los ve todos.</p>
+<h2 id="las-dos-cabeceras">Las dos cabeceras</h2>
+<p>La primera es la de siempre: en <code>0x4000</code> estan la firma <code>&quot;AB&quot;</code> y la direccion de INIT, que aqui es <code>0x4070</code>. STATEMENT, DEVICE y TEXT valen cero, y los seis bytes reservados tambien.</p>
+<p>La segunda, en <code>0x4010</code>, no es cosa del MSX: es la cabecera del <b>Konami Game Master</b>, el cartucho de trucos de la casa que se pone en la otra ranura. Son <code>&quot;AB&quot; 07 37</code> -el <code>0x07</code> de los RC-7xx y el <code>0x37</code> de RC-737- y detras van siete direcciones, las variables que el Game Master puede tocar:</p>
+<table><tr><th>direccion</th><th>que es</th></tr><tr><td><code>0x6400</code></td><td>la rutina de la que se cuelga</td></tr><tr><td><code>0xE000</code></td><td>la escena</td></tr><tr><td><code>0xE002</code></td><td>la marca de escena</td></tr><tr><td><code>0xE055</code></td><td>las vidas</td></tr><tr><td><code>0xE066</code></td><td>la ronda</td></tr><tr><td><code>0xE048</code></td><td>los puntos</td></tr><tr><td><code>0xE04E</code></td><td>los puntos del jugador que juega</td></tr></table>
+<p>Este cartucho <b>no la lee nunca</b>: <code>tools/quien_lee.py</code> da cero referencias a <code>0x4010..0x4025</code>. Esta ahi para que la lea el de al lado.</p>
+<h2 id="la-marca-oculta">La marca oculta</h2>
+<p>Los ultimos quince bytes, cerrando justo en <code>0xBFFF</code>:</p>
+<pre><code>FF 32 00 BA 9B AC 85 B9 A8 80 B9 BA 81 0C 37 AA</code></pre>
+<p>Detras estan <code>RC-737</code> y el titulo en <b>katakana escrito del reves</b>. Es la marca que <b>Manuel Pazos</b> descubrio en los cartuchos de Konami -el numero de catalogo y el titulo japones metidos en los ultimos bytes de la ROM-, y este la lleva. <code>tools/marca_konami.py</code> la lee y <code>tools/busca_marca_konami.py</code> la busca por toda la imagen.</p>
+<h2 id="lo-que-hace-init-en-orden">Lo que hace INIT, en orden</h2>
+<p><code>0x4070</code>, y el orden importa:</p>
+<ol><li>le pregunta a la BIOS en que ranura primaria esta (<code>RSLREG</code>), calcula su ranura y subranura con <code>0xFCC1</code> y guarda el resultado en <code>(0xE451)</code>;</li><li>conmuta la <b>pagina 2</b> a esa misma ranura con <code>ENASLT</code>, para que respondan los 32 KB;</li><li>llama a <code>prepara_y_vuelve_a_mi_ranura</code>, que es el <b>rastreo de ranuras buscando la primera parte, el Yie Ar Kung-Fu (RC-725)</b>, y pasa antes que nada;</li><li>escribe un <code>jp cada_cuadro</code> en el gancho de interrupcion de <code>0xFD9A</code>;</li><li>pone la pila en <code>0xE400</code> y borra <code>0xE000..0xE3FF</code>;</li><li>enciende la pantalla, habilita interrupciones y cae en un <code>jr $</code>.</li></ol>
+<p>De ese <code>jr $</code> en adelante no pasa nada en el flujo principal: <b>el juego entero cuelga de la interrupcion</b>.</p>
+<h2 id="el-vdp">El VDP</h2>
+<p><code>pon_los_registros_del_vdp</code> (<code>0x4952</code>) vuelca ocho bytes de <code>0x4963</code> en los registros 0 a 7:</p>
+<pre><code>02 E2 0E 7F 07 76 03 E4</code></pre>
+<p>Lo que da, y esta es la parte que sorprende:</p>
+<table><tr><th>tabla</th><th>direccion</th></tr><tr><td>color</td><td><code>0x0000..0x17FF</code></td></tr><tr><td>patrones de sprite</td><td><code>0x1800..0x1FFF</code></td></tr><tr><td>patrones</td><td><code>0x2000..0x37FF</code></td></tr><tr><td>nombres</td><td><code>0x3800..0x3AFF</code></td></tr><tr><td>atributos de sprite</td><td><code>0x3B00</code></td></tr></table>
+<p><b>Los bancos van al reves de lo habitual</b>: los patrones en <code>0x2000</code> y el color en <code>0x0000</code>. R3 y R4 no son direcciones sino base y mascara, y leerlos como direcciones es lo que pone la tabla de color donde estan los patrones. La consecuencia practica esta por todo el codigo: un mismo dibujo son dos guiones con el mismo desplazamiento y <code>0x2000</code> de diferencia, como en <code>monta_la_pantalla_de_combate</code>, que carga <code>0x01F0</code> y <code>0x21F0</code> con la misma forma.</p>
+<p>R7 vale <code>0xE4</code>: el borde y todo lo transparente salen <b>color 4</b>, azul oscuro. Los sprites son de 16x16 (bit 1 de R1).</p>
+<h2 id="la-ram">La RAM</h2>
+<p>Todo lo que usa el juego esta de <code>0xE000</code> para arriba:</p>
+<table><tr><th>tramo</th><th>que es</th></tr><tr><td><code>0xE000..0xE00F</code></td><td>escena, subescena, contador de cuadros, esperas, mandos</td></tr><tr><td><code>0xE04A..0xE066</code></td><td>puntos, nivel, vidas, ronda</td></tr><tr><td><code>0xE080..0xE0FF</code></td><td>la copia de la tabla de atributos de sprite</td></tr><tr><td><code>0xE100..0xE1FF</code></td><td>el muneco, el rival y sus figuras</td></tr><tr><td><code>0xE2C0..0xE2E0</code></td><td>la tira de escenarios por ronda, y el decorado de ahora</td></tr><tr><td><code>0xE400</code></td><td>la pila, que crece hacia abajo</td></tr><tr><td><code>0xE450..0xE451</code></td><td>la marca de la primera parte, y la ranura de este cartucho</td></tr></table>
+<p>Y <code>0xE450</code> y <code>0xE451</code> estan <b>por encima</b> del bloque que INIT borra (<code>0xE000..0xE3FF</code>), que no es casualidad: el rastreo de ranuras los escribe antes del borrado.</p>
+<footer><p><em>Yie Ar Kung-Fu II: The Emperor Yie-Gah</em> lo publico Konami para MSX en 1985; su numero de catalogo es RC-737 y son 32 KB. Es la segunda parte de <em>Yie Ar Kung-Fu</em> (RC-725, 1985). Todos los derechos sobre el juego siguen siendo de sus titulares. Este trabajo es de preservacion, estudio y documentacion, y la imagen del cartucho no se distribuye.</p></footer></div>
