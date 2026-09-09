@@ -80,8 +80,14 @@ once, left twice, down three times and right four times. `(0xE055)` goes to
 `0x95`.
 
 **The first part in the other slot.** Plug Yie Ar Kung-Fu (RC-725) into the
-second slot, play a single-player game and get to round 3. What `0x74A3` then
-draws has **not** been recorded here — see the open questions.
+second slot, play a single-player game and reach level 3. The extra shows up
+when both energy bars are nearly empty. To see it without getting that far:
+`debug write memory 0xE450 1`, `0xE053 3`, `0xE100 8` and `0xE102 12`.
+
+**The soup.** It comes out in phase 3, single player, by STRIKING at the round's
+spot -the pair `0x5027` leaves in `(0xE300)`-. To see it without hunting for the
+spot, put a breakpoint at `0x7402` that writes the player's own strike box,
+`(0xE12C)` minus two, into `0xE300`.
 
 ## Poking around
 

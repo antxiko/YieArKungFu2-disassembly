@@ -1,6 +1,6 @@
 # Findings
 
-## The cartridge looks for its own first part in the next slot
+## The game checks Yie Ar Kung-Fu (RC-725) in the second slot
 
 The very first thing INIT does, before it even installs the interrupt hook, is
 call `0xBF6C`. There sits a slot scan: it walks the four primary slots from
@@ -18,15 +18,91 @@ the other ROMs in this series matches none of them, so the identification is not
 a guess.
 
 If it finds it, `(0xE450) = 1`. The **only** place in the game that reads that
-flag is `0x74A3`, and it also demands **round 3 or later** (`0xE053`) and a
-**single player** (bit 5 of `0xE002`, tested at `0x732F`). The reward is four
-bytes copied from `0x74F1` and a 3x4 tile figure at `0x7525`, which `0x7518`
-paints at row 6, column 14.
+flag is `0x74A3`, and it also demands **level 3 or later** (`0xE053`), a
+**single player** (bit 5 of `0xE002`, tested at `0x732F`) and phase 3.
+
+**And what it gives is now known.** It shows up when **both** energy bars are
+nearly empty -the player's below 9 and the rival's below 13, out of `0x24`
+full-: a 4x3 tile sign (`0x7525`, row 6 column 14) and a **drink** that comes
+down, the sprite from the four bytes at `0x74F1`.
+
+![The sign and the two items](imagenes/cartel.png)
+
+Taking it jumps to `0x738C` with B = 1: `0x10` rest frames and, when they run
+out, `0x7356` puts the **player's** bar back to `0x24`. The rival's is left
+alone, and since `(0xE266)` is 1 nobody loses a life. Measured in openMSX: the
+bars go from `(0x08, 0x0C)` to `(0x24, 0x0C)`.
+
+And it has **nothing to do with the soup**: they are two separate items in two
+separate attributes -`0xE250` for the soup, `0xE254` for the drink- and the
+neighbour flag does not appear anywhere along the soup's path.
 
 This is not the Game Master header: that is a cartridge reading a *cheat
 device*. This is a game looking for **another game**. If Konami did it once it
 may be in more places, and the trail is a very early `call` out of INIT that
 touches `0xFCC1` and `ENASLT`.
+
+## The soup: you must STRIKE a different spot in every round
+
+The steaming bowl that makes you invulnerable for a while does not come out at
+random, and the spot is not the same in every round.
+
+![The two items that drop](imagenes/piezas.png)
+
+At the start of a round `0x5027` copies into `0xE300` the pair that belongs to
+it from a table of **eight** at `0x507A`, two bytes per round: **row and
+column**. That table was already in the listing, with nobody knowing what it
+was for.
+
+    round 1   (0x7E, 0x80)      round 5   (0x9E, 0x90)
+    round 2   (0x8E, 0xE0)      round 6   (0x68, 0x10)
+    round 3   (0x68, 0xD8)      round 7   (0x68, 0x80)
+    round 4   (0x8E, 0x03)      round 8   (0x8E, 0x80)
+
+Then, one frame in two, `0x73FD` asks whether the player is there. But it does
+not look at where the figure is: it looks at `0xE12C`, the **fourth** of the
+four boxes built by `0x684A` -the **strike** box, the very one `0x53B3` uses to
+decide whether the player reaches the rival-. It has to fall inside an **11x11**
+window starting two beyond that pair.
+
+And that fourth box **does not exist in every frame**:
+
+![The point of the blow](imagenes/golpes.png)
+
+Of the ten drawings at `0x6C83` only 1, 3, 5 and 6 carry it, and those are the
+**four attacks**. In the other six the script has `0x80`, `0x684A` leaves the
+box at zero and the `and a` at `0x65C6` knocks it out. So standing on the spot
+is not enough: **you have to strike** there.
+
+On top of that, only in **phase 3** of the round -`0x733E` demands
+`(0xE107) = 3`, which is what the table at `0x508A` gives for `(0xE060) = 3`-
+and with a **single player** (`0x732F`).
+
+**What it gives.** `(0xE29E) = 0xA8`, counting down by one every other frame:
+six and a half seconds at 50 Hz. While it is not zero:
+
+| where | what stops happening |
+| --- | --- |
+| `0x53F4` | the player's blow does not count |
+| `0x5588` | the rival throws nothing |
+| `0x566F` | whatever was already flying gets caught instead of hitting |
+| `0x7734` | the slots cannot be broken |
+| `0x798C` | nothing touches the player |
+| `0x6C1E` | and the figure blinks |
+
+`coge_el_premio` also adds 5 to the hundreds byte of the score: 500 points. And
+**once per round only**: when it runs out, `0x7496` sets `(0xE261) = 1` and
+scene 0 stops asking.
+
+**Checked in openMSX.** During the demo `(0xE300) = (0x7E, 0x80)`, the first
+pair of the table. Moving the spot onto the player -without touching a byte of
+the cartridge- makes the bowl drop, and touching it sets `0xE29E` to `0xA8`,
+counting down to zero at 25 a second.
+
+Along the way, the listing had two routines called `mira_la_invulnerabilidad`
+and `baja_la_invulnerabilidad` that are **not** that: they read `0xE181`, which
+is the **grab** counter. That is why it drops four at a time while the fire
+button is held: that is struggling free. They have been renamed.
 
 ## Half a screen and a mirror
 

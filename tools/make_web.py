@@ -50,14 +50,15 @@ TXT = {
               "ademas <b>768 de 768 casillas</b>. El listado y las cifras se "
               "reproducen con <code>make</code>, y el reensamblado devuelve "
               "la ROM <b>byte a byte</b>.",
-        claim="<b>El cartucho busca a su primera parte en la ranura de al "
-              "lado.</b> Antes de instalar el gancho de interrupcion rastrea "
+        claim="<b>El juego busca el Yie Ar Kung-Fu (RC-725) en la segunda "
+              "ranura.</b> Antes de instalar el gancho de interrupcion rastrea "
               "las cuatro ranuras, conmuta la pagina 1 de cada una y le toma "
-              "dos sumas de 16 bytes; si dan lo que espera, es que el Yie Ar "
-              "Kung-Fu de 1985 (RC-725) esta puesto, y desde la tercera ronda hay "
-              "algo mas que ver. Dentro, media pantalla: el decorado se dibuja "
-              "solo por la izquierda, y la derecha son <b>los mismos patrones "
-              "con los ocho bits del reves</b>.",
+              "dos sumas de 16 bytes; si dan lo que espera, del nivel 3 en "
+              "adelante aparece un <b>refresco</b> que rellena la barra cuando "
+              "los dos luchadores estan bajo minimos. Y la <b>sopa</b> que "
+              "deja invulnerable no sale sola: hay que <b>pegar</b> en un "
+              "sitio distinto en cada ronda, los ocho de la tabla de "
+              "<code>0x507A</code>.",
         ficha=["Konami - <b>(c) Konami 1985</b>",
                "Cartucho <b>RC-737</b>, 32 KB",
                "MSX1 - <b>paginas 1 y 2</b>", "Volcado <b>bcb41b35...</b>"],
@@ -96,14 +97,15 @@ TXT = {
               "matches <b>768 of 768 tiles</b> as well. The listing and the "
               "numbers are reproducible with <code>make</code>, and "
               "reassembling gives back the ROM <b>byte for byte</b>.",
-        claim="<b>The cartridge looks for its own first part in the next "
+        claim="<b>The game checks Yie Ar Kung-Fu (RC-725) in the second "
               "slot.</b> Before it even installs the interrupt hook it scans "
               "the four slots, switches page 1 of each and takes two 16-byte "
-              "sums; if they come out right, the 1985 Yie Ar Kung-Fu (RC-725) "
-              "is plugged in, and from round three on there is something extra "
-              "to see. Inside, half a screen: the scenery is drawn only on "
-              "the left, and the right half is <b>the same patterns with all "
-              "eight bits reversed</b>.",
+              "sums; if they come out right, from level 3 on a <b>drink</b> "
+              "shows up that refills your bar when both fighters are nearly "
+              "out. And the <b>soup</b> that makes you invulnerable does not "
+              "come out on its own: you have to <b>strike</b> at a different "
+              "spot in every round, the eight in the table at "
+              "<code>0x507A</code>.",
         ficha=["Konami - <b>(c) Konami 1985</b>",
                "An <b>RC-737</b> 32 KB cartridge",
                "MSX1 - <b>pages 1 and 2</b>", "Dump <b>bcb41b35...</b>"],

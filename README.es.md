@@ -47,10 +47,14 @@ de 768 casillas.
 
 ## Lo que aparecio
 
-- **El cartucho busca a su primera parte en la ranura de al lado.** Antes de
+- **La sopa que deja invulnerable sale PEGANDO en un sitio distinto en cada
+  ronda.** Los ocho sitios estan en `0x507A`, y lo que se compara con ellos es
+  la caja del **golpe**, que solo existe en cuatro de las diez poses.
+- **El juego busca el Yie Ar Kung-Fu (RC-725) en la segunda ranura.** Antes de
   instalar el gancho de interrupcion rastrea las cuatro ranuras y toma dos
-  sumas de 16 bytes, y distingue las dos compilaciones del Yie Ar Kung-Fu
-  (RC-725).
+  sumas de 16 bytes, y distingue las dos compilaciones. Con el puesto, del
+  nivel 3 en adelante aparece un refresco que rellena la barra cuando los dos
+  luchadores estan bajo minimos.
 - **Media pantalla y un espejo**: el decorado se dibuja solo por la izquierda, y
   la derecha son los mismos patrones con los ocho bits del reves. De ahi que el
   color se escriba dos veces y el patron una.

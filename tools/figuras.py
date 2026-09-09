@@ -94,7 +94,7 @@ def fotograma_del_jugador(rom, i, org=ORG):
     return cajas, list(tira), trios, guiones
 
 
-def dibuja_al_jugador(rom, i, fondo=None):
+def dibuja_al_jugador(rom, i, fondo=None, marca=False):
     """La pose i, montada como la monta el cartucho y pintada tal cual.
 
     Se parte de la VRAM de una partida de verdad -los patrones espejados ya
@@ -139,7 +139,61 @@ def dibuja_al_jugador(rom, i, fondo=None):
             for c in range(16):
                 if d[f][c] != fondo:
                     px[y - y0 + f][x - x0 + c] = d[f][c]
+
+    # La CUARTA caja, si la hay, es el punto del golpe: 0x7402 pregunta por
+    # el, y solo por el, para saber si sale la sopa. La cruz la ponemos
+    # nosotros; el punto sale del guion.
+    if marca:
+        g = punto_del_golpe(rom, i)
+        if g is not None:
+            gy, gx = con_signo(g[0]) - y0, con_signo(g[1]) - x0
+            for k in range(-3, 4):
+                for f, c in ((gy + k, gx), (gy, gx + k)):
+                    if 0 <= f < alto and 0 <= c < ancho:
+                        px[f][c] = G.PALETA[8]
     return px
+
+
+def punto_del_golpe(rom, i, org=ORG):
+    """La CUARTA caja del dibujo i, que es el punto por el que ese golpe toca.
+
+    Solo la llevan cuatro de los diez dibujos -el 1, el 3, el 5 y el 6, los
+    cuatro ataques-; en los otros seis el guion trae 0x80 y 0x684A deja [y][x]
+    a cero, que es lo que tumba la comparacion de 0x65C6. Sin ella no hay
+    sopa: `mira_si_esta_dentro_de_la_caja_de_once` (0x65A6) mira ESTE punto
+    contra el sitio de la ronda.
+    """
+    p = rom[FOTOGRAMAS + 4 * i - org] | (rom[FOTOGRAMAS + 4 * i + 1 - org] << 8)
+    cajas, _ = lee_las_cuatro_cajas(rom, p, org)
+    if cajas and cajas[-1][2] is None:           # la cuarta no lleva alto ni ancho
+        return cajas[-1][0], cajas[-1][1]
+    return None
+
+
+def las_dos_piezas(rom):
+    """El cuenco de sopa y el refresco del cartucho hermano, a tamano.
+
+    Son los patrones 0xDC y 0xE0 de la tabla de sprites, que no suben los
+    dieciseis guiones del muneco -esos llenan hasta 0x1EE0 justo- sino el
+    guion suelto de 0xA7D1. 0x741D pone el primero en el atributo de la sopa
+    (0xE250) y los cuatro bytes de 0x74F1 ponen el segundo en el de al lado
+    (0xE254).
+    """
+    v = V.como_en_la_demostracion(rom, 0).v
+    return G.rejilla([G.sprite(v, 0xDC >> 2), G.sprite(v, 0xE0 >> 2)], 2, sep=2)
+
+
+def el_cartel_del_vecino(rom):
+    """La figura de 4x3 casillas de 0x7525, en la fila 6 y la columna 14.
+
+    Es el aviso del premio del cartucho hermano, y solo se pinta cuando
+    0x74A3 deja pasar. Se recorta de la pantalla de combate porque sus
+    casillas son las de ESE escenario: sueltas no tendrian color.
+    """
+    v = V.como_en_la_demostracion(rom, 0)
+    v.figura(0x7525, 6, 14)
+    px = G.pantalla(v.v)
+    return [f[14 * 8:18 * 8] for f in px[5 * 8:8 * 8]]
 
 
 def figuras_de_un_rival(rom, escenario, org=ORG):
@@ -210,10 +264,21 @@ def main():
         igual.append(q)
     G.png(os.path.join(carpeta, "poses.png"),
           G.rejilla(igual, 5, sep=2, fondo=G.BORDE), escala=3)
+    golpes = [dibuja_al_jugador(rom, i, marca=True) for i in range(10)]
+    igual2 = []
+    for p in golpes:
+        q = [[G.BORDE] * ancho for _ in range(alto)]
+        for y, fila in enumerate(p):
+            q[alto - len(p) + y][:len(fila)] = fila
+        igual2.append(q)
+    G.png(os.path.join(carpeta, "golpes.png"),
+          G.rejilla(igual2, 5, sep=2, fondo=G.BORDE), escala=3)
+    G.png(os.path.join(carpeta, "piezas.png"), las_dos_piezas(rom), escala=6)
+    G.png(os.path.join(carpeta, "cartel.png"), el_cartel_del_vecino(rom), escala=4)
     for e in range(V.ESCENARIOS):
         G.png(os.path.join(carpeta, "rival%d.png" % (e + 1)),
               dibuja_a_un_rival(rom, e), escala=3)
-    print("  poses.png (las diez del muneco) y ocho rival*.png")
+    print("  poses.png, golpes.png, piezas.png, cartel.png y ocho rival*.png")
 
 
 if __name__ == "__main__":

@@ -348,7 +348,7 @@ D 0x5056 0x505c tabla_de_los_ajustes  tres punteros; cierra en 0x505C, su entrad
 F 0x5056 w
 D 0x505c 0x507a ajustes_de_la_partida  tres tiras de diez bytes; 0x5000 elige con (0xE06A) y las copia con ldir a 0xE160
 F 0x505c 10
-D 0x507a 0x508a dos_bytes_por_ronda  ocho parejas; 0x5027 entra con 2*(0xE066) y copia la que salga a 0xE300. No son el escenario -eso lo da 0xE2C0-: los valores son 0x7E80, 0x8EE0, 0x68D8, 0x8E03, 0x9E90, 0x6810, 0x6880 y 0x8E80
+D 0x507a 0x508a el_sitio_de_la_sopa_por_ronda  ocho parejas [y][x], una por ronda; 0x5027 entra con 2*(0xE066) y copia la que salga a 0xE300. Es EL SITIO DONDE SALE LA SOPA: 0x7402 mira si la caja del golpe del jugador cae dentro de la ventana de 11x11 que empieza dos mas alla de esa pareja. Las ocho: (0x7E,0x80) (0x8E,0xE0) (0x68,0xD8) (0x8E,0x03) (0x9E,0x90) (0x68,0x10) (0x68,0x80) y (0x8E,0x80)
 F 0x507a 2
 D 0x508a 0x508e cuatro_por_0xe060  0x5048 los indexa con (0xE060) y deja el que salga en (0xE107)
 F 0x508a 4
@@ -1017,8 +1017,8 @@ C 0x6c02 La posicion de referencia
 C 0x6c0a El bit 0 decide el espejo
 L 0x6c13 pon_los_colores_del_fotograma
 C 0x6c15 El byte de la paleta, que va delante de los trios
-C 0x6c17 Invulnerable?
-C 0x6c1e Hay algo que haga parpadear al muneco?
+C 0x6c17 Solo parpadea si el jugador esta en pie
+C 0x6c1e La sopa hace parpadear al muneco...
 C 0x6c2a El bit 1 del contador de cuadros...
 C 0x6c2f ...alterna entre los dos juegos de colores: eso es el parpadeo
 C 0x6c34 Sin parpadeo, siempre los mismos
@@ -1724,13 +1724,13 @@ C 0x5237 El 3 tiene lo suyo
 C 0x523c Los escenarios 0, 6 y 7...
 C 0x5248 ...no llegan aqui: mirar los choques
 C 0x524b Y el agarre
-C 0x524e Le queda invulnerabilidad?
+C 0x524e Le queda agarre?
 C 0x5253 No
-C 0x5254 Bajarla un punto
+C 0x5254 Bajarlo un punto
 C 0x5257 Y apuntar si sigue
-C 0x5260 Otra vez la invulnerabilidad
+C 0x5260 La cuenta del agarre
 C 0x5266 Se esta pulsando el disparo?
-C 0x526d Entonces baja de cuatro en cuatro
+C 0x526d Forcejeando se suelta cuatro veces mas rapido
 C 0x5273 Si no, de uno en uno
 C 0x5275 Una escena mas del jugador...
 C 0x5279 ...y la subescena a cero
@@ -1744,7 +1744,7 @@ B 0x5294 ---------------------------------------------------------------------
 B 0x5294 El jugador ha encajado un golpe: se le quita energia y se le pone a
 B 0x5294 levantarse. Lo que se quita depende de la ronda y del modo.
 L 0x5294 encaja_el_golpe
-C 0x5294 Ir gastando la invulnerabilidad
+C 0x5294 Ir gastando el agarre
 C 0x5297 La espera
 C 0x529c La barra que se toca
 C 0x529f Que tipo de golpe fue
@@ -1820,7 +1820,7 @@ C 0x53e1 ...ademas se suelta lo que hubiera agarrado
 C 0x53e5 Tres cuadros de aturdimiento
 C 0x53ed El pitido del golpe
 C 0x53f2 No hay toque: limpiar la marca
-C 0x53f4 Hay algo que lo impida?
+C 0x53f4 Con la sopa, el golpe del jugador no cuenta
 C 0x53f9 El jugador esta a lo suyo?
 C 0x53fe La marca de "tocado" del enemigo
 C 0x5401 En el escenario 3...
@@ -1898,7 +1898,7 @@ C 0x5578 Contra la caja del jugador
 C 0x557b Y la altura que se pidio
 C 0x5580 La coordenada
 C 0x5583 Mirar si esta a tiro
-C 0x5588 Hay algo que lo impida?
+C 0x5588 Con la sopa, el enemigo no lanza nada
 C 0x558d Ya hay cuatro cosas volando?
 C 0x5593 Lanzar
 C 0x5596 La coordenada del proyectil
@@ -1939,7 +1939,7 @@ C 0x565f En que estado esta
 C 0x5660 Solo cuentan las que estan sueltas
 C 0x5666 Toca al jugador?
 C 0x566d No
-C 0x566f Es el momento de agarrar?
+C 0x566f Con la sopa, lo que vuela se queda agarrado en vez de tocar
 C 0x5675 Entonces pasa al estado 2: agarrada
 C 0x567c El pitido
 C 0x5681 Estado 3, y once cuadros
@@ -2535,7 +2535,22 @@ B 0x74a3 0xBF6C rastrea las cuatro ranuras al arrancar y compara dos sumas de
 B 0x74a3 16 bytes contra las dos parejas de 0xBFD9, que son las de las DOS
 B 0x74a3 compilaciones del RC-725. Si lo encuentra, deja (0xE450) = 1, y este
 B 0x74a3 es el UNICO sitio de todo el cartucho que mira esa marca.
-B 0x74a3 Ademas exige nivel 3 o mas y un solo jugador (eso lo filtra 0x732F).
+B 0x74a3 
+B 0x74a3 NO ES LA SOPA, Y NO LA CAMBIA EN NADA. Es una pieza APARTE, con su
+B 0x74a3 propio sprite -el patron 0xE0, los cuatro bytes de 0x74F1- y su
+B 0x74a3 propio cartel, la figura de 4x3 casillas de 0x7525 que 0x751B pone en
+B 0x74a3 la fila 6, columna 14. La sopa vive en 0xE250 y esta en 0xE254: son
+B 0x74a3 los dos sprites que 0x752D sube juntos.
+B 0x74a3 
+B 0x74a3 CUANDO SALE. Con el cartucho hermano puesto, en la fase 3 y con un
+B 0x74a3 solo jugador (0x732F), del NIVEL 3 en adelante (0xE053), y con las
+B 0x74a3 DOS barras bajo minimos: la del jugador por debajo de 9 y la del
+B 0x74a3 rival por debajo de 13, de 0x24 que es el tope.
+B 0x74a3 
+B 0x74a3 QUE DA. Cogerla salta a 0x738C con B = 1: 0x10 cuadros de descanso, y
+B 0x74a3 al agotarse 0x7356 pone la barra DEL JUGADOR a 0x24 otra vez. La del
+B 0x74a3 rival no se toca, y como (0xE266) queda a 1 nadie pierde una vida.
+B 0x74a3 Medido en openMSX: las barras pasan de (0x08, 0x0C) a (0x24, 0x0C).
 C 0x74a3 La marca del cartucho vecino
 C 0x74a7 Sin el, no hay premio
 C 0x74a8 El nivel
@@ -2544,8 +2559,8 @@ C 0x74ae Un cuadro de cada dos
 C 0x74b4 El atributo donde va
 C 0x74b7 Ya se cogio?
 C 0x74bd La barra del jugador...
-C 0x74c0 ...tiene que estar bajo mininos
-C 0x74c4 Y la otra tambien
+C 0x74c0 ...tiene que estar por debajo de 9, de 0x24 que es el tope
+C 0x74c4 Y la del rival, por debajo de 13
 C 0x74cb Por que paso va
 C 0x74d4 Los cuatro bytes del atributo
 C 0x74da Copiados
@@ -2767,7 +2782,7 @@ C 0x734a Y subir sus atributos
 C 0x734d La cuenta del descanso
 C 0x7351 No hay descanso
 C 0x7354 Una menos
-C 0x7356 Las dos barras, llenas otra vez
+C 0x7356 La barra del jugador, llena otra vez -y su copia pintada-
 C 0x735e Y el aviso, apagado
 C 0x7362 De quien era el turno
 C 0x7367 Del jugador
@@ -2799,17 +2814,53 @@ C 0x73d4 ...las hace parpadear
 C 0x73d5 Las del otro
 C 0x73db Desde 0x3AE3...
 C 0x73de ...con la 0x83
+B 0x73e3 ======================================================================
+B 0x73e3 LA SOPA: SEIS ESCENAS, Y UN SITIO DISTINTO EN CADA RONDA
+B 0x73e3 ======================================================================
+B 0x73e3 El cuenco humeante que deja invulnerable un rato. Solo lo hay en la
+B 0x73e3 FASE 3 de la ronda -0x733E exige (0xE107) = 3, que es lo que la tabla
+B 0x73e3 de 0x508A da para (0xE060) = 3- y con UN SOLO jugador (0x732F).
+B 0x73e3 
+B 0x73e3 COMO SALE. Al empezar la ronda, 0x5027 copia a 0xE300 la pareja que le
+B 0x73e3 toca de `el_sitio_de_la_sopa_por_ronda` (0x507A). Aqui, un cuadro de
+B 0x73e3 cada dos, la escena 0 (0x73FD) pregunta por esa pareja: la caja del
+B 0x73e3 GOLPE del jugador -0xE12C, la CUARTA de las cuatro que monta 0x684A-
+B 0x73e3 tiene que caer dentro de una ventana de 11x11 que empieza dos mas alla.
+B 0x73e3 Y esa cuarta caja NO existe en todos los fotogramas: de los diez
+B 0x73e3 dibujos de 0x6C83 solo la llevan el 1, el 3, el 5 y el 6, que son los
+B 0x73e3 cuatro ATAQUES. En los demas sale [y][x] = 0 y el `and a` de 0x65C6 la
+B 0x73e3 tumba. O sea que no basta con ponerse ahi: hay que PEGAR ahi.
+B 0x73e3 
+B 0x73e3 LAS SEIS ESCENAS (la tabla de 0x73F1):
+B 0x73e3   0  0x73FD  mira el sitio, y si encaja suelta el cuenco arriba
+B 0x73e3   1  0x7427  lo baja 0x62 cuadros
+B 0x73e3   2  0x7458  quieto y parpadeando: si lo toca, (0xE29E) = 0xA8
+B 0x73e3   3  0x7483  el destello de 0x20 cuadros, y a aparcar el sprite
+B 0x73e3   4  0x748F  gastar la invulnerabilidad, y (0xE261) = 1
+B 0x73e3   5  0x749C  aparcar y volver a la 0
+B 0x73e3 
+B 0x73e3 LO QUE DA. (0xE29E) = 0xA8, que baja de uno en uno un cuadro de cada
+B 0x73e3 dos: 168/25 = SEIS SEGUNDOS Y MEDIO en una maquina de 50 Hz. Mientras
+B 0x73e3 no valga cero: el golpe del jugador no cuenta (0x53F4), el enemigo no
+B 0x73e3 lanza nada (0x5588), lo que ya volaba se queda agarrado en vez de
+B 0x73e3 tocar (0x566F), no se rompen las ranuras (0x7734), nada toca al
+B 0x73e3 jugador (0x798C) y el muneco parpadea (0x6C1E). Ademas `coge_el_premio`
+B 0x73e3 suma 5 al byte de centenas del tanteo: 500 puntos.
+B 0x73e3 
+B 0x73e3 Y UNA SOLA VEZ POR RONDA: al agotarse, la escena 4 deja (0xE261) = 1 y
+B 0x73e3 la escena 0 se planta ahi. Solo el borrado de 0x4FC8 -0xE10B en
+B 0x73e3 adelante, 0x194 bytes- lo devuelve a cero.
 C 0x73e3 Un cuadro de cada dos
-C 0x73e9 La escena y la subescena del bicho
+C 0x73e9 La escena y la subescena de la sopa
 C 0x73ee Repartir
 C 0x73fd Ya hay uno fuera?
-C 0x7402 Esta el jugador a tiro?
+C 0x7402 Esta pegando en el sitio de esta ronda?
 C 0x7408 No
 C 0x7409 Su atributo
 C 0x740c Fila 0x28
 C 0x740f El contador de cuadros...
 C 0x7418 ...por 1,5 y mas 0x20: por ahi sale
-C 0x741d Casilla 0xDC
+C 0x741d El patron 0xDC: el cuenco humeante
 C 0x7421 Y color 0x0F
 C 0x7427 Su atributo
 C 0x742a Y su escena
@@ -2822,9 +2873,9 @@ C 0x7440 Entonces 0xB0 de espera...
 C 0x7446 ...y a la escena siguiente
 C 0x7448 En que anda el jugador
 C 0x7455 Devolver "vale"
-C 0x7458 La coordenada del bicho
+C 0x7458 La coordenada de la sopa
 C 0x745b Toca al jugador?
-C 0x7460 0xA8 cuadros de castigo
+C 0x7460 0xA8 de invulnerabilidad
 C 0x746b Sonar y apagarlo
 C 0x746e Una escena mas
 C 0x7473 Sigue valiendo?
@@ -2939,7 +2990,7 @@ C 0x7722 El pitido
 C 0x7728 Estado 6
 C 0x772b Y trece bytes mas alla...
 C 0x7730 ...un 5
-C 0x7734 Hay algo que lo impida?
+C 0x7734 Con la sopa no se rompen las ranuras
 C 0x7739 La primera
 C 0x7743 Y la segunda
 C 0x774a En que estado esta
@@ -3059,7 +3110,7 @@ C 0x797d El bit 1 del cuadro...
 C 0x7982 ...alterna el color entre 0x0F...
 C 0x7986 ...y 6: destella
 C 0x798a Ahi va el color
-C 0x798c Hay algo que lo impida?
+C 0x798c Con la sopa no toca nada al jugador
 C 0x7991 La primera
 C 0x799e La segunda
 C 0x79ab Y la tercera
@@ -3919,9 +3970,9 @@ C 0x55fb De quien es
 C 0x55fe La del enemigo, 0x0D
 C 0x5603 De quien fue el tanteo
 C 0x5606 Los atributos del numerito
-C 0x5609 Su columna...
-C 0x560a ...seis a la izquierda
-C 0x560f Y su fila, igual
+C 0x5609 Su fila...
+C 0x560a ...seis mas arriba
+C 0x560f Y su columna, igual
 C 0x5757 Con dos jugadores...
 C 0x575e ...mover tambien al enemigo
 C 0x5760 Sin pasar de 0xDD...
@@ -4166,8 +4217,8 @@ L 0x5048 elige_el_modo_de_juego
 L 0x5157 guarda_las_casillas_que_tapa_el_marcador
 L 0x517a pinta_la_barra_de_fase
 L 0x51ab pinta_el_indicador_que_parpadea
-L 0x5260 mira_la_invulnerabilidad
-L 0x5266 baja_la_invulnerabilidad
+L 0x5260 mira_si_esta_agarrado
+L 0x5266 forcejea_para_soltarse
 L 0x5288 pon_la_espera
 L 0x528b pon_las_escenas_del_jugador_y_del_enemigo
 L 0x53f4 mira_si_el_enemigo_esta_tocado
@@ -4227,7 +4278,7 @@ L 0x72c8 pinta_el_agarre_en_la_ultima_fila
 L 0x732f haz_lo_que_solo_hay_con_un_jugador
 L 0x734d cuenta_el_descanso_entre_asaltos
 L 0x73b7 pinta_el_marcador_de_vidas
-L 0x73e3 reparte_la_subescena_del_bicho
+L 0x73e3 reparte_la_subescena_de_la_sopa
 L 0x6976 arranca_la_orden_pedida
 L 0x6a33 alterna_las_dos_piernas_al_andar
 L 0x6b4c elige_el_fotograma_segun_el_lado

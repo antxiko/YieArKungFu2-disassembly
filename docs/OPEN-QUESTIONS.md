@@ -3,16 +3,13 @@
 The listing is complete: 32,768 bytes, none unexplained. That does not mean
 everything about the cartridge is known. What is not, is here.
 
-## What the first part actually gets you
+## ~~What the first part actually gets you~~
 
-`0x74A3` is the only reader of the flag the slot scan leaves at `(0xE450)`, and
-it copies four bytes from `0x74F1` and calls `0x7518`, which paints the 3x4
-figure at `0x7525` at row 6, column 14. That much is read off the code.
-
-What has **not** been done is recording it: two cartridges in openMSX, a
-single-player game, round 3 or later, and a capture of what appears. Until that
-is done, what the extra *means* in play is not settled — and this series does
-not put guesses on a page.
+**CLOSED** on 2026-09-09, at theNestruo's request. It is a **drink** that
+refills the player's energy bar when both bars are nearly empty, and the sign at
+`0x7525` is its announcement. Measured in openMSX with `(0xE450) = 1`: the bars
+go from `(0x08, 0x0C)` to `(0x24, 0x0C)`. It is in the
+[findings](FINDINGS.html).
 
 ## Where the wave screens get their tiles
 

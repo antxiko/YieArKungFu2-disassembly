@@ -78,9 +78,14 @@ Tres cosas, y ninguna se nota como un dibujo raro:
 vez, izquierda dos, abajo tres y derecha cuatro. `(0xE055)` se pone a `0x95`.
 
 **La primera parte en la otra ranura.** Poner el Yie Ar Kung-Fu (RC-725) en la
-segunda ranura, jugar una partida de un jugador y llegar a la ronda 3. Lo que
-dibuja entonces `0x74A3` **no** esta grabado aqui: esta en las preguntas
-abiertas.
+segunda ranura, jugar una partida de un jugador y llegar al nivel 3. El extra
+sale cuando las dos barras estan bajo minimos. Para verlo sin llegar hasta ahi:
+`debug write memory 0xE450 1`, `0xE053 3`, `0xE100 8` y `0xE102 12`.
+
+**La sopa.** Sale en la fase 3, con un jugador, PEGANDO en el sitio de la ronda
+-la pareja que `0x5027` deja en `(0xE300)`-. Para verla sin buscar el sitio, un
+punto de interrupcion en `0x7402` que escriba en `0xE300` la caja del golpe del
+propio jugador, `(0xE12C)` menos dos.
 
 ## Para medir cualquier otra cosa
 

@@ -47,9 +47,14 @@ tiles.
 
 ## What turned up
 
-- **The cartridge looks for its own first part in the next slot.** Before it
+- **The soup that makes you invulnerable comes out by STRIKING a different
+  spot in every round.** The eight spots are at `0x507A`, and what is compared
+  against them is the **strike** box, which only exists in four of the ten
+  poses.
+- **The game checks Yie Ar Kung-Fu (RC-725) in the second slot.** Before it
   installs the interrupt hook it scans the four slots and takes two 16-byte
-  sums, and it tells the two builds of Yie Ar Kung-Fu (RC-725) apart.
+  sums, and it tells the two builds apart. With it plugged in, from level 3 on
+  a drink shows up that refills your bar when both fighters are nearly out.
 - **Half a screen and a mirror**: the scenery is drawn only on the left, and
   the right half is the same patterns with all eight bits reversed. Which is
   why colour is written twice and the pattern once.

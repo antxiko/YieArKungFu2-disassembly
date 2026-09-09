@@ -1790,11 +1790,14 @@ DATA_ajustes_de_la_partida:
 	defb 0ffh,0eeh,0ffh,0eeh,0ffh,0aah,0afh,0feh,0efh,0ffh	; 5070  ..........
 
 ; ----------------------------------------------------------------------
-; DATOS dos_bytes_por_ronda: ocho parejas; 0x5027 entra con 2*(0xE066) y copia
-;   la que salga a 0xE300. No son el escenario -eso lo da 0xE2C0-: los valores
-;   son 0x7E80, 0x8EE0, 0x68D8, 0x8E03, 0x9E90, 0x6810, 0x6880 y 0x8E80
+; DATOS el_sitio_de_la_sopa_por_ronda: ocho parejas [y][x], una por ronda;
+;   0x5027 entra con 2*(0xE066) y copia la que salga a 0xE300. Es EL SITIO
+;   DONDE SALE LA SOPA: 0x7402 mira si la caja del golpe del jugador cae
+;   dentro de la ventana de 11x11 que empieza dos mas alla de esa pareja. Las
+;   ocho: (0x7E,0x80) (0x8E,0xE0) (0x68,0xD8) (0x8E,0x03) (0x9E,0x90)
+;   (0x68,0x10) (0x68,0x80) y (0x8E,0x80)
 ;   0x507a..0x508a  (16 bytes)
-DATA_dos_bytes_por_ronda:
+DATA_el_sitio_de_la_sopa_por_ronda:
 	defb 07eh,080h	; 507a
 	defb 08eh,0e0h	; 507c
 	defb 068h,0d8h	; 507e
@@ -2072,27 +2075,27 @@ L_521A:
 	call mira_el_toque_de_lo_que_vuela		;5248   ; ...no llegan aqui: mirar los choques
 	call mueve_las_tres_cosas_que_vuelan		;524b   ; Y el agarre
 L_524E:
-	ld hl,0e181h		;524e   ; Le queda invulnerabilidad?
+	ld hl,0e181h		;524e   ; Le queda agarre?
 	ld a,(hl)			;5251
 	and a			;5252
 	ret z			;5253   ; No
-	call baja_la_invulnerabilidad		;5254   ; Bajarla un punto
+	call forcejea_para_soltarse		;5254   ; Bajarlo un punto
 	ld a,001h		;5257   ; Y apuntar si sigue
 	jr nz,L_525C		;5259
 	dec a			;525b
 L_525C:
 	ld (0e110h),a		;525c
 	ret			;525f
-mira_la_invulnerabilidad:
-	ld hl,0e181h		;5260   ; Otra vez la invulnerabilidad
+mira_si_esta_agarrado:
+	ld hl,0e181h		;5260   ; La cuenta del agarre
 	ld a,(hl)			;5263
 	and a			;5264
 	ret z			;5265
-baja_la_invulnerabilidad:
+forcejea_para_soltarse:
 	ld a,(0e008h)		;5266   ; Se esta pulsando el disparo?
 	and 010h		;5269
 	jr z,L_5273		;526b
-	dec (hl)			;526d   ; Entonces baja de cuatro en cuatro
+	dec (hl)			;526d   ; Forcejeando se suelta cuatro veces mas rapido
 	ret z			;526e
 	dec (hl)			;526f
 	ret z			;5270
@@ -2131,7 +2134,7 @@ pon_las_escenas_del_jugador_y_del_enemigo:
 ; levantarse. Lo que se quita depende de la ronda y del modo.
 ; ----------------------------------------------------------------------
 encaja_el_golpe:
-	call mira_la_invulnerabilidad		;5294   ; Ir gastando la invulnerabilidad
+	call mira_si_esta_agarrado		;5294   ; Ir gastando el agarre
 	ld hl,0e004h		;5297   ; La espera
 	dec (hl)			;529a
 	ret nz			;529b
@@ -2328,7 +2331,7 @@ L_53F1:
 	ld (de),a			;53f2   ; No hay toque: limpiar la marca
 	ret			;53f3
 mira_si_el_enemigo_esta_tocado:
-	ld a,(0e29eh)		;53f4   ; Hay algo que lo impida?
+	ld a,(0e29eh)		;53f4   ; Con la sopa, el golpe del jugador no cuenta
 	and a			;53f7
 	ret nz			;53f8
 	ld a,(0e10bh)		;53f9   ; El jugador esta a lo suyo?
@@ -2571,7 +2574,7 @@ mira_si_la_coordenada_esta_a_tiro:
 	pop hl			;5586
 	ret			;5587
 L_5588:
-	ld a,(0e29eh)		;5588   ; Hay algo que lo impida?
+	ld a,(0e29eh)		;5588   ; Con la sopa, el enemigo no lanza nada
 	and a			;558b
 	ret nz			;558c
 	ld a,(0e1b0h)		;558d   ; Ya hay cuatro cosas volando?
@@ -2638,12 +2641,12 @@ elige_la_caja_del_que_toca:
 L_5603:
 	ld (0e180h),a		;5603   ; De quien fue el tanteo
 	ld de,0e1e0h		;5606   ; Los atributos del numerito
-	ld a,(hl)			;5609   ; Su columna...
-	sub 006h		;560a   ; ...seis a la izquierda
+	ld a,(hl)			;5609   ; Su fila...
+	sub 006h		;560a   ; ...seis mas arriba
 	ld (de),a			;560c
 	inc hl			;560d
 	inc de			;560e
-	ld a,(hl)			;560f   ; Y su fila, igual
+	ld a,(hl)			;560f   ; Y su columna, igual
 	sub 006h		;5610
 	ld (de),a			;5612
 	inc de			;5613
@@ -2694,7 +2697,7 @@ mira_el_toque_de_una_de_las_que_vuelan:
 	ld c,a			;566b
 	and a			;566c
 	jr z,L_5689		;566d   ; No
-	ld a,(0e29eh)		;566f   ; Es el momento de agarrar?
+	ld a,(0e29eh)		;566f   ; Con la sopa, lo que vuela se queda agarrado en vez de tocar
 	and a			;5672
 	jr z,L_567C		;5673
 	ld a,002h		;5675   ; Entonces pasa al estado 2: agarrada
@@ -4936,10 +4939,10 @@ pon_los_colores_del_fotograma:
 	push hl			;6c14
 	ld a,(hl)			;6c15   ; El byte de la paleta, que va delante de los trios
 	push af			;6c16
-	ld a,(0e10bh)		;6c17   ; Invulnerable?
+	ld a,(0e10bh)		;6c17   ; Solo parpadea si el jugador esta en pie
 	cp 002h		;6c1a
 	jr nc,L_6C34		;6c1c
-	ld a,(0e29eh)		;6c1e   ; Hay algo que haga parpadear al muneco?
+	ld a,(0e29eh)		;6c1e   ; La sopa hace parpadear al muneco...
 	and a			;6c21
 	jr nz,L_6C2A		;6c22
 	ld a,(0e265h)		;6c24
@@ -5949,7 +5952,7 @@ haz_lo_que_solo_hay_con_un_jugador:
 	ld a,(0e107h)		;733e   ; Solo en el modo 3...
 	cp 003h		;7341
 	ret nz			;7343
-	call reparte_la_subescena_del_bicho		;7344   ; ...hay bicho volando...
+	call reparte_la_subescena_de_la_sopa		;7344   ; ...hay bicho volando...
 	call el_extra_del_cartucho_vecino		;7347   ; ...y premio del cartucho hermano
 	jp L_752D		;734a   ; Y subir sus atributos
 cuenta_el_descanso_entre_asaltos:
@@ -5959,7 +5962,7 @@ cuenta_el_descanso_entre_asaltos:
 	jr z,L_7375		;7352
 	dec (hl)			;7354   ; Una menos
 	ret nz			;7355
-	ld a,024h		;7356   ; Las dos barras, llenas otra vez
+	ld a,024h		;7356   ; La barra del jugador, llena otra vez -y su copia pintada-
 	ld (0e100h),a		;7358
 	ld (0e101h),a		;735b
 	xor a			;735e   ; Y el aviso, apagado
@@ -6034,11 +6037,50 @@ L_73CF:
 	ld hl,03ae3h		;73db   ; Desde 0x3AE3...
 	ld a,083h		;73de   ; ...con la 0x83
 	jp rellena_c_bytes_con_filvrm		;73e0
-reparte_la_subescena_del_bicho:
+
+; ----------------------------------------------------------------------
+; ======================================================================
+; LA SOPA: SEIS ESCENAS, Y UN SITIO DISTINTO EN CADA RONDA
+; ======================================================================
+; El cuenco humeante que deja invulnerable un rato. Solo lo hay en la
+; FASE 3 de la ronda -0x733E exige (0xE107) = 3, que es lo que la tabla
+; de 0x508A da para (0xE060) = 3- y con UN SOLO jugador (0x732F).
+;
+; COMO SALE. Al empezar la ronda, 0x5027 copia a 0xE300 la pareja que le
+; toca de `el_sitio_de_la_sopa_por_ronda` (0x507A). Aqui, un cuadro de
+; cada dos, la escena 0 (0x73FD) pregunta por esa pareja: la caja del
+; GOLPE del jugador -0xE12C, la CUARTA de las cuatro que monta 0x684A-
+; tiene que caer dentro de una ventana de 11x11 que empieza dos mas alla.
+; Y esa cuarta caja NO existe en todos los fotogramas: de los diez
+; dibujos de 0x6C83 solo la llevan el 1, el 3, el 5 y el 6, que son los
+; cuatro ATAQUES. En los demas sale [y][x] = 0 y el `and a` de 0x65C6 la
+; tumba. O sea que no basta con ponerse ahi: hay que PEGAR ahi.
+;
+; LAS SEIS ESCENAS (la tabla de 0x73F1):
+; 0  0x73FD  mira el sitio, y si encaja suelta el cuenco arriba
+; 1  0x7427  lo baja 0x62 cuadros
+; 2  0x7458  quieto y parpadeando: si lo toca, (0xE29E) = 0xA8
+; 3  0x7483  el destello de 0x20 cuadros, y a aparcar el sprite
+; 4  0x748F  gastar la invulnerabilidad, y (0xE261) = 1
+; 5  0x749C  aparcar y volver a la 0
+;
+; LO QUE DA. (0xE29E) = 0xA8, que baja de uno en uno un cuadro de cada
+; dos: 168/25 = SEIS SEGUNDOS Y MEDIO en una maquina de 50 Hz. Mientras
+; no valga cero: el golpe del jugador no cuenta (0x53F4), el enemigo no
+; lanza nada (0x5588), lo que ya volaba se queda agarrado en vez de
+; tocar (0x566F), no se rompen las ranuras (0x7734), nada toca al
+; jugador (0x798C) y el muneco parpadea (0x6C1E). Ademas `coge_el_premio`
+; suma 5 al byte de centenas del tanteo: 500 puntos.
+;
+; Y UNA SOLA VEZ POR RONDA: al agotarse, la escena 4 deja (0xE261) = 1 y
+; la escena 0 se planta ahi. Solo el borrado de 0x4FC8 -0xE10B en
+; adelante, 0x194 bytes- lo devuelve a cero.
+; ----------------------------------------------------------------------
+reparte_la_subescena_de_la_sopa:
 	ld a,(0e003h)		;73e3   ; Un cuadro de cada dos
 	and 001h		;73e6
 	ret nz			;73e8
-	ld bc,(0e262h)		;73e9   ; La escena y la subescena del bicho
+	ld bc,(0e262h)		;73e9   ; La escena y la subescena de la sopa
 	ld a,c			;73ed
 	call reparte_por_tabla		;73ee   ; Repartir
 
@@ -6058,7 +6100,7 @@ L_73FD:
 	ld a,(0e261h)		;73fd   ; Ya hay uno fuera?
 	and a			;7400
 	ret nz			;7401
-	ld hl,0e300h		;7402   ; Esta el jugador a tiro?
+	ld hl,0e300h		;7402   ; Esta pegando en el sitio de esta ronda?
 	call mira_si_llego_a_su_sitio		;7405
 	ret z			;7408   ; No
 	ld de,0e250h		;7409   ; Su atributo
@@ -6073,7 +6115,7 @@ L_73FD:
 	inc de			;741a
 	ld (de),a			;741b
 	inc de			;741c
-	ld a,0dch		;741d   ; Casilla 0xDC
+	ld a,0dch		;741d   ; El patron 0xDC: el cuenco humeante
 	ld (de),a			;741f
 	inc de			;7420
 	ld a,00fh		;7421   ; Y color 0x0F
@@ -6112,10 +6154,10 @@ L_7455:
 	or 001h		;7455   ; Devolver "vale"
 	ret			;7457
 L_7458:
-	ld hl,0e253h		;7458   ; La coordenada del bicho
+	ld hl,0e253h		;7458   ; La coordenada de la sopa
 	call alterna_el_color_del_premio		;745b   ; Toca al jugador?
 	jr z,L_7473		;745e
-	ld a,0a8h		;7460   ; 0xA8 cuadros de castigo
+	ld a,0a8h		;7460   ; 0xA8 de invulnerabilidad
 	ld (0e29eh),a		;7462
 	ld de,0e260h		;7465
 	ld hl,0e252h		;7468
@@ -6164,7 +6206,22 @@ L_749C:
 ; 16 bytes contra las dos parejas de 0xBFD9, que son las de las DOS
 ; compilaciones del RC-725. Si lo encuentra, deja (0xE450) = 1, y este
 ; es el UNICO sitio de todo el cartucho que mira esa marca.
-; Ademas exige nivel 3 o mas y un solo jugador (eso lo filtra 0x732F).
+;
+; NO ES LA SOPA, Y NO LA CAMBIA EN NADA. Es una pieza APARTE, con su
+; propio sprite -el patron 0xE0, los cuatro bytes de 0x74F1- y su
+; propio cartel, la figura de 4x3 casillas de 0x7525 que 0x751B pone en
+; la fila 6, columna 14. La sopa vive en 0xE250 y esta en 0xE254: son
+; los dos sprites que 0x752D sube juntos.
+;
+; CUANDO SALE. Con el cartucho hermano puesto, en la fase 3 y con un
+; solo jugador (0x732F), del NIVEL 3 en adelante (0xE053), y con las
+; DOS barras bajo minimos: la del jugador por debajo de 9 y la del
+; rival por debajo de 13, de 0x24 que es el tope.
+;
+; QUE DA. Cogerla salta a 0x738C con B = 1: 0x10 cuadros de descanso, y
+; al agotarse 0x7356 pone la barra DEL JUGADOR a 0x24 otra vez. La del
+; rival no se toca, y como (0xE266) queda a 1 nadie pierde una vida.
+; Medido en openMSX: las barras pasan de (0x08, 0x0C) a (0x24, 0x0C).
 ; ----------------------------------------------------------------------
 el_extra_del_cartucho_vecino:		; Lo unico que mira 0xE450; ademas pide ronda >= 3
 	ld a,(0e450h)		;74a3   ; La marca del cartucho vecino
@@ -6181,9 +6238,9 @@ el_extra_del_cartucho_vecino:		; Lo unico que mira 0xE450; ademas pide ronda >= 
 	and a			;74ba
 	jr nz,L_74E4		;74bb
 	ld a,(0e100h)		;74bd   ; La barra del jugador...
-	cp 009h		;74c0   ; ...tiene que estar bajo mininos
+	cp 009h		;74c0   ; ...tiene que estar por debajo de 9, de 0x24 que es el tope
 	jr nc,L_74E4		;74c2
-	ld a,(0e102h)		;74c4   ; Y la otra tambien
+	ld a,(0e102h)		;74c4   ; Y la del rival, por debajo de 13
 	cp 00dh		;74c7
 	jr nc,L_74E4		;74c9
 	ld a,(0e272h)		;74cb   ; Por que paso va
@@ -6579,7 +6636,7 @@ mira_si_lo_lanzado_le_da_al_enemigo:
 	ld (de),a			;7732
 	ret			;7733
 mira_si_el_jugador_rompe_alguna_ranura:
-	ld a,(0e29eh)		;7734   ; Hay algo que lo impida?
+	ld a,(0e29eh)		;7734   ; Con la sopa no se rompen las ranuras
 	and a			;7737
 	ret nz			;7738
 	ld iy,0e1a0h		;7739   ; La primera
@@ -6977,7 +7034,7 @@ L_7988:
 	ld (hl),a			;798a   ; Ahi va el color
 	ret			;798b
 mira_si_alguna_toca_al_jugador:
-	ld a,(0e29eh)		;798c   ; Hay algo que lo impida?
+	ld a,(0e29eh)		;798c   ; Con la sopa no toca nada al jugador
 	and a			;798f
 	ret nz			;7990
 	ld iy,0e1a0h		;7991   ; La primera

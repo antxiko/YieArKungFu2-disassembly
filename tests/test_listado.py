@@ -443,6 +443,39 @@ class TestLosFotogramasDelJugador(unittest.TestCase):
                          [0x00, 0x04, 0x08, 0x0C, 0x10, 0x14, 0x18, 0x1C])
 
 
+class TestLaSopa(unittest.TestCase):
+    """El sitio de cada ronda, y los cuatro golpes que pueden alcanzarlo.
+
+    Lo que se publica es que la sopa sale PEGANDO en un sitio distinto por
+    ronda. Las dos mitades de esa frase salen de los bytes: la tabla de
+    0x507A da el sitio, y la CUARTA caja de cada dibujo -la que 0x7402
+    compara con el- solo existe en cuatro de los diez.
+    """
+
+    def cuarta_caja(self, i):
+        """La cuarta caja del dibujo i, o None si ese fotograma no la lleva."""
+        import figuras                                          # noqa: E402
+        p = palabra(0x6C83 + 4 * i)
+        cajas, _ = figuras.lee_las_cuatro_cajas(ROM, p, ORG)
+        if cajas and cajas[-1][2] is None:       # la cuarta no lleva alto ni ancho
+            return cajas[-1][0], cajas[-1][1]
+        return None
+
+    def test_son_ocho_parejas_una_por_ronda(self):
+        self.assertEqual(trozo(0x507A, 16),
+                         [0x7E, 0x80, 0x8E, 0xE0, 0x68, 0xD8, 0x8E, 0x03,
+                          0x9E, 0x90, 0x68, 0x10, 0x68, 0x80, 0x8E, 0x80])
+
+    def test_solo_cuatro_dibujos_llevan_la_caja_del_golpe(self):
+        """Y son los cuatro ataques: sin ella, 0x65C6 tumba la comparacion."""
+        con = [i for i in range(10) if self.cuarta_caja(i) is not None]
+        self.assertEqual(con, [1, 3, 5, 6])
+
+    def test_los_cuatro_puntos_del_golpe(self):
+        self.assertEqual([self.cuarta_caja(i) for i in (1, 3, 5, 6)],
+                         [(0x0D, 0x18), (0x01, 0x1E), (0x15, 0x16), (0x1A, 0x1E)])
+
+
 class TestElTrucoDeLasVidas(unittest.TestCase):
     """Las diez pulsaciones que hay que acertar, leidas de los bytes."""
 

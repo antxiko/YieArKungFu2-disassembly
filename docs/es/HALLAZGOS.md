@@ -1,6 +1,6 @@
 # Hallazgos
 
-## El cartucho busca a su primera parte en la ranura de al lado
+## El juego busca el Yie Ar Kung-Fu (RC-725) en la segunda ranura
 
 Lo primero que hace INIT, antes incluso de instalar el gancho de interrupcion,
 es llamar a `0xBF6C`. Ahi hay un rastreo de ranuras: recorre las cuatro
@@ -18,15 +18,90 @@ por las demas ROM de esta serie no cuadra ninguna, asi que la identificacion no
 es una suposicion.
 
 Si lo encuentra, `(0xE450) = 1`. El **unico** sitio del juego que mira esa marca
-es `0x74A3`, y ademas exige **ronda 3 o mas** (`0xE053`) y **un solo jugador**
-(bit 5 de `0xE002`, comprobado en `0x732F`). El premio son cuatro bytes copiados
-de `0x74F1` y una figura de 3x4 casillas en `0x7525`, que `0x7518` pinta en la
-fila 6, columna 14.
+es `0x74A3`, y ademas exige **nivel 3 o mas** (`0xE053`), **un solo jugador**
+(bit 5 de `0xE002`, comprobado en `0x732F`) y la fase 3.
+
+**Y ya se sabe que da.** Sale cuando las **dos** barras estan bajo minimos -la
+del jugador por debajo de 9 y la del rival por debajo de 13, de `0x24` que es el
+tope-: un cartel de 4x3 casillas (`0x7525`, fila 6 columna 14) y un **refresco**
+que baja, el sprite de los cuatro bytes de `0x74F1`.
+
+![El cartel y las dos piezas](../imagenes/cartel.png)
+
+Cogerlo salta a `0x738C` con B = 1: `0x10` cuadros de descanso y, al agotarse,
+`0x7356` deja la barra **del jugador** otra vez a `0x24`. La del rival no se
+toca, y como `(0xE266)` queda a 1 nadie pierde una vida. Medido en openMSX: las
+barras pasan de `(0x08, 0x0C)` a `(0x24, 0x0C)`.
+
+Y **no tiene nada que ver con la sopa**: son dos piezas distintas, en dos
+atributos distintos -`0xE250` la sopa y `0xE254` el refresco-, y la marca del
+vecino no entra en el camino de la sopa por ningun sitio.
 
 Esto no es la cabecera del Game Master: aquello es un cartucho leyendo un
 *aparato de trucos*. Esto es un juego mirando a **otro juego**. Si Konami lo
 hizo una vez puede estar en mas sitios, y la pista es un `call` muy temprano
 desde INIT que toca `0xFCC1` y ENASLT.
+
+## La sopa: hay que PEGAR en un sitio distinto en cada ronda
+
+El cuenco humeante que deja invulnerable un rato no sale al azar, y el sitio no
+es el mismo en todas las rondas.
+
+![Las dos piezas que caen](../imagenes/piezas.png)
+
+Al empezar la ronda, `0x5027` copia a `0xE300` la pareja que le toca de una
+tabla de **ocho** en `0x507A`, dos bytes por ronda: **fila y columna**. Esa
+tabla ya estaba en el listado, sin saber de que era.
+
+    ronda 1   (0x7E, 0x80)      ronda 5   (0x9E, 0x90)
+    ronda 2   (0x8E, 0xE0)      ronda 6   (0x68, 0x10)
+    ronda 3   (0x68, 0xD8)      ronda 7   (0x68, 0x80)
+    ronda 4   (0x8E, 0x03)      ronda 8   (0x8E, 0x80)
+
+Despues, un cuadro de cada dos, `0x73FD` pregunta si el jugador esta ahi. Pero
+no mira donde esta el muneco: mira `0xE12C`, que es la **cuarta** de las cuatro
+cajas que monta `0x684A` -la caja del **golpe**, la misma que `0x53B3` usa para
+saber si el jugador alcanza al rival-. Tiene que caer dentro de una ventana de
+**11x11** que empieza dos mas alla de la pareja.
+
+Y esa cuarta caja **no existe en todos los fotogramas**:
+
+![El punto del golpe](../imagenes/golpes.png)
+
+De los diez dibujos de `0x6C83` solo la llevan el 1, el 3, el 5 y el 6, que son
+los **cuatro ataques**. En los otros seis el guion trae `0x80`, `0x684A` deja la
+caja a cero y el `and a` de `0x65C6` la tumba. O sea que no basta con ponerse en
+el sitio: **hay que pegar** ahi.
+
+Ademas, solo en la **fase 3** de la ronda -`0x733E` exige `(0xE107) = 3`, que es
+lo que la tabla de `0x508A` da para `(0xE060) = 3`- y con **un solo jugador**
+(`0x732F`).
+
+**Lo que da.** `(0xE29E) = 0xA8`, que baja de uno en uno un cuadro de cada dos:
+seis segundos y medio a 50 Hz. Mientras no valga cero:
+
+| donde | que deja de pasar |
+| --- | --- |
+| `0x53F4` | el golpe del jugador no cuenta |
+| `0x5588` | el rival no lanza nada |
+| `0x566F` | lo que ya volaba se queda agarrado en vez de tocar |
+| `0x7734` | no se rompen las ranuras |
+| `0x798C` | nada toca al jugador |
+| `0x6C1E` | y el muneco parpadea |
+
+Ademas `coge_el_premio` suma 5 al byte de centenas del tanteo: 500 puntos. Y
+**una sola vez por ronda**: al agotarse, `0x7496` deja `(0xE261) = 1` y la
+escena 0 deja de preguntar.
+
+**Comprobado en openMSX.** En la demostracion `(0xE300) = (0x7E, 0x80)`, la
+primera pareja de la tabla. Moviendo el sitio encima del jugador -sin tocar un
+byte del cartucho- el cuenco cae, y al tocarlo `0xE29E` se pone a `0xA8` y baja
+hasta cero a 25 por segundo.
+
+De paso, el listado tenia dos rutinas llamadas `mira_la_invulnerabilidad` y
+`baja_la_invulnerabilidad` que **no** son eso: miran `0xE181`, que es la cuenta
+del **agarre**. Por eso baja de cuatro en cuatro al pulsar disparo: es
+forcejear. Ya estan renombradas.
 
 ## Media pantalla y un espejo
 

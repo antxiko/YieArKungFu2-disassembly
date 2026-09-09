@@ -10,7 +10,48 @@ VRAM del emulador, y lleva su direccion al lado.
 
 HALLAZGOS = {
     "es": [
-        ("El cartucho busca a su primera parte en la ranura de al lado",
+        ("La sopa: hay que PEGAR en un sitio distinto en cada ronda",
+         "<p>El cuenco humeante que deja invulnerable un rato no sale al azar. "
+         "Al empezar la ronda, <code>0x5027</code> copia a <code>0xE300</code> "
+         "la pareja que le toca de una tabla de <b>ocho</b>, en "
+         "<code>0x507A</code>, dos bytes por ronda: <b>fila y columna</b>. En "
+         "el listado esa tabla estaba, sin saber de que era.</p>"
+         "<p>Despues, un cuadro de cada dos, <code>0x73FD</code> pregunta si "
+         "el jugador esta ahi. Pero no mira donde esta el muneco: mira "
+         "<code>0xE12C</code>, que es la <b>CUARTA</b> de las cuatro cajas que "
+         "monta <code>0x684A</code> -la caja del <b>golpe</b>, la misma que "
+         "<code>0x53B3</code> usa para saber si el jugador alcanza al rival-. "
+         "Tiene que caer dentro de una ventana de <b>11x11</b> que empieza dos "
+         "mas alla de la pareja.</p>"
+         "<p>Y esa cuarta caja <b>no existe en todos los fotogramas</b>. De "
+         "los diez dibujos de <code>0x6C83</code> solo la llevan el 1, el 3, "
+         "el 5 y el 6, que son los <b>cuatro ataques</b>; en los otros seis el "
+         "guion trae <code>0x80</code>, <code>0x684A</code> deja la caja a "
+         "cero y el <code>and a</code> de <code>0x65C6</code> la tumba. O sea "
+         "que no basta con ponerse en el sitio: <b>hay que pegar</b> ahi. Eso "
+         "es el movimiento particular en el punto particular.</p>"
+         "<p><b>Las ocho parejas</b> (fila, columna): "
+         "<code>(0x7E,0x80) (0x8E,0xE0) (0x68,0xD8) (0x8E,0x03) (0x9E,0x90) "
+         "(0x68,0x10) (0x68,0x80) (0x8E,0x80)</code>. Solo en la <b>fase 3</b> "
+         "de la ronda -<code>0x733E</code> exige <code>(0xE107) = 3</code>- y "
+         "con <b>un solo jugador</b> (<code>0x732F</code>).</p>"
+         "<p><b>Lo que da:</b> <code>(0xE29E) = 0xA8</code>, que baja de uno "
+         "en uno un cuadro de cada dos: <b>seis segundos y medio</b> a 50 Hz. "
+         "Mientras no valga cero, el golpe del jugador no cuenta "
+         "(<code>0x53F4</code>), el rival no lanza nada "
+         "(<code>0x5588</code>), lo que ya volaba se queda agarrado en vez de "
+         "tocar (<code>0x566F</code>), no se rompen las ranuras "
+         "(<code>0x7734</code>), nada toca al jugador (<code>0x798C</code>) y "
+         "el muneco <b>parpadea</b> (<code>0x6C1E</code>). Ademas suma 500 "
+         "puntos. Y <b>una sola vez por ronda</b>: al agotarse, "
+         "<code>0x7496</code> deja <code>(0xE261) = 1</code> y la escena 0 se "
+         "planta.</p>"
+         "<p>Comprobado en openMSX: en la demostracion "
+         "<code>(0xE300) = (0x7E, 0x80)</code>, la primera pareja de la tabla. "
+         "Moviendo el sitio encima del jugador el cuenco cae, y al tocarlo "
+         "<code>0xE29E</code> se pone a 0xA8 y baja hasta cero.</p>"),
+
+        ("El juego busca el Yie Ar Kung-Fu (RC-725) en la segunda ranura",
          "<p>Lo primero que hace <code>INIT</code>, antes incluso de instalar "
          "el gancho de interrupcion, es llamar a <code>0xBF6C</code>. Ahi hay "
          "un <b>rastreo de ranuras</b>: recorre las cuatro primarias de "
@@ -26,11 +67,22 @@ HALLAZGOS = {
          "suposicion.</p>"
          "<p>Si lo encuentra, <code>(0xE450) = 1</code>. El <b>unico</b> sitio "
          "del juego que mira esa marca es <code>0x74A3</code>, y ademas exige "
-         "<b>ronda 3 o mas</b> (<code>0xE053</code>) y <b>un solo jugador</b> "
-         "(bit 5 de <code>0xE002</code>). El premio son cuatro bytes de "
-         "<code>0x74F1</code> y una figura de 3x4 casillas en "
-         "<code>0x7525</code>, que <code>0x7518</code> pinta en la fila 6, "
-         "columna 14.</p>"),
+         "<b>nivel 3 o mas</b> (<code>0xE053</code>), <b>un solo jugador</b> "
+         "(bit 5 de <code>0xE002</code>) y la fase 3.</p>"
+         "<p><b>Que da, medido.</b> Sale cuando las <b>dos</b> barras estan "
+         "bajo minimos -la del jugador por debajo de 9 y la del rival por "
+         "debajo de 13, de 0x24 que es el tope-: un cartel de 4x3 casillas "
+         "(<code>0x7525</code>, fila 6 columna 14) y un <b>refresco</b> que "
+         "baja, el sprite de los cuatro bytes de <code>0x74F1</code>. "
+         "Cogerlo salta a <code>0x738C</code> con B = 1, y al agotarse los "
+         "0x10 cuadros de descanso <code>0x7356</code> deja la barra <b>del "
+         "jugador</b> otra vez a 0x24. La del rival no se toca y nadie pierde "
+         "una vida. En openMSX las barras pasan de "
+         "<code>(0x08, 0x0C)</code> a <code>(0x24, 0x0C)</code>.</p>"
+         "<p>Y <b>no tiene nada que ver con la sopa</b>: son dos piezas "
+         "distintas, en dos atributos distintos -<code>0xE250</code> la sopa "
+         "y <code>0xE254</code> el refresco-, y la marca del vecino no entra "
+         "en el camino de la sopa por ningun sitio.</p>"),
 
         ("Media pantalla y un espejo",
          "<p><code>0x597F</code> monta la pantalla de combate con "
@@ -129,7 +181,49 @@ HALLAZGOS = {
          "columnas a la izquierda de donde va.</p>"),
     ],
     "en": [
-        ("The cartridge looks for its own first part in the next slot",
+        ("The soup: you must STRIKE a different spot in every round",
+         "<p>The steaming bowl that makes you invulnerable for a while does "
+         "not come out at random. At the start of a round <code>0x5027</code> "
+         "copies into <code>0xE300</code> the pair that belongs to it from a "
+         "table of <b>eight</b> at <code>0x507A</code>, two bytes per round: "
+         "<b>row and column</b>. That table was already in the listing, with "
+         "nobody knowing what it was for.</p>"
+         "<p>Then, one frame in two, <code>0x73FD</code> asks whether the "
+         "player is there. But it does not look at where the figure is: it "
+         "looks at <code>0xE12C</code>, the <b>FOURTH</b> of the four boxes "
+         "built by <code>0x684A</code> -the <b>strike</b> box, the very one "
+         "<code>0x53B3</code> uses to decide whether the player reaches the "
+         "rival-. It has to fall inside an <b>11x11</b> window starting two "
+         "beyond that pair.</p>"
+         "<p>And that fourth box <b>does not exist in every frame</b>. Of the "
+         "ten drawings at <code>0x6C83</code> only 1, 3, 5 and 6 carry it, and "
+         "those are the <b>four attacks</b>; in the other six the script has "
+         "<code>0x80</code>, <code>0x684A</code> leaves the box at zero and "
+         "the <code>and a</code> at <code>0x65C6</code> knocks it out. So "
+         "standing on the spot is not enough: <b>you have to strike</b> "
+         "there. That is the particular movement at the particular point.</p>"
+         "<p><b>The eight pairs</b> (row, column): "
+         "<code>(0x7E,0x80) (0x8E,0xE0) (0x68,0xD8) (0x8E,0x03) (0x9E,0x90) "
+         "(0x68,0x10) (0x68,0x80) (0x8E,0x80)</code>. Only in <b>phase 3</b> "
+         "of the round -<code>0x733E</code> demands <code>(0xE107) = 3</code>- "
+         "and with a <b>single player</b> (<code>0x732F</code>).</p>"
+         "<p><b>What it gives:</b> <code>(0xE29E) = 0xA8</code>, counting down "
+         "by one every other frame: <b>six and a half seconds</b> at 50 Hz. "
+         "While it is not zero the player's blow does not count "
+         "(<code>0x53F4</code>), the rival throws nothing "
+         "(<code>0x5588</code>), whatever was already flying gets caught "
+         "instead of hitting (<code>0x566F</code>), the slots cannot be broken "
+         "(<code>0x7734</code>), nothing touches the player "
+         "(<code>0x798C</code>) and the figure <b>blinks</b> "
+         "(<code>0x6C1E</code>). It also adds 500 points. And <b>once per "
+         "round only</b>: when it runs out <code>0x7496</code> sets "
+         "<code>(0xE261) = 1</code> and scene 0 stops asking.</p>"
+         "<p>Checked in openMSX: during the demo "
+         "<code>(0xE300) = (0x7E, 0x80)</code>, the first pair of the table. "
+         "Moving the spot onto the player makes the bowl drop, and touching it "
+         "sets <code>0xE29E</code> to 0xA8, counting down to zero.</p>"),
+
+        ("The game checks Yie Ar Kung-Fu (RC-725) in the second slot",
          "<p>The very first thing <code>INIT</code> does, before it even "
          "installs the interrupt hook, is call <code>0xBF6C</code>. There sits "
          "a <b>slot scan</b>: it walks the four primary slots from "
@@ -145,11 +239,22 @@ HALLAZGOS = {
          "identification is not a guess.</p>"
          "<p>If it finds it, <code>(0xE450) = 1</code>. The <b>only</b> place "
          "in the game that reads that flag is <code>0x74A3</code>, and it also "
-         "demands <b>round 3 or later</b> (<code>0xE053</code>) and a "
-         "<b>single player</b> (bit 5 of <code>0xE002</code>). The reward is "
-         "four bytes from <code>0x74F1</code> and a 3x4 tile figure at "
-         "<code>0x7525</code>, which <code>0x7518</code> paints at row 6, "
-         "column 14.</p>"),
+         "demands <b>level 3 or later</b> (<code>0xE053</code>), a "
+         "<b>single player</b> (bit 5 of <code>0xE002</code>) and phase 3.</p>"
+         "<p><b>What it gives, measured.</b> It shows up when <b>both</b> "
+         "energy bars are nearly empty -the player's below 9 and the "
+         "rival's below 13, out of 0x24 full-: a 4x3 tile sign "
+         "(<code>0x7525</code>, row 6 column 14) and a <b>drink</b> that "
+         "comes down, the sprite from the four bytes at <code>0x74F1</code>. "
+         "Taking it jumps to <code>0x738C</code> with B = 1, and when the "
+         "0x10 rest frames run out <code>0x7356</code> puts the "
+         "<b>player's</b> bar back to 0x24. The rival's is left alone and "
+         "nobody loses a life. In openMSX the bars go from "
+         "<code>(0x08, 0x0C)</code> to <code>(0x24, 0x0C)</code>.</p>"
+         "<p>And it has <b>nothing to do with the soup</b>: they are two "
+         "separate items in two separate attributes -<code>0xE250</code> for "
+         "the soup, <code>0xE254</code> for the drink- and the neighbour flag "
+         "does not appear anywhere along the soup's path.</p>"),
 
         ("Half a screen and a mirror",
          "<p><code>0x597F</code> builds the fight screen from <b>forty "
@@ -262,6 +367,29 @@ GALERIA = [
      "cabecera, sus trios y los guiones que suben sus patrones.",
      "LEE YOUNG's ten poses, each assembled from its four header sprites, its "
      "triples and the scripts that upload its patterns."),
+    ("golpes.png",
+     "Las mismas diez poses, con una cruz en la CUARTA caja del guion: el "
+     "punto por el que ese golpe toca. Solo la tienen cuatro -los cuatro "
+     "ataques-, y es el punto que 0x7402 compara con el sitio de la sopa. La "
+     "cruz la ponemos nosotros; el punto sale del guion.",
+     "The same ten poses, with a cross on the FOURTH box of the script: the "
+     "point where that blow lands. Only four carry it -the four attacks- and "
+     "it is the point 0x7402 compares against the soup's spot. The cross is "
+     "ours; the point comes from the script."),
+    ("piezas.png",
+     "Las dos piezas que caen, dibujadas desde la ROM: el <b>cuenco de "
+     "sopa</b> (patron 0xDC, el de la invulnerabilidad) y el <b>refresco</b> "
+     "(patron 0xE0, el del cartucho hermano). Los sube el guion suelto de "
+     "0xA7D1, no los dieciseis del muneco.",
+     "The two items that drop, drawn from the ROM: the <b>soup bowl</b> "
+     "(pattern 0xDC, the invulnerability one) and the <b>drink</b> (pattern "
+     "0xE0, the sibling-cartridge one). They come from the loose script at "
+     "0xA7D1, not from the sixteen player ones."),
+    ("cartel.png",
+     "El cartel del premio del cartucho hermano: la figura de 4x3 casillas de "
+     "0x7525, que 0x751B pone en la fila 6, columna 14.",
+     "The sign for the sibling-cartridge reward: the 4x3 tile figure at "
+     "0x7525, which 0x751B places at row 6, column 14."),
     ("escenario1.png",
      "Escenario 1, contra YEN-PEI. El decorado, el suelo y el rival salen de "
      "tablas distintas indexadas por la ronda.",
