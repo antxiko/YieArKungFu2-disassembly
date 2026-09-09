@@ -11,6 +11,7 @@ VRAM del emulador, y lleva su direccion al lado.
 HALLAZGOS = {
     "es": [
         ("La sopa: hay que PEGAR en un sitio distinto en cada ronda",
+         "<p><i>Esto lo pregunto <b><a href=\"https://github.com/theNestruo\">theNestruo</a></b> en el <a href=\"https://github.com/antxiko/YieArKungFu2-disassembly/issues/1\">issue #1</a>, y de memoria dijo que hacia falta un movimiento concreto en un punto concreto. Es exactamente lo que resulto ser, hasta en la palabra movimiento. La tabla de <code>0x507A</code> estaba aqui desde el principio con una nota diciendo que no se sabia de que era.</i></p>"
          "<p>El cuenco humeante que deja invulnerable un rato no sale al azar. "
          "Al empezar la ronda, <code>0x5027</code> copia a <code>0xE300</code> "
          "la pareja que le toca de una tabla de <b>ocho</b>, en "
@@ -182,6 +183,7 @@ HALLAZGOS = {
     ],
     "en": [
         ("The soup: you must STRIKE a different spot in every round",
+         "<p><i>Asked by <b><a href=\"https://github.com/theNestruo\">theNestruo</a></b> in <a href=\"https://github.com/antxiko/YieArKungFu2-disassembly/issues/1\">issue #1</a>, where he said from memory that it took a particular movement at a particular point. That is exactly what it turned out to be, down to the word movement. The table at <code>0x507A</code> was here all along with a note saying nobody knew what it was for.</i></p>"
          "<p>The steaming bowl that makes you invulnerable for a while does "
          "not come out at random. At the start of a round <code>0x5027</code> "
          "copies into <code>0xE300</code> the pair that belongs to it from a "

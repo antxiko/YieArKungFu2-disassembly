@@ -2,6 +2,14 @@
 
 ## The game checks Yie Ar Kung-Fu (RC-725) in the second slot
 
+*The heading of this section is **[theNestruo](https://github.com/theNestruo)**'s,
+word for word: the old one was worse and he said so. And what follows - what the
+cartridge combination actually gives you - was measured because he asked: it was
+an open question in this repository. His recollection was that what came round
+more often was the soup, and it is not: it is a separate item. But the half that
+mattered - that the combination does something and this page never said what -
+was right.*
+
 The very first thing INIT does, before it even installs the interrupt hook, is
 call `0xBF6C`. There sits a slot scan: it walks the four primary slots from
 `0xFCC1`, descends into subslots when bit 7 asks for it, switches **page 1** of
@@ -43,6 +51,14 @@ may be in more places, and the trail is a very early `call` out of INIT that
 touches `0xFCC1` and `ENASLT`.
 
 ## The soup: you must STRIKE a different spot in every round
+
+*Asked by **[theNestruo](https://github.com/theNestruo)** in
+[issue #1](https://github.com/antxiko/YieArKungFu2-disassembly/issues/1), where
+he said from memory that it took **a particular movement at a particular point,
+different in each stage**. That is exactly what it turned out to be, down to the
+word "movement": what gets compared is the STRIKE box. This disassembly had the
+table at `0x507A` in front of it all along, with a note saying nobody knew what
+it was for. Without his question it would still be sitting there.*
 
 The steaming bowl that makes you invulnerable for a while does not come out at
 random, and the spot is not the same in every round.

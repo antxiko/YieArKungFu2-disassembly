@@ -2,6 +2,13 @@
 
 ## El juego busca el Yie Ar Kung-Fu (RC-725) en la segunda ranura
 
+*El titulo de esta seccion es de **[theNestruo](https://github.com/theNestruo)**,
+palabra por palabra: el de antes era peor y lo dijo. Y lo de abajo -que da la
+combinacion de cartuchos- se midio porque el pregunto: era una pregunta abierta
+de este repositorio. Su recuerdo era que lo que salia mas a menudo era la sopa,
+y eso no es: es una pieza distinta. Pero la parte que importaba -que la
+combinacion hace algo y aqui no se contaba- era cierta.*
+
 Lo primero que hace INIT, antes incluso de instalar el gancho de interrupcion,
 es llamar a `0xBF6C`. Ahi hay un rastreo de ranuras: recorre las cuatro
 primarias de `0xFCC1`, entra en las subranuras cuando el bit 7 lo pide, conmuta
@@ -43,6 +50,14 @@ hizo una vez puede estar en mas sitios, y la pista es un `call` muy temprano
 desde INIT que toca `0xFCC1` y ENASLT.
 
 ## La sopa: hay que PEGAR en un sitio distinto en cada ronda
+
+*Esto lo pregunto **[theNestruo](https://github.com/theNestruo)** en el
+[issue #1](https://github.com/antxiko/YieArKungFu2-disassembly/issues/1), y de
+memoria dijo que hacia falta **un movimiento concreto en un punto concreto, y
+distinto en cada fase**. Es exactamente lo que resulto ser, hasta en la palabra
+«movimiento»: lo que se compara es la caja del GOLPE. Este desensamblado tenia
+la tabla de `0x507A` delante desde el principio y con una nota diciendo que no
+se sabia de que era; sin su pregunta seguiria ahi.*
 
 El cuenco humeante que deja invulnerable un rato no sale al azar, y el sitio no
 es el mismo en todas las rondas.
