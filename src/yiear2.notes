@@ -30,8 +30,12 @@ F 0x4014 w
 # EL ARMAZON
 # ======================================================================
 L 0x4025 prepara_el_titulo
+C 0x4028 PROTECCION ANTICOPIA: los bytes 0xE1 0xC9 son `pop hl` y `ret`, y van encima del `djnz` de 0x410D. Desde ROM la escritura NO llega -la ROM no admite escritura- y por eso parece codigo muerto; en una copia cargada en RAM si cuela, y la cadena de la presentacion se corta ahi. Manuel Pazos la identifico en el RC-727, donde esta escrita byte a byte, como ReadKeys_AC
+C 0x4025 0xC9E1 son, puestos en memoria, los bytes E1 C9: `pop hl` / `ret`
 L 0x402E cada_cuadro                El gancho de H.KEYI: el juego ENTERO cuelga de aqui
 L 0x4053 pon_registro_del_vdp
+C 0x4056 LA OTRA PROTECCION ANTICOPIA: el cero cae en 0x4119, que no es un dato sino el operando del `jp` de 0x4118. Desde ROM no llega; en RAM ese salto se queda en `jp 00000h`, o sea un reinicio en seco. Es la pareja de la de 0x4028, y en el RC-727 son VRAM_writeAC y ReadKeys_AC
+C 0x4053 HL a cero: es lo que va a escribir la linea siguiente
 L 0x405C suma_a_a_hl                HL += A, con el acarreo al alto
 L 0x4061 suma_a_a_de                DE += A, igual
 L 0x4066 reparte_por_tabla          El `pop hl` recoge la tabla: es la direccion de retorno

@@ -8,7 +8,7 @@ Yie-Gah** for the MSX (RC-737, 32 KB, 1985). Every one of the 32,768 bytes is
 accounted for, and the listing reassembles into the ROM **byte for byte**.
 
     explained          32,768 of 32,768   100 %
-    comment density    2,919 of 7,142     40.9 %
+    comment density    2,923 of 7,142     40.9 %
     blocks below 10 %        0 of 1,027
     tests                   44, green
     reassembly         same sha256 as the cartridge

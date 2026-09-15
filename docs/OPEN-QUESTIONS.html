@@ -85,7 +85,7 @@ audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
 <div class="w"><nav class="top"><a href="index.html">Home</a><a href="GETTING-STARTED.html">Start</a><a href="THE-GAME.html">The game</a><a href="THE-CARTRIDGE.html">The cartridge</a><a href="THE-CODE.html">The code</a><a href="FINDINGS.html">Findings</a><a href="IN-THE-EMULATOR.html">In the emulator</a><a href="OPEN-QUESTIONS.html" style=color:var(--tinta)>Open questions</a><a href="es/PREGUNTAS-ABIERTAS.html" style="margin-left:auto;color:var(--oro)">Castellano</a></nav>
 <h1 id="open-questions">Open questions</h1>
 <p>The listing is complete: 32,768 bytes, none unexplained. That does not mean everything about the cartridge is known. What is not, is here.</p>
-<h2 id="what-the-first-part-actually-gets-you">~~What the first part actually gets you~~</h2>
+<h2 id="what-the-first-part-actually-gets-you"><del>What the first part actually gets you</del></h2>
 <p><b>CLOSED</b> on 2026-09-09, at theNestruo&#x27;s request. It is a <b>drink</b> that refills the player&#x27;s energy bar when both bars are nearly empty, and the sign at <code>0x7525</code> is its announcement. Measured in openMSX with <code>(0xE450) = 1</code>: the bars go from <code>(0x08, 0x0C)</code> to <code>(0x24, 0x0C)</code>. It is in the <a href="FINDINGS.html">findings</a>.</p>
 <h2 id="where-the-wave-screens-get-their-tiles">Where the wave screens get their tiles</h2>
 <p><code>monta_la_oleada</code> (<code>0x5B70</code>) is read and checked: four strips of twelve bytes, eight nibbles each picking one of the thirty figures at <code>0x5C64</code>, painted four columns apart. The tests verify all of it off the bytes.</p>

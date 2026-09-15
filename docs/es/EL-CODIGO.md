@@ -5,7 +5,7 @@
          0 sin explicar       0,00 %
      1.027 bloques de codigo medidos, ninguno por debajo del 10 % comentado
        430 de las 1.168 etiquetas llevan nombre; el resto son saltos internos
-     7.142 instrucciones, 2.919 comentarios de linea — 40,9 %
+     7.142 instrucciones, 2.923 comentarios de linea — 40,9 %
 
 ## Todo cuelga de la interrupcion
 

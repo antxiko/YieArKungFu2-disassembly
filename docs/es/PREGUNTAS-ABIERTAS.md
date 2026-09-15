@@ -3,7 +3,7 @@
 El listado esta completo: 32.768 bytes, ninguno sin explicar. Eso no quiere
 decir que se sepa todo del cartucho. Lo que no, esta aqui.
 
-~~## ~~Que da de verdad la primera parte~~
+## ~~Que da de verdad la primera parte~~
 
 **CERRADA** el 2026-09-09, a peticion de theNestruo. Es un **refresco** que
 rellena la barra del jugador cuando las dos barras estan bajo minimos, y el

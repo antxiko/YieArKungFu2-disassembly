@@ -89,7 +89,7 @@ audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
      0 sin explicar       0,00 %
  1.027 bloques de codigo medidos, ninguno por debajo del 10 % comentado
    430 de las 1.168 etiquetas llevan nombre; el resto son saltos internos
- 7.142 instrucciones, 2.919 comentarios de linea — 40,9 %</code></pre>
+ 7.142 instrucciones, 2.923 comentarios de linea — 40,9 %</code></pre>
 <h2 id="todo-cuelga-de-la-interrupcion">Todo cuelga de la interrupcion</h2>
 <p>INIT acaba en un <code>jr $</code> en <code>0x40C1</code>. De ahi en adelante no pasa nada en el flujo principal: <code>0x409B</code> ha escrito un <code>jp cada_cuadro</code> en el gancho de <code>0xFD9A</code>, y <code>cada_cuadro</code> (<code>0x402E</code>) es el juego entero.</p>
 <p>Lee el estado del VDP para limpiar la peticion de interrupcion, hace un cuadro de sonido y se protege con <code>(0xE005)</code> para que un cuadro que tarde de mas no se reentre. Luego lee los mandos y llama a <code>haz_el_cuadro</code>.</p>

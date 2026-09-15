@@ -89,7 +89,7 @@ audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
      0 unexplained      0.00 %
  1,027 code blocks measured, none below 10 % commented
    430 of the 1,168 labels carry a name; the rest are internal jumps
- 7,142 instructions, 2,919 line comments — 40.9 %</code></pre>
+ 7,142 instructions, 2,923 line comments — 40.9 %</code></pre>
 <h2 id="everything-hangs-off-the-interrupt">Everything hangs off the interrupt</h2>
 <p>INIT ends in <code>jr $</code> at <code>0x40C1</code>. From there on nothing happens in the main flow: <code>0x409B</code> has written a <code>jp cada_cuadro</code> into the hook at <code>0xFD9A</code>, and <code>cada_cuadro</code> (<code>0x402E</code>) is the whole game.</p>
 <p>It reads the VDP status to clear the interrupt request, plays one frame of sound, and guards itself with <code>(0xE005)</code> so a frame that takes too long does not re-enter. Then it reads the pads and calls <code>haz_el_cuadro</code>.</p>

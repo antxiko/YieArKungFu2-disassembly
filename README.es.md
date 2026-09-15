@@ -8,7 +8,7 @@ Yie-Gah**, de Konami para MSX (RC-737, 32 KB, 1985). Los 32.768 bytes estan
 explicados, y el listado reensambla la ROM **byte a byte**.
 
     explicado          32.768 de 32.768   100 %
-    densidad           2.919 de 7.142     40,9 %
+    densidad           2.923 de 7.142     40,9 %
     bloques bajo 10 %        0 de 1.027
     tests                   44, en verde
     reensamblado       el mismo sha256 del cartucho

@@ -5,7 +5,7 @@
          0 unexplained      0.00 %
      1,027 code blocks measured, none below 10 % commented
        430 of the 1,168 labels carry a name; the rest are internal jumps
-     7,142 instructions, 2,919 line comments — 40.9 %
+     7,142 instructions, 2,923 line comments — 40.9 %
 
 ## Everything hangs off the interrupt
 
