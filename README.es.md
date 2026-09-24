@@ -59,7 +59,7 @@ de 768 casillas.
   gemela con los ocho bits del reves, y de ahi que el color se escriba dos veces
   y el patron una. La pantalla en si no es simetrica: en los escenarios 1-2
   difieren 119 de 304 parejas de casillas.
-- **El muneco son doce sprites**, y una de sus dos direcciones se calcula de la
+- **El muneco son ocho sprites**, y una de sus dos direcciones se calcula de la
   otra en vez de guardarse.
 - **Una pantalla de oleadas son cuatro bytes**: ocho nibbles que eligen ocho de
   treinta tiras de paisaje, dibujadas con las casillas del propio combate.

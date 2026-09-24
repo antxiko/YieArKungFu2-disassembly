@@ -59,7 +59,7 @@ tiles.
   eight bits reversed, which is why colour is written twice and the pattern
   once. The screen itself is not symmetric: 119 of 304 cell pairs differ in
   sceneries 1-2.
-- **The fighter is twelve sprites**, and one of his two directions is computed
+- **The fighter is eight sprites**, and one of his two directions is computed
   from the other rather than stored.
 - **A wave screen is four bytes**: eight nibbles picking eight of thirty
   landscape slices, drawn with the fight screen's own tiles.
