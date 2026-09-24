@@ -89,9 +89,11 @@ end from `0x592F` to `0x597E`.
 
 Colour goes up **twice** and the pattern **once**, and the reason is the mirror:
 `espeja_el_decorado` (`0x5A4D`) copies three stretches of the pattern table over
-themselves through `vuelve_los_bits`, and the right half of the scenery is the
-same drawings reversed. The offsets check out: `0x0560-0x0260 = 0x300` and the
-other two `0x3C0`, exactly the distance of each copy.
+themselves through `vuelve_los_bits`, so every band tile has a reversed twin.
+The offsets check out: `0x0560-0x0260 = 0x300` and the other two `0x3C0`,
+exactly the distance of each copy. The screen itself is not symmetric: the
+name-table scripts use the twins only where they want them (see the
+[findings](FINDINGS.html)).
 
 The name table is filled separately: row 3 by `pinta_la_fila_3_y_los_dos_nombres`, rows 5 and down by
 `monta_el_decorado_o_la_oleada`, and the bottom two rows only for backdrops 0 and 3.

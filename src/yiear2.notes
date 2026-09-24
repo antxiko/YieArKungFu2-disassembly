@@ -59,7 +59,7 @@ L 0x4203 pon_subescena
 L 0x465B partida_nueva              Pone a cero 0x335 bytes de variables desde 0xE04B
 L 0x46A9 cortina                    Barre la pantalla fila a fila y aparca los sprites en 0x3B00
 L 0x475B pinta_los_puntos           Los cuatro marcadores, cada uno con su direccion de VRAM
-L 0x4785 escribe_en_bcd             Nibble alto y bajo por separado, +0x10 para caer en los digitos de la fuente; el `ld c,0xFF` come los ceros a la izquierda
+L 0x4785 escribe_en_bcd             Nibble alto y bajo por separado, +0x10 para caer en los digitos de la fuente; el `ld c,0xFF` come los ceros a la izquierda y el ultimo byte se pinta entero (0x4790)
 L 0x485C limpia_la_pantalla
 L 0x4869 abre_para_escribir
 L 0x489D rellena_los_tres_bancos
@@ -604,11 +604,14 @@ F 0x82d8 14,3,3,3,3,3,4,4
 #   de abajo   0x596F -> 0x33C0  0x5977 -> 0x13C0 y 0x1780     (0xE2E0), 4
 #   el suelo   0x592F -> 0x3080  0x593F -> 0x1080 y 0x1440     0x7EA0, 8
 #
-# EL ESPEJO. Solo se dibuja la mitad. 0x5A4D copia tres tramos de la tabla de
-# patrones sobre si misma pasando cada byte por vuelve_los_bits, que le da la
-# vuelta a los ocho bits: 0x2200->0x2500 (0x300 bytes), 0x2880->0x2C40 y
-# 0x3080->0x3440 (0x3C0 cada uno). No se refleja la pantalla, se reflejan los
-# PATRONES: la mitad de la derecha son los mismos dibujos del reves.
+# EL ESPEJO. Solo se guarda la mitad de los patrones. 0x5A4D copia tres tramos
+# de la tabla de patrones sobre si misma pasando cada byte por vuelve_los_bits,
+# que le da la vuelta a los ocho bits: 0x2200->0x2500 (0x300 bytes),
+# 0x2880->0x2C40 y 0x3080->0x3440 (0x3C0 cada uno). No se refleja la pantalla,
+# se reflejan los PATRONES: cada casilla de las bandas tiene una gemela del
+# reves, y los guiones de nombres la usan donde les hace falta. El decorado NO
+# es simetrico: pixel a pixel, en las filas 5-23 difieren 119, 102, 40 y 128
+# parejas de casillas de 304 en los cuatro decorados (issue #2 de theNestruo).
 #
 # Y de ahi sale por que el color se escribe DOS veces: el espejo copia
 # patrones y no toca los colores, asi que hay que poner el color a mano en el
@@ -749,7 +752,7 @@ B 0x597f MONTAR LA PANTALLA DE COMBATE
 B 0x597f ======================================================================
 B 0x597f Primero lo que no cambia -el marco y los iconos-, luego las tres
 B 0x597f bandas y el suelo, que si dependen del escenario. Y al final el
-B 0x597f espejo, que es lo que permite dibujar solo la mitad.
+B 0x597f espejo, que deja los patrones vueltos para la otra mitad.
 B 0x597f Los bancos van al reves: los patrones caen en 0x2000 y los colores en
 B 0x597f 0x0000, asi que un mismo dibujo son dos guiones con el mismo offset.
 L 0x597f monta_la_pantalla_de_combate
@@ -780,7 +783,10 @@ C 0x5a44 Y su patron, una
 B 0x5a4d ---------------------------------------------------------------------
 B 0x5a4d EL ESPEJO. Tres tramos de la tabla de patrones copiados sobre si
 B 0x5a4d mismos con los ocho bits del reves. No se refleja la pantalla: se
-B 0x5a4d reflejan los PATRONES, y la mitad derecha son los mismos dibujos.
+B 0x5a4d reflejan los PATRONES, y los guiones de nombres usan esas copias
+B 0x5a4d donde les hace falta. El decorado NO es simetrico: pixel a pixel, en
+B 0x5a4d las filas 5-23 difieren 119, 102, 40 y 128 parejas de casillas de
+B 0x5a4d 304 en los cuatro decorados.
 L 0x5a4d espeja_el_decorado
 C 0x5a4d La banda de arriba: 0x2200 -> 0x2500
 C 0x5a53 0x300 bytes, o sea 96 patrones
@@ -2084,7 +2090,9 @@ C 0x5b6d ...llevan ademas las dos filas de abajo
 B 0x5b70 ---------------------------------------------------------------------
 B 0x5b70 UNA PANTALLA DE OLEADAS SON CUATRO BYTES. La tira de 0x5BE8 trae ocho
 B 0x5b70 nibbles, cada nibble elige una figura de las treinta de 0x5C64, y las
-B 0x5b70 ocho se pintan en fila de cuatro en cuatro columnas.
+B 0x5b70 ocho se pintan en fila de cuatro en cuatro columnas. Cada figura es
+B 0x5b70 una tira vertical de paisaje de cuatro casillas de ancho, hecha con
+B 0x5b70 las casillas del propio combate; las ocho seguidas hacen la pantalla.
 L 0x5b70 monta_la_oleada
 C 0x5b71 Las cuatro tiras
 C 0x5b74 La que toque por decorado
@@ -2097,8 +2105,8 @@ C 0x5b94 Ahi va la fila
 C 0x5b97 Empezando por la columna 0
 C 0x5b99 Ocho figuras
 C 0x5b9e El byte de la tira
-C 0x5b9f Las pares van en el nibble bajo...
-C 0x5ba3 ...y las impares en el alto
+C 0x5b9f B cuenta de 8 a 1: con B par -la primera de cada pareja- se lee el nibble ALTO...
+C 0x5ba3 ...y con B impar el bajo, tal cual
 C 0x5ba7 Ese nibble elige la figura
 C 0x5bad La columna
 C 0x5bb0 Y a pintarla

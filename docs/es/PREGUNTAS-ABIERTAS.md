@@ -11,22 +11,14 @@ cartel de `0x7525` es su aviso. Medido en openMSX poniendo `(0xE450) = 1`: las
 barras pasan de `(0x08, 0x0C)` a `(0x24, 0x0C)`. Esta en los
 [hallazgos](HALLAZGOS.html).
 
-## De donde sacan sus casillas las pantallas de oleadas
+## ~~De donde sacan sus casillas las pantallas de oleadas~~
 
-`monta_la_oleada` (`0x5B70`) esta leida y comprobada: cuatro tiras de doce
-bytes, ocho nibbles que eligen una de las treinta figuras de `0x5C64`, y las
-ocho pintadas de cuatro en cuatro columnas. Todo eso lo verifican los tests
-sobre los bytes.
-
-Lo que **no** sale es dibujar una. Montada encima de la VRAM que deja la
-pantalla de combate, esas figuras piden casillas que ahi son la fuente, y el
-resultado se lee como `1PLAYER` y `2PLAYERS`. O sea que algo carga patrones
-antes de una pantalla de oleadas y no se ha encontrado: no lo hace nada del
-arranque de ronda (`0x50BB`), y fuera del modo 3 ese camino se salta ademas el
-suelo y el guion del pozo.
-
-Dos intentos y parada. En este sitio no hay ningun dibujo de una pantalla de
-oleadas, porque lo que no se entiende no se publica.
+**CERRADA** el 2026-09-24, a peticion de theNestruo (issue #2). De las bandas
+de la propia pantalla de combate: las doce pantallas de oleadas vuelcan los
+mismos patrones y colores que los combates, byte a byte, en openMSX
+(`tools/omsx_oleadas.tcl`). Lo que estaba mal era el lector de aqui -los
+nibbles al reves, y faltaba la cortina de `0x41D1` que borra el titulo antes de
+empezar la partida-, no el cartucho. Las doce estan en [el juego](EL-JUEGO.html).
 
 ## Hay algun otro cartucho de Konami haciendo lo mismo?
 

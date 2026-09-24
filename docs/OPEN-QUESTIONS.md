@@ -11,21 +11,14 @@ refills the player's energy bar when both bars are nearly empty, and the sign at
 go from `(0x08, 0x0C)` to `(0x24, 0x0C)`. It is in the
 [findings](FINDINGS.html).
 
-## Where the wave screens get their tiles
+## ~~Where the wave screens get their tiles~~
 
-`monta_la_oleada` (`0x5B70`) is read and checked: four strips of twelve bytes,
-eight nibbles each picking one of the thirty figures at `0x5C64`, painted four
-columns apart. The tests verify all of it off the bytes.
-
-What does **not** work is drawing one. Built on top of the VRAM the fight
-screen leaves, those figures ask for tiles that are the font there, and the
-result reads as `1PLAYER` and `2PLAYERS`. So something else loads patterns
-before a wave screen and it has not been found: nothing in the round-start
-path (`0x50BB`) does it, and outside mode 3 that path skips the floor and the
-well script.
-
-Two attempts, and then a stop. There is no picture of a wave screen on this
-site, because what is not understood is not published.
+**CLOSED** on 2026-09-24, at theNestruo's request (issue #2). From the fight
+screen's own bands: the twelve wave screens dump the same patterns and colours
+as the fights, byte for byte, in openMSX (`tools/omsx_oleadas.tcl`). What was
+wrong was the reader here — the nibbles backwards, and the curtain at `0x41D1`
+that wipes the title before a game starts was missing — not the cartridge. The
+twelve are in [the game](THE-GAME.html).
 
 ## Is any other Konami cartridge doing the same?
 

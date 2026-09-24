@@ -79,15 +79,41 @@ dos direcciones.
 
 Una pantalla de oleadas son **cuatro bytes**. La tira de `0x5BE8` que le toca al
 decorado trae ocho nibbles; cada uno elige una figura de las treinta de
-`0x5C64`, y las ocho se pintan en fila de cuatro en cuatro columnas. Las pares
-salen del nibble bajo y las impares del alto. Todo eso lo comprueban los tests:
-las cuatro tiras son de doce bytes, ningun nibble pide una figura que su tabla
-no tenga, y las treinta figuras encajan una detras de otra hasta `0x5F38`.
+`0x5C64`, y las ocho se pintan en fila de cuatro en cuatro columnas, la primera
+de cada pareja desde el nibble alto. Cada figura es una tira vertical de paisaje
+de cuatro casillas de ancho, y sus casillas son las bandas del propio combate:
+las doce pantallas de abajo estan montadas desde la ROM y coinciden byte a byte
+con la VRAM del emulador en patrones y colores. Tres pantallas por decorado,
+una por oleada; los escenarios 7-8 corren su paisaje ocho columnas a la derecha
+en cada una, los demas reordenan sus tiras.
 
-Aqui **no hay ningun dibujo de una**, y es a proposito: montadas sobre la VRAM
-del combate, esas figuras piden casillas que ahi son la fuente, y salen letras.
-De donde salen sus patrones no se sabe: esta en
-[Preguntas abiertas](PREGUNTAS-ABIERTAS.html).
+![Escenarios 1-2, primera oleada](../imagenes/oleada1_1.png)
+![Escenarios 1-2, segunda oleada](../imagenes/oleada1_2.png)
+![Escenarios 1-2, tercera oleada](../imagenes/oleada1_3.png)
+
+*Escenarios 1-2: las tiras 5 4 4 4 5 4 6 7, luego 5 5 5 4 4 5 5 6, luego
+4 5 4 5 4 5 4 5.*
+
+![Escenarios 3-4, primera oleada](../imagenes/oleada2_1.png)
+![Escenarios 3-4, segunda oleada](../imagenes/oleada2_2.png)
+![Escenarios 3-4, tercera oleada](../imagenes/oleada2_3.png)
+
+*Escenarios 3-4: la segunda oleada es el paisaje entero en orden, del 0 al 7;
+las otras dos barajan sus cuatro parejas de tiras.*
+
+![Escenarios 5-6, primera oleada](../imagenes/oleada3_1.png)
+![Escenarios 5-6, segunda oleada](../imagenes/oleada3_2.png)
+![Escenarios 5-6, tercera oleada](../imagenes/oleada3_3.png)
+
+*Escenarios 5-6: seis tiras en bucle, leidas desde un punto distinto cada vez.*
+
+![Escenarios 7-8, primera oleada](../imagenes/oleada4_1.png)
+![Escenarios 7-8, segunda oleada](../imagenes/oleada4_2.png)
+![Escenarios 7-8, tercera oleada](../imagenes/oleada4_3.png)
+
+*Escenarios 7-8: 2 3 5 4 5 6 7 7, luego 2 1 2 3 5 4 5 6, luego 0 1 2 1 2 3 5 4:
+las mismas tiras leidas dos mas atras en cada oleada, y las colinas se mueven
+ocho columnas a la derecha.*
 
 ## El marcador y la barra de energia
 

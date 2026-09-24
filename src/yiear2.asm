@@ -989,7 +989,7 @@ pinta_las_vidas:
 L_4780:
 	call abre_para_escribir		;4780   ; Preparar el puerto de la VDP
 	ld c,000h		;4783   ; C = 0: de momento se comen los ceros
-escribe_en_bcd:		; Nibble alto y bajo por separado, +0x10 para caer en los digitos de la fuente; el `ld c,0xFF` come los ceros a la izquierda
+escribe_en_bcd:		; Nibble alto y bajo por separado, +0x10 para caer en los digitos de la fuente; el `ld c,0xFF` come los ceros a la izquierda y el ultimo byte se pinta entero (0x4790)
 	ld a,(de)			;4785   ; El byte de BCD
 	rra			;4786   ; El nibble alto...
 	rra			;4787
@@ -3131,7 +3131,7 @@ DATA_tabla_de_colores_de_la_banda_baja:
 ; ======================================================================
 ; Primero lo que no cambia -el marco y los iconos-, luego las tres
 ; bandas y el suelo, que si dependen del escenario. Y al final el
-; espejo, que es lo que permite dibujar solo la mitad.
+; espejo, que deja los patrones vueltos para la otra mitad.
 ; Los bancos van al reves: los patrones caen en 0x2000 y los colores en
 ; 0x0000, asi que un mismo dibujo son dos guiones con el mismo offset.
 ; ======================================================================
@@ -3227,7 +3227,10 @@ monta_la_pantalla_de_combate:
 ; ---------------------------------------------------------------------
 ; EL ESPEJO. Tres tramos de la tabla de patrones copiados sobre si
 ; mismos con los ocho bits del reves. No se refleja la pantalla: se
-; reflejan los PATRONES, y la mitad derecha son los mismos dibujos.
+; reflejan los PATRONES, y los guiones de nombres usan esas copias
+; donde les hace falta. El decorado NO es simetrico: pixel a pixel, en
+; las filas 5-23 difieren 119, 102, 40 y 128 parejas de casillas de
+; 304 en los cuatro decorados.
 ; ---------------------------------------------------------------------
 ; ---------------------------------------------------------------------
 ; ----------------------------------------------------------------------
@@ -3370,7 +3373,9 @@ monta_el_decorado_o_la_oleada:
 ; ---------------------------------------------------------------------
 ; UNA PANTALLA DE OLEADAS SON CUATRO BYTES. La tira de 0x5BE8 trae ocho
 ; nibbles, cada nibble elige una figura de las treinta de 0x5C64, y las
-; ocho se pintan en fila de cuatro en cuatro columnas.
+; ocho se pintan en fila de cuatro en cuatro columnas. Cada figura es
+; una tira vertical de paisaje de cuatro casillas de ancho, hecha con
+; las casillas del propio combate; las ocho seguidas hacen la pantalla.
 ; ----------------------------------------------------------------------
 monta_la_oleada:
 	push af			;5b70
@@ -3402,9 +3407,9 @@ L_5B9B:
 	push bc			;5b9c
 	push de			;5b9d
 	ld a,(de)			;5b9e   ; El byte de la tira
-	bit 0,b		;5b9f   ; Las pares van en el nibble bajo...
+	bit 0,b		;5b9f   ; B cuenta de 8 a 1: con B par -la primera de cada pareja- se lee el nibble ALTO...
 	jr nz,L_5BA7		;5ba1
-	rra			;5ba3   ; ...y las impares en el alto
+	rra			;5ba3   ; ...y con B impar el bajo, tal cual
 	rra			;5ba4
 	rra			;5ba5
 	rra			;5ba6

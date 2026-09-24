@@ -55,13 +55,14 @@ de 768 casillas.
   sumas de 16 bytes, y distingue las dos compilaciones. Con el puesto, del
   nivel 3 en adelante aparece un refresco que rellena la barra cuando los dos
   luchadores estan bajo minimos.
-- **Media pantalla y un espejo**: el decorado se dibuja solo por la izquierda, y
-  la derecha son los mismos patrones con los ocho bits del reves. De ahi que el
-  color se escriba dos veces y el patron una.
+- **La mitad de los patrones y un espejo**: cada casilla de las bandas tiene una
+  gemela con los ocho bits del reves, y de ahi que el color se escriba dos veces
+  y el patron una. La pantalla en si no es simetrica: en los escenarios 1-2
+  difieren 119 de 304 parejas de casillas.
 - **El muneco son doce sprites**, y una de sus dos direcciones se calcula de la
   otra en vez de guardarse.
 - **Una pantalla de oleadas son cuatro bytes**: ocho nibbles que eligen ocho de
-  treinta figuras.
+  treinta tiras de paisaje, dibujadas con las casillas del propio combate.
 - **El truco de las vidas**: arriba una, izquierda dos, abajo tres, derecha
   cuatro.
 - **La demostracion es una partida grabada**: 33 pulsaciones y sus duraciones.

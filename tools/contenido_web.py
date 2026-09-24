@@ -415,6 +415,38 @@ GALERIA = [
      "faroles.", "Scenery 7, against HAN-CHEN: the night one, with lanterns."),
     ("escenario8.png", "Escenario 8, contra LI-JEN, el emperador Yie-Gah.",
      "Scenery 8, against LI-JEN, the emperor Yie-Gah."),
+    ("oleada1_1.png",
+     "Primera oleada del decorado de los escenarios 1-2: ocho tiras verticales "
+     "de paisaje de cuatro casillas, elegidas por los ocho nibbles de 0x5BF0. "
+     "Sus casillas son las bandas del propio combate.",
+     "First wave of the backdrop of sceneries 1-2: eight vertical slices of "
+     "landscape four tiles wide, picked by the eight nibbles at 0x5BF0. Its "
+     "tiles are the fight screen's own bands."),
+    ("oleada1_2.png", "Segunda oleada, escenarios 1-2.",
+     "Second wave, sceneries 1-2."),
+    ("oleada1_3.png", "Tercera oleada, escenarios 1-2.",
+     "Third wave, sceneries 1-2."),
+    ("oleada2_1.png", "Primera oleada, escenarios 3-4.",
+     "First wave, sceneries 3-4."),
+    ("oleada2_2.png", "Segunda oleada, escenarios 3-4: el paisaje entero en "
+     "orden, tiras 0 a 7.", "Second wave, sceneries 3-4: the whole landscape "
+     "in order, slices 0 to 7."),
+    ("oleada2_3.png", "Tercera oleada, escenarios 3-4.",
+     "Third wave, sceneries 3-4."),
+    ("oleada3_1.png", "Primera oleada, escenarios 5-6.",
+     "First wave, sceneries 5-6."),
+    ("oleada3_2.png", "Segunda oleada, escenarios 5-6.",
+     "Second wave, sceneries 5-6."),
+    ("oleada3_3.png", "Tercera oleada, escenarios 5-6.",
+     "Third wave, sceneries 5-6."),
+    ("oleada4_1.png", "Primera oleada, escenarios 7-8: el paisaje se corre "
+     "ocho columnas a la derecha en cada pantalla.",
+     "First wave, sceneries 7-8: the landscape slides eight columns right on "
+     "each screen."),
+    ("oleada4_2.png", "Segunda oleada, escenarios 7-8.",
+     "Second wave, sceneries 7-8."),
+    ("oleada4_3.png", "Tercera oleada, escenarios 7-8.",
+     "Third wave, sceneries 7-8."),
     ("rival1.png", "YEN-PEI, sus once figuras. Los rivales no son sprites: son "
      "CASILLAS, y cada figura trae su alto, su ancho y sus casillas "
      "comprimidas.",

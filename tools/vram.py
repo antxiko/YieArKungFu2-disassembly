@@ -402,8 +402,16 @@ class Vram:
 
         La tira de 0x5BE8 que toque trae ocho nibbles, cada nibble elige una
         figura de las treinta de 0x5C64 y las ocho se pintan en fila de cuatro
-        en cuatro columnas. Las pares van en el nibble BAJO y las impares en el
-        alto, que es lo que dice el `bit 0,b` de 0x5B9F.
+        en cuatro columnas. Cada figura es una TIRA VERTICAL de paisaje de
+        cuatro casillas de ancho -cielo, montana, agua, valla y hierba-, y las
+        ocho seguidas hacen la pantalla entera.
+
+        EL PRIMER NIBBLE DE CADA PAREJA ES EL ALTO. El `bit 0,b` de 0x5B9F
+        mira B, que cuenta de 8 a 1: con B par (la primera figura de cada
+        byte) las cuatro `rra` bajan el nibble alto, y con B impar se lee el
+        bajo tal cual. Medido contra la VRAM del emulador en las doce
+        pantallas (tools/omsx_oleadas.tcl): con el orden al reves cada pareja
+        de figuras salia cambiada de sitio.
         """
         tira = self.tabla(0x5BE8, decorado) + fase * 4
         figuras = self.tabla(0x5C20, decorado)
@@ -411,7 +419,7 @@ class Vram:
         col, p = 0, tira
         for i in range(8):
             x = self.b(p)
-            n = (x & 0x0F) if i % 2 == 0 else (x >> 4)
+            n = (x >> 4) if i % 2 == 0 else (x & 0x0F)
             self.figura(self.tabla(figuras, n), fila, col)
             if i % 2:
                 p += 1
@@ -421,8 +429,53 @@ class Vram:
         self.dos_filas_de_abajo(decorado)
         return self
 
-    def marcador(self, dos_jugadores=False, nivel=1, puntos=(0, 0, 0), vidas=3):
+    def figuras_de_la_oleada(self, decorado, fase):
+        """Los ocho indices de figura de una pantalla de oleadas, en orden."""
+        tira = self.tabla(0x5BE8, decorado) + fase * 4
+        out = []
+        for i in range(8):
+            x = self.b(tira + i // 2)
+            out.append((x >> 4) if i % 2 == 0 else (x & 0x0F))
+        return out
+
+    def barre_la_pantalla_desde_la_fila_2(self):
+        """barre_la_pantalla_desde_la_fila_2 (0x4699): la cortina que sube.
+
+        Al arrancar una partida, 0x41D1 la deja correr entera antes de montar
+        nada: 22 filas desde 0x3840 a cero, una por cuadro. La demostracion no
+        pasa por aqui -0x5776 monta encima de lo que dejo el titulo-, y por
+        eso el `(C) KONAMI` y el `PLAY SELECT` del titulo sobrevivian en el
+        modelo de las oleadas donde las figuras no llegaban a tapar.
+        """
+        self.rellena(NOMBRES + 0x40, 22 * 32, 0x00)
+        return self
+
+    def limpia_la_ultima_banda(self):
+        """limpia_la_ultima_banda_y_repasa_las_ranuras (0x922B): 0xA0 casillas
+        a cero desde 0x3A00 -las filas 16 a 20- en cada cuadro impar del modo
+        2, antes de repintar las seis ranuras de enemigos. Aqui solo la
+        limpieza: los enemigos son partida, no pantalla."""
+        self.rellena(NOMBRES + 0x200, 0xA0, 0x00)
+        return self
+
+    def barra_de_fase(self, fase):
+        """pinta_la_barra_de_fase (0x517A): el reloj de la fila 23.
+
+        Con un jugador, `el_combate` (0x508E) la pinta en cada cuadro: las
+        ocho casillas de 0x51A3 en 0x3AF3 -fila 23, columna 19- y encima el
+        tope 0x82 en 0x3AEC + (7 - fase) * 2, que parpadea con el bit 2 del
+        contador de cuadros. Aqui va con el tope puesto.
+        """
+        self.v[NOMBRES + 0x2F3:NOMBRES + 0x2FB] = self.rom[0x51A3 - self.org:0x51AB - self.org]
+        self.v[NOMBRES + 0x2EC + (7 - fase) * 2] = 0x82
+        return self
+
+    def marcador(self, dos_jugadores=False, nivel=1, puntos=(0, 0, 0), vidas=2):
         """pinta_el_marcador (0x472F): el armazon del marcador y los cuatro numeros.
+
+        Los valores por defecto son los de una partida recien empezada, medidos
+        en el emulador: STAGE-01, REST-02 (0xE055 vale 2 al arrancar), SCORE 00.
+        La demostracion pinta STAGE-00 y REST-00 (work/omsx, filas 0 y 1).
 
         Los rotulos salen del guion literal de 0x4A06 -"1UP SCORE", "HI-SCORE",
         "STAGE", "2UP"-, y encima se escriben los digitos en BCD por 0x4785,
@@ -436,32 +489,40 @@ class Vram:
         self.bcd(0x381C, [nivel])                # el nivel
         if not dos_jugadores:
             self.bcd(0x383B, [vidas])            # y las vidas
-        self.bcd(0x382D, list(puntos))           # los puntos del jugador 1
+        # pinta_los_puntos (0x475B) escribe SIEMPRE los dos marcadores: los
+        # tres bytes de 0xE04A en 0x382D y los de 0xE050 en 0x3823.
+        self.bcd(0x382D, list(puntos))
+        self.bcd(0x3823, list(puntos))
         return self
 
     def bcd(self, dest, bytes_bcd):
         """escribe_en_bcd (0x4785): nibble alto y bajo, +0x10 por la fuente.
 
-        El `ld c,0xFF` de 0x4796 es lo que se come los ceros a la izquierda:
+        El `ld c,0xFF` de 0x478E es lo que se come los ceros a la izquierda:
         hasta que sale una cifra distinta de cero se escribe la casilla vacia.
+        Y EL ULTIMO BYTE SE PINTA ENTERO: el `dec b` / `ld c,0ffh` de 0x4790
+        pone C a 0xFF antes del nibble alto del ultimo byte, asi que un cero
+        sale como `00` -SCORE 00, STAGE-01, REST-02-, no como `0`. Medido
+        contra la VRAM del emulador (work/oleadas y work/omsx, filas 0 y 1).
         """
         visto = False
-        for x in bytes_bcd:
-            for n in (x >> 4, x & 0x0F):
-                if n or visto:
-                    visto = True
-                    self.v[dest] = 0x10 + n
-                else:
-                    self.v[dest] = 0x00
-                dest += 1
-        if not visto:                            # el ultimo cero si se ve
-            self.v[dest - 1] = 0x10
+        n = len(bytes_bcd)
+        for k, x in enumerate(bytes_bcd):
+            alto, bajo = x >> 4, x & 0x0F
+            if alto or k == n - 1:
+                visto = True
+            self.v[dest] = (0x10 + alto) if visto else 0x00
+            dest += 1
+            if bajo:
+                visto = True
+            self.v[dest] = (0x10 + bajo) if visto else 0x00
+            dest += 1
         return self
 
     # ------------------------------------------------------------------
     # Las escenas enteras, en el orden en que las monta el cartucho
     # ------------------------------------------------------------------
-    def monta_la_partida(self, escenario):
+    def monta_la_partida(self, escenario, demo=False):
         """monta_la_partida_de_la_demostracion (0x5776): lo que monta la demostracion al empezar.
 
             prepara_el_marcador             y de paso (0xE2E0) = escenario / 2
@@ -475,7 +536,10 @@ class Vram:
         self.decorado_de_fondo()
         self.monta_la_pantalla_de_combate(escenario)
         self.fila_del_decorado(escenario)
-        self.marcador(nivel=escenario + 1)
+        if demo:                                 # la demostracion lleva STAGE-00 y REST-00
+            self.marcador(nivel=0, vidas=0)
+        else:
+            self.marcador(nivel=escenario + 1)
         return self
 
     def empieza_la_ronda(self, escenario):
@@ -511,16 +575,22 @@ class Vram:
         self.desde_el_encendido()
         self.monta_la_partida(escenario)
         self.empieza_la_ronda(escenario)
+        self.barra_de_fase(3)                    # el reloj de la fila 23: fase 3, el combate
         return self
 
     def pantalla_de_oleadas(self, decorado, fase):
         """Lo mismo, pero fuera del modo 3: el `jr nz` de 0x5B58 se va a las
         oleadas en vez de al decorado del combate."""
         self.desde_el_encendido()
+        self.barre_la_pantalla_desde_la_fila_2()  # 0x41D1: la cortina antes de montar la partida
         self.monta_la_partida(decorado * 2)
         # Fuera del modo 3 el `jr nz` de 0x50C2 se salta el suelo de la ronda y
-        # el guion del pozo: la pantalla se queda con lo que monto 0x597F.
+        # el guion del pozo: la pantalla se queda con lo que monto 0x597F. Los
+        # patrones y los colores son EXACTAMENTE los del combate: cero bytes
+        # distintos contra el emulador en las doce pantallas.
         self.monta_la_oleada(decorado, fase)
+        self.limpia_la_ultima_banda()            # 0x922B, el primer cuadro impar del modo 2
+        self.barra_de_fase(fase)                 # el reloj de la fila 23
         return self
 
     def desde_el_encendido(self):
@@ -572,7 +642,7 @@ def como_en_la_demostracion(rom, escenario, marcador_corto=True):
     for k in range(escenario + 1):
         v.presentacion()
         v.pantalla_del_titulo()
-        v.monta_la_partida(k)
+        v.monta_la_partida(k, demo=True)
         v.empieza_la_ronda(k)
         if marcador_corto and k == 3:
             v.marcador_de_fase(largo=False)

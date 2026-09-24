@@ -140,19 +140,28 @@ and `baja_la_invulnerabilidad` that are **not** that: they read `0xE181`, which
 is the **grab** counter. That is why it drops four at a time while the fire
 button is held: that is struggling free. They have been renamed.
 
-## Half a screen and a mirror
+## Half the patterns and a mirror
 
 `0x597F` builds the fight screen from forty scripts pointed at by forty pointers
 spread over six contiguous tables, `0x592F` to `0x597E`. The mapping is exact
 and the twenty pattern/colour pairs dump the same amount of VRAM, all twenty of
 them.
 
-But only half of it is drawn. `0x5A4D` copies three stretches of the pattern
-table onto themselves through `vuelve_los_bits`, and the right half of the
-scenery is the same drawings with all eight bits reversed. That is why **colour
+Only half of the patterns are stored. `0x5A4D` copies three stretches of the
+pattern table onto themselves through `vuelve_los_bits`, so every tile of the
+left-hand bands gets a twin with its eight bits reversed. That is why **colour
 is written twice and the pattern once** — the mirror never touches colour — and
 the arithmetic checks out on all three bands: `0x0560-0x0260 = 0x300` and the
 other two `0x3C0`, exactly the offset of each copy.
+
+But the screen is not a mirror image. The name-table scripts at `0x5FFE` use
+the reversed twins where they want them and plain tiles elsewhere. Measured
+pixel by pixel over rows 5 to 23, of the 304 cell pairs `(x, 31-x)` the ones
+that differ are **119** in the backdrop of sceneries 1-2, **102** in 3-4, **40**
+in 5-6 and **128** in 7-8; the pairs that are true mirror images of each other,
+not just solid tiles, are 25, 10, 54 and 14. Sceneries 7-8 use the reversed
+tiles the least: 30 cells on the right half against 65 and 67 in 1-2 and 3-4.
+Pointed out by theNestruo in issue #2.
 
 ## Two figure readers that look alike and are not
 
@@ -206,8 +215,21 @@ script starts computed independently.
 
 The strip at `0x5BE8` for that backdrop carries eight nibbles in four bytes;
 each one picks one of the thirty figures at `0x5C64`, and the eight are painted
-in a row four columns apart. Even ones come from the low nibble and odd ones
-from the high one, which is what the `bit 0,b` at `0x5B9F` says.
+in a row four columns apart. **The first figure of each pair comes from the high
+nibble** and the second from the low one: the `bit 0,b` at `0x5B9F` looks at B,
+which counts down from 8, and with B even the four `rra` bring the high nibble
+down.
+
+Each figure is a vertical slice of landscape, four tiles wide and up to ten
+tall — sky, hills, water, fence, grass — and eight slices side by side make the
+screen. Their tiles are the fight screen's own bands: the twelve wave screens
+dump **the same patterns and colours as the fights, byte for byte**, against
+openMSX (`tools/omsx_oleadas.tcl`). Whether the three screens of a backdrop look
+like one landscape sliding by depends on the backdrop: sceneries 7-8 do shift
+eight columns to the right on each screen, 5-6 read a loop of six slices from a
+different point, 3-4 and 1-2 just reorder theirs. Nothing scrolls within a
+screen: it is built once (`0x50D6`) and wiped for the next one by
+`barre_la_pantalla_desde_la_fila_5` (`0x50F6`).
 
 ## Rounds wrap at eight, and the strip has ten
 

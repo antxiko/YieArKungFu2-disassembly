@@ -139,8 +139,10 @@ def pantalla_de_combate(rom, escenario):
 def pantalla_de_oleadas(rom, decorado, fase):
     """Una de las doce pantallas de oleadas: cuatro decorados por tres fases.
 
-    NO se publica: ver la nota de main(). Las casillas que piden sus figuras
-    no son las que hay en la VRAM del combate, y de donde salen no se sabe.
+    Sus casillas son las bandas del propio combate: las doce coinciden byte a
+    byte con la VRAM del emulador en patrones y colores (tools/omsx_oleadas.tcl,
+    work/oleadas/). Lo que fallaba era el lector -los nibbles al reves y la
+    cortina de 0x41D1 que faltaba-, no el cartucho.
     """
     return pantalla(V.Vram(rom).pantalla_de_oleadas(decorado, fase).v)
 
@@ -196,14 +198,11 @@ def main():
     png(r("casillas.png"), hoja_de_casillas(rom), escala=2)
     for e in range(V.ESCENARIOS):
         png(r("escenario%d.png" % (e + 1)), pantalla_de_combate(rom, e))
-    # LAS PANTALLAS DE OLEADAS NO SE DIBUJAN, y no por olvido: montadas
-    # sobre la VRAM del combate, sus figuras piden casillas que ahi son la
-    # FUENTE, y salen letras. `monta_la_oleada` esta bien traducida -sus
-    # tiras, sus nibbles y sus treinta figuras los comprueban los tests-,
-    # pero de donde salen los patrones de esas casillas no se sabe. Lo que
-    # no se sabe montar se dice, no se maquilla: esta en PREGUNTAS
-    # ABIERTAS. Para mirarlas por dentro: pantalla_de_oleadas(rom, d, f).
-    print("  titulo, rotulo, fuente, sprites, casillas y 8 escenarios")
+    for d in range(V.DECORADOS):
+        for f in range(3):
+            png(r("oleada%d_%d.png" % (d + 1, f + 1)),
+                pantalla_de_oleadas(rom, d, f))
+    print("  titulo, rotulo, fuente, sprites, casillas, 8 escenarios y 12 oleadas")
 
 
 if __name__ == "__main__":

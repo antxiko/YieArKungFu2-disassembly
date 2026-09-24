@@ -612,18 +612,18 @@ class TestLaWebEstaCompleta(unittest.TestCase):
                   if not os.path.exists(os.path.join(DOCS, "imagenes", f))]
         self.assertEqual(faltan, [], "faltan en la galeria: %s" % faltan)
 
-    def test_no_se_publica_ninguna_pantalla_de_oleadas(self):
-        """Lo que no se sabe montar no se publica.
+    def test_las_doce_pantallas_de_oleadas_estan_publicadas(self):
+        """Cuatro decorados por tres fases, montadas desde la ROM.
 
-        Las figuras de las oleadas piden casillas que en la VRAM del
-        combate son la fuente, asi que el dibujo sale con letras dentro.
-        Mientras no se sepa de donde salen sus patrones, este test exige
-        lo contrario de lo normal: que NO haya oleada*.png publicada.
+        Sus casillas son las bandas del propio combate: las doce coinciden
+        byte a byte con la VRAM del emulador en patrones y colores
+        (tools/omsx_oleadas.tcl). Cerrado con el issue #2 de theNestruo.
         """
-        sobra = [f for f in os.listdir(os.path.join(DOCS, "imagenes"))
-                 if f.startswith("oleada")]
-        self.assertEqual(sobra, [],
-                         "publicadas sin saber montarlas: %s" % sobra)
+        faltan = ["oleada%d_%d.png" % (d, f)
+                  for d in range(1, 5) for f in range(1, 4)
+                  if not os.path.exists(os.path.join(
+                      DOCS, "imagenes", "oleada%d_%d.png" % (d, f)))]
+        self.assertEqual(faltan, [], "faltan: %s" % faltan)
 
     def test_el_rotulo_de_la_cabecera_esta(self):
         """Si no esta, make_web se cae al texto y la portada sale sin logotipo."""

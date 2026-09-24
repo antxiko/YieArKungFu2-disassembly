@@ -79,15 +79,41 @@ directions.
 
 A wave screen is **four bytes**. The strip at `0x5BE8` for the backdrop carries
 eight nibbles; each one picks a figure out of the thirty at `0x5C64`, and the
-eight are painted in a row four columns apart. Even ones come from the low
-nibble, odd ones from the high one. All of that is checked by the tests: the
-four strips are twelve bytes each, no nibble asks for a figure its table does
-not have, and the thirty figures tile end to end up to `0x5F38`.
+eight are painted in a row four columns apart, the first of each pair from the
+high nibble. Each figure is a vertical slice of landscape four tiles wide, and
+its tiles are the fight screen's own bands: the twelve screens below are built
+from the ROM and match the emulator's VRAM byte for byte in patterns and
+colours. Three screens per backdrop, one per wave; sceneries 7-8 slide their
+landscape eight columns to the right on each one, the others reorder their
+slices.
 
-There is **no picture of one here**, and that is deliberate: built on top of
-the fight screen's VRAM, those figures ask for tiles that are the font there,
-and they come out as letters. Where their patterns come from is not known —
-see [Open questions](OPEN-QUESTIONS.html).
+![Sceneries 1-2, first wave](imagenes/oleada1_1.png)
+![Sceneries 1-2, second wave](imagenes/oleada1_2.png)
+![Sceneries 1-2, third wave](imagenes/oleada1_3.png)
+
+*Sceneries 1-2: slices 5 4 4 4 5 4 6 7, then 5 5 5 4 4 5 5 6, then
+4 5 4 5 4 5 4 5.*
+
+![Sceneries 3-4, first wave](imagenes/oleada2_1.png)
+![Sceneries 3-4, second wave](imagenes/oleada2_2.png)
+![Sceneries 3-4, third wave](imagenes/oleada2_3.png)
+
+*Sceneries 3-4: the second wave is the whole landscape in order, 0 to 7; the
+other two shuffle its four pairs of slices.*
+
+![Sceneries 5-6, first wave](imagenes/oleada3_1.png)
+![Sceneries 5-6, second wave](imagenes/oleada3_2.png)
+![Sceneries 5-6, third wave](imagenes/oleada3_3.png)
+
+*Sceneries 5-6: six slices in a loop, read from a different point each time.*
+
+![Sceneries 7-8, first wave](imagenes/oleada4_1.png)
+![Sceneries 7-8, second wave](imagenes/oleada4_2.png)
+![Sceneries 7-8, third wave](imagenes/oleada4_3.png)
+
+*Sceneries 7-8: 2 3 5 4 5 6 7 7, then 2 1 2 3 5 4 5 6, then 0 1 2 1 2 3 5 4 —
+the same slices read two further back each wave, so the hills move eight
+columns to the right.*
 
 ## The scoreboard, and the energy bar
 

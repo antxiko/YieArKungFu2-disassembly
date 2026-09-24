@@ -55,13 +55,14 @@ tiles.
   installs the interrupt hook it scans the four slots and takes two 16-byte
   sums, and it tells the two builds apart. With it plugged in, from level 3 on
   a drink shows up that refills your bar when both fighters are nearly out.
-- **Half a screen and a mirror**: the scenery is drawn only on the left, and
-  the right half is the same patterns with all eight bits reversed. Which is
-  why colour is written twice and the pattern once.
+- **Half the patterns and a mirror**: every band tile gets a twin with its
+  eight bits reversed, which is why colour is written twice and the pattern
+  once. The screen itself is not symmetric: 119 of 304 cell pairs differ in
+  sceneries 1-2.
 - **The fighter is twelve sprites**, and one of his two directions is computed
   from the other rather than stored.
 - **A wave screen is four bytes**: eight nibbles picking eight of thirty
-  figures.
+  landscape slices, drawn with the fight screen's own tiles.
 - **The lives trick**: up once, left twice, down three times, right four.
 - **The demo is a recorded game**: 33 key presses and their durations.
 

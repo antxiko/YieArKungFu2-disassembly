@@ -138,19 +138,29 @@ De paso, el listado tenia dos rutinas llamadas `mira_la_invulnerabilidad` y
 del **agarre**. Por eso baja de cuatro en cuatro al pulsar disparo: es
 forcejear. Ya estan renombradas.
 
-## Media pantalla y un espejo
+## La mitad de los patrones y un espejo
 
 `0x597F` monta la pantalla de combate con cuarenta guiones apuntados por
 cuarenta punteros repartidos en seis tablas contiguas, de `0x592F` a `0x597E`.
 La biyeccion es exacta y las veinte parejas patron/color vuelcan lo mismo, las
 veinte.
 
-Pero solo se dibuja la mitad. `0x5A4D` copia tres tramos de la tabla de patrones
-sobre si mismos pasandolos por `vuelve_los_bits`, y la mitad derecha del
-decorado son los mismos dibujos con los ocho bits del reves. De ahi que **el
-color se escriba dos veces y el patron una** -el espejo no toca colores- y de
-ahi que las cuentas cuadren en las tres bandas: `0x0560-0x0260 = 0x300` y las
-otras dos `0x3C0`, que es exactamente el desplazamiento de cada copia.
+Solo se guarda la mitad de los patrones. `0x5A4D` copia tres tramos de la tabla
+de patrones sobre si mismos pasandolos por `vuelve_los_bits`, asi que cada
+casilla de las bandas de la izquierda tiene una gemela con los ocho bits del
+reves. De ahi que **el color se escriba dos veces y el patron una** -el espejo
+no toca colores- y de ahi que las cuentas cuadren en las tres bandas:
+`0x0560-0x0260 = 0x300` y las otras dos `0x3C0`, que es exactamente el
+desplazamiento de cada copia.
+
+Pero la pantalla no es un espejo. Los guiones de nombres de `0x5FFE` usan las
+gemelas donde quieren y casillas sin voltear en el resto. Medido pixel a pixel
+sobre las filas 5 a 23, de las 304 parejas de casillas `(x, 31-x)` difieren
+**119** en el decorado de los escenarios 1-2, **102** en el 3-4, **40** en el
+5-6 y **128** en el 7-8; las parejas que son espejo de verdad la una de la otra,
+y no casillas macizas, son 25, 10, 54 y 14. El 7-8 es el que menos usa las
+volteadas: 30 casillas en la mitad derecha contra 65 y 67 en el 1-2 y el 3-4.
+Lo apunto theNestruo en el issue #2.
 
 ## Dos lectores de figuras que se parecen y no son iguales
 
@@ -204,8 +214,21 @@ todos en inicios de guion calculados por separado.
 
 La tira de `0x5BE8` que le toca al decorado trae ocho nibbles en cuatro bytes;
 cada uno elige una de las treinta figuras de `0x5C64`, y las ocho se pintan en
-fila de cuatro en cuatro columnas. Las pares salen del nibble bajo y las impares
-del alto, que es lo que dice el `bit 0,b` de `0x5B9F`.
+fila de cuatro en cuatro columnas. **La primera figura de cada pareja sale del
+nibble alto** y la segunda del bajo: el `bit 0,b` de `0x5B9F` mira B, que cuenta
+de 8 a 1, y con B par las cuatro `rra` bajan el nibble alto.
+
+Cada figura es una tira vertical de paisaje, de cuatro casillas de ancho y hasta
+diez de alto -cielo, montana, agua, valla, hierba-, y ocho tiras seguidas hacen
+la pantalla. Sus casillas son las bandas de la propia pantalla de combate: las
+doce pantallas de oleadas vuelcan **los mismos patrones y colores que los
+combates, byte a byte**, contra openMSX (`tools/omsx_oleadas.tcl`). Que las tres
+pantallas de un decorado parezcan un paisaje que se desplaza depende del
+decorado: el de los escenarios 7-8 si se corre ocho columnas a la derecha en
+cada pantalla, el 5-6 lee un bucle de seis tiras desde otro punto, el 3-4 y el
+1-2 solo reordenan las suyas. Dentro de una pantalla no se mueve nada: se monta
+una vez (`0x50D6`) y la barre `barre_la_pantalla_desde_la_fila_5` (`0x50F6`)
+para la siguiente.
 
 ## Las rondas vuelven a empezar a las ocho, y la tira tiene diez
 

@@ -89,9 +89,11 @@ seguidas de `0x592F` a `0x597E`.
 
 El color sube **dos veces** y el patron **una**, y la razon es el espejo:
 `espeja_el_decorado` (`0x5A4D`) copia tres tramos de la tabla de patrones sobre
-si mismos pasandolos por `vuelve_los_bits`, y la mitad derecha del decorado son
-los mismos dibujos del reves. Las cuentas cuadran: `0x0560-0x0260 = 0x300` y las
-otras dos `0x3C0`, que es exactamente la distancia de cada copia.
+si mismos pasandolos por `vuelve_los_bits`, asi que cada casilla de las bandas
+tiene una gemela del reves. Las cuentas cuadran: `0x0560-0x0260 = 0x300` y las
+otras dos `0x3C0`, que es exactamente la distancia de cada copia. La pantalla en
+si no es simetrica: los guiones de nombres usan las gemelas solo donde quieren
+(ver los [hallazgos](HALLAZGOS.html)).
 
 La tabla de nombres se llena aparte: la fila 3 por `pinta_la_fila_3_y_los_dos_nombres`, de la fila 5 para
 abajo por `monta_el_decorado_o_la_oleada`, y las dos filas de abajo solo en los decorados 0 y 3.
