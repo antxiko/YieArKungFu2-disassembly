@@ -2,7 +2,7 @@
 """Quien pide cada sonido: busca `ld a,NN` seguido (a <= 3 lineas) de
 `call/jp ETIQUETA` en el listado y da, por numero, la rutina que lo pide.
 
-Uso: quien_pide.py src/juego.asm ETIQUETA [ETIQUETA...]
+Uso: quien_pide.py LISTADO.asm ETIQUETA [ETIQUETA...]
 Salida: NN  rutina(direccion)  comentario de la etiqueta
 """
 import re

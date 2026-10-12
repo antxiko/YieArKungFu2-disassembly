@@ -131,7 +131,7 @@ class Cartucho(Z80):
 
 def corre_frame(z):
     """El motor de un cuadro: una direccion, o una lista de llamadas
-    [(direccion, {registro: valor}), ...] (Time Pilot: una por canal)."""
+    [(direccion, {registro: valor}), ...]."""
     f = z.cfg["frame"]
     if isinstance(f, int):
         z.corre(f)
