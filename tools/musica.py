@@ -34,28 +34,31 @@ PAGINA = motor_musica.pagina_basica(
     "C-BIOS MSX1 japonés",
     [("la pieza 0x9F entera, 170 cuadros, dos veces",
       "tune 0x9F, whole, 170 frames, twice"),
-     ("la pieza 0x93, sus primeros 210 cuadros de 513",
-      "tune 0x93, its first 210 frames of 513")],
+     ("la pieza 0x93, sus primeros 298 cuadros de 513, y en trozos de 181, "
+      "126, 155 cuadros y otros, según cuándo la pisa otra petición",
+      "tune 0x93, its first 298 frames of 513, and in stretches of 181, "
+      "126, 155 frames and others, depending on when another request "
+      "cuts in")],
     [("Cómo se pide una pieza",
       "`pide_pieza` recibe el número en A. Los números bajos son efectos y "
       "del 0x84 en adelante hay música. Cada voz ocupa dieciséis bytes desde "
       "0xE010 y 0xE040 guarda la copia del mezclador del PSG, que el "
       "arranque deja en 0xB8. Las pistas «de la tabla» están en la tabla de "
       "pistas pero ninguna rutina las pide con un `ld a`; se omite la 0x94, "
-      "de varios minutos. En un segundo tramo de la 0x93 el cotejo cuadra "
-      "181 cuadros y luego el emulador sigue tocando donde este motor "
-      "calla: no se ha averiguado por qué, y la pieza publicada puede "
-      "diferir del juego pasado ese punto.",
+      "de varios minutos. El juego pide piezas por dos entradas: `pide_pieza` "
+      "y `pide_pieza_si_la_escena_lo_permite`, que salta a la misma "
+      "rutina; con las dos vigiladas, y con la RAM del sonido tal como "
+      "estaba al pedir cada pieza, todos los trozos cuadran con openMSX.",
       "How a piece is asked for",
       "`pide_pieza` takes the number in A. Low numbers are effects and from "
       "0x84 up there is music. Each voice takes sixteen bytes from 0xE010 "
       "and 0xE040 holds the copy of the PSG mixer, which start-up leaves at "
       "0xB8. The tracks marked «in the table» are in the track table but no "
       "routine asks for them with an `ld a`; 0x94, several minutes long, is "
-      "left out. In a second stretch of 0x93 the check agrees for 181 frames "
-      "and then the emulator keeps playing where this engine goes quiet: "
-      "why has not been found, and the published piece may differ from the "
-      "game past that point.")])
+      "left out. The game asks for pieces through two entries: `pide_pieza` "
+      "and `pide_pieza_si_la_escena_lo_permite`, which jumps into the same "
+      "routine; with both watched, and with the sound RAM as it was when "
+      "each piece was asked for, every stretch agrees with openMSX.")])
 
 CFG = dict(rom="yiear2.rom", org=0x4000, frame=0xB992, pide=0xB8DE,
            ram=(0xE010, 0xE041), ram0=[(0xE040, 0xB8)],

@@ -7,13 +7,13 @@ Everything you hear here comes from running the cartridge's own sound engine (`s
 The PSG writes have been compared frame by frame with those of openMSX (C-BIOS MSX1 japonés). In every frame the PSG ends up the same:
 
 - tune 0x9F, whole, 170 frames, twice;
-- tune 0x93, its first 210 frames of 513.
+- tune 0x93, its first 298 frames of 513, and in stretches of 181, 126, 155 frames and others, depending on when another request cuts in.
 
 The timbre is not checked: it is a textbook AY-3-8910, not a recording of the emulator. The probes are `tools/omsx_psg.tcl` and `tools/coteja_psg.py`.
 
 ## How a piece is asked for
 
-`pide_pieza` takes the number in A. Low numbers are effects and from 0x84 up there is music. Each voice takes sixteen bytes from 0xE010 and 0xE040 holds the copy of the PSG mixer, which start-up leaves at 0xB8. The tracks marked «in the table» are in the track table but no routine asks for them with an `ld a`; 0x94, several minutes long, is left out. In a second stretch of 0x93 the check agrees for 181 frames and then the emulator keeps playing where this engine goes quiet: why has not been found, and the published piece may differ from the game past that point.
+`pide_pieza` takes the number in A. Low numbers are effects and from 0x84 up there is music. Each voice takes sixteen bytes from 0xE010 and 0xE040 holds the copy of the PSG mixer, which start-up leaves at 0xB8. The tracks marked «in the table» are in the track table but no routine asks for them with an `ld a`; 0x94, several minutes long, is left out. The game asks for pieces through two entries: `pide_pieza` and `pide_pieza_si_la_escena_lo_permite`, which jumps into the same routine; with both watched, and with the sound RAM as it was when each piece was asked for, every stretch agrees with openMSX.
 
 ## The tunes
 
