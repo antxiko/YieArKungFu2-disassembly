@@ -127,3 +127,30 @@ Five routines — `0x47B0`, `0x4875`, `0x488A`, `0x544F` and `0x6EB5` — are na
 by no `call`, no `jp` and no table. They are declared in `src/yiear2.entries`
 with the reason written down, so the tracer treats them as code and they do not
 end up as a wall of bytes in the middle of the listing.
+
+## Code shared with other Konami cartridges
+
+This disassembly has been compared, instruction by instruction, with
+every other Konami one in the series. A block counts when the same
+instructions, at least six of them from a label to its `ret` or its
+unconditional jump, are in both cartridges; the addresses are left
+aside, because they change from one cartridge to the next. Of the
+other 57, **54** have at least one block in common with this one;
+these are the ones that share the most:
+
+| Cartridge | Blocks | Instructions | For example (here = there) |
+|---|---:|---:|---|
+| [Yie Ar Kung-Fu](https://antxiko.github.io/YieArKungFu-disassembly/) | 35 | 370 | `lee_las_filas_7_y_8_del_teclado` (0x4997) = `lee_el_teclado` |
+| [The Goonies](https://antxiko.github.io/Goonies-disassembly/) | 29 | 319 | `guion_rle` (0x48E1) |
+| [Knightmare](https://antxiko.github.io/Knightmare-disassembly/) | 28 | 261 | `pinta_guion` (0x48C6) = `pinta_texto` |
+| [Hyper Sports 3](https://antxiko.github.io/HyperSports3-disassembly/) | 25 | 284 | `lee_las_filas_7_y_8_del_teclado` (0x4997) = `teclado_del_jugador_1` |
+| [Konami's Ping Pong](https://antxiko.github.io/KonamisPingPong-disassembly/) | 25 | 284 | `lee_las_filas_7_y_8_del_teclado` (0x4997) = `lee_teclado_1` |
+| [Konami’s Soccer](https://antxiko.github.io/KonamisSoccer-disassembly/) | 25 | 276 | `cada_cuadro` (0x402E) = `latido` |
+| [Nemesis / Gradius](https://antxiko.github.io/Nemesis-disassembly/) | 23 | 228 | `guion_rle` (0x48E1) = `descomprime_con_destino` |
+| [Q*bert](https://antxiko.github.io/Qbert-disassembly/) | 22 | 241 | `guion_rle` (0x48E1) |
+| [Road Fighter](https://antxiko.github.io/RoadFighter-disassembly/) | 21 | 245 | `guion_rle` (0x48E1) = `descomprime_con_destino_dentro` |
+| [Nemesis 2](https://antxiko.github.io/Nemesis2-disassembly/) | 19 | 199 | `guion_rle` (0x48E1) = `descomprime_otra_direccion` |
+
+The whole matrix, the 58 cartridges against each other, is on
+[The routines](https://antxiko.github.io/MSX-disassembly-database/THE-ROUTINES.html) in the series database, along
+with the method and the program that measures it.
