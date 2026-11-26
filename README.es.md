@@ -68,9 +68,9 @@ de 768 casillas.
 - **La demostracion es una partida grabada**: 33 pulsaciones y sus duraciones.
 
 Todo, con sus medidas, en
-[Hallazgos](https://antxiko.github.io/YieArKungFu2-disassembly/es/HALLAZGOS.html),
+[Hallazgos](https://antxiko.github.io/YieArKungFu2-disassembly/es/CURIOSIDADES.html),
 y lo que *no* se sabe en
-[Preguntas abiertas](https://antxiko.github.io/YieArKungFu2-disassembly/es/PREGUNTAS-ABIERTAS.html).
+[Preguntas abiertas](https://antxiko.github.io/YieArKungFu2-disassembly/es/CURIOSIDADES.html).
 
 ## Licencia y credito
 

@@ -1,6 +1,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>La música — Yie Ar Kung-Fu II (Konami, 1985)</title>
+<title>{{ page.title }} — Yie Ar Kung-Fu II (Konami, 1985)</title>
 <style>
 :root{--tinta:#cfd0d4;--suave:#83868f;--fondo:#000;--panel:#0c0e13;--linea:#23262e;
   --rojo:#ff897d;--cyan:#65dbef;--verde:#3eb849;--oro:#ded087}
@@ -82,50 +82,6 @@ footer{margin-top:5rem;padding-top:1.5rem;border-top:1px solid var(--linea);
 .galeria figcaption{color:var(--suave);font-size:13px;margin-top:.5rem}
 audio{display:block;width:100%;max-width:640px;margin:.75rem 0 1.5rem}
 </style>
-<div class="w"><nav class="top"><a href="index.html">Portada</a><a href="EMPEZAR.html">Empezar</a><a href="EL-JUEGO.html">El juego</a><a href="EL-CARTUCHO.html">El cartucho</a><a href="EL-CODIGO.html">El código</a><a href="LA-MUSICA.html" style=color:var(--tinta)>La música</a><a href="HALLAZGOS.html">Hallazgos</a><a href="EN-EL-EMULADOR.html">En el emulador</a><a href="PREGUNTAS-ABIERTAS.html">Preguntas abiertas</a><a href="../THE-MUSIC.html" style="margin-left:auto;color:var(--oro)">English</a></nav>
-<h1 id="la-musica">La música</h1>
-<p>Todo lo que suena aquí sale de ejecutar el motor de sonido del cartucho (<code>suena_el_cuadro</code>, 0xB992, y <code>pide_pieza</code>, 0xB8DE, que le reparte las voces; lo llama la interrupción) en un Z80 emulado, cuadro a cuadro y a 60 por segundo, igual que lo llama el juego. Lo que el motor escribe en el PSG pasa a sonido con un AY-3-8910 (<code>tools/musica.py</code>). Cada MP3 es la pieza entera hasta donde vuelve a empezar, más 8 segundos de la vuelta apagándose; las que no se repiten acaban donde acaba el motor.</p>
-<h2 id="cotejado-con-openmsx">Cotejado con openMSX</h2>
-<p>Las escrituras al PSG se han comparado cuadro a cuadro con las de openMSX (C-BIOS MSX1 japonés). En todos los cuadros el PSG queda igual:</p>
-<ul><li>la pieza 0x9F entera, 170 cuadros, dos veces;</li><li>la pieza 0x93, sus primeros 298 cuadros de 513, y en trozos de 181, 126, 155 cuadros y otros, según cuándo la pisa otra petición.</li></ul>
-<p>El timbre no está cotejado: es el de un AY-3-8910 de manual, no una grabación del emulador. Las sondas están en <code>tools/omsx_psg.tcl</code> y <code>tools/coteja_psg.py</code>.</p>
-<h2 id="como-se-pide-una-pieza">Cómo se pide una pieza</h2>
-<p><code>pide_pieza</code> recibe el número en A. Los números bajos son efectos y del 0x84 en adelante hay música. Cada voz ocupa dieciséis bytes desde 0xE010 y 0xE040 guarda la copia del mezclador del PSG, que el arranque deja en 0xB8. Las pistas «de la tabla» están en la tabla de pistas pero ninguna rutina las pide con un <code>ld a</code>; se omite la 0x94, de varios minutos. El juego pide piezas por dos entradas: <code>pide_pieza</code> y <code>pide_pieza_si_la_escena_lo_permite</code>, que salta a la misma rutina; con las dos vigiladas, y con la RAM del sonido tal como estaba al pedir cada pieza, todos los trozos cuadran con openMSX.</p>
-<h2 id="las-musicas">Las músicas</h2>
-<p><b>La pieza del 0x41B5</b> (0x9F)</p>
-<p>Lo pide <code>L_41B5</code> y <code>L_422B</code>; dura 2,8 s.</p>
-<audio controls preload="none" src="../audio/musica_9F.mp3?v=321c7c8a"></audio>
-<p><b>La pieza del 0x41D1</b> (0x93)</p>
-<p>Lo pide <code>L_41D1</code>; dura 8,6 s y vuelve a empezar en el segundo 0,0.</p>
-<audio controls preload="none" src="../audio/musica_93.mp3?v=fba0a250"></audio>
-<p><b>La pieza del 0x424D</b> (0xA2)</p>
-<p>Lo pide <code>L_424D</code>; dura 2,6 s.</p>
-<audio controls preload="none" src="../audio/musica_A2.mp3?v=e4a16457"></audio>
-<p><b>La pieza del 0x50B9</b> (0x95)</p>
-<p>Lo pide <code>L_50B9</code>; dura 41,1 s y vuelve a empezar en el segundo 14,9.</p>
-<audio controls preload="none" src="../audio/musica_95.mp3?v=d11af31c"></audio>
-<p><b>Pista 0x84 de la tabla</b> (0x84)</p>
-<p>Lo pide ninguna llamada directa: está en la tabla de pistas; dura 11,6 s y vuelve a empezar en el segundo 11,2.</p>
-<audio controls preload="none" src="../audio/musica_84.mp3?v=4a05a9ec"></audio>
-<p><b>Pista 0x96 de la tabla</b> (0x96)</p>
-<p>Lo pide ninguna llamada directa: está en la tabla de pistas; dura 24,3 s y vuelve a empezar en el segundo 14,9.</p>
-<audio controls preload="none" src="../audio/musica_96.mp3?v=b0aa8de1"></audio>
-<p><b>Pista 0x9D de la tabla</b> (0x9D)</p>
-<p>Lo pide ninguna llamada directa: está en la tabla de pistas; dura 29,9 s.</p>
-<audio controls preload="none" src="../audio/musica_9D.mp3?v=b0c0cc74"></audio>
-<p><b>Pista 0x9E de la tabla</b> (0x9E)</p>
-<p>Lo pide ninguna llamada directa: está en la tabla de pistas; dura 29,9 s.</p>
-<audio controls preload="none" src="../audio/musica_9E.mp3?v=8e1554d5"></audio>
-<p><b>Pista 0xA0 de la tabla</b> (0xA0)</p>
-<p>Lo pide ninguna llamada directa: está en la tabla de pistas; dura 2,6 s.</p>
-<audio controls preload="none" src="../audio/musica_A0.mp3?v=cdfe6351"></audio>
-<p><b>Pista 0xA1 de la tabla</b> (0xA1)</p>
-<p>Lo pide ninguna llamada directa: está en la tabla de pistas; dura 2,6 s.</p>
-<audio controls preload="none" src="../audio/musica_A1.mp3?v=a1da126b"></audio>
-<p><b>Pista 0xA3 de la tabla</b> (0xA3)</p>
-<p>Lo pide ninguna llamada directa: está en la tabla de pistas; dura 2,6 s.</p>
-<audio controls preload="none" src="../audio/musica_A3.mp3?v=ed34a4fc"></audio>
-<p><b>Pista 0xA4 de la tabla</b> (0xA4)</p>
-<p>Lo pide ninguna llamada directa: está en la tabla de pistas; dura 2,6 s.</p>
-<audio controls preload="none" src="../audio/musica_A4.mp3?v=5b894ecb"></audio>
+<div class="w"><nav class="top"><a href="index.html"{% if page.name == "index.md" %} style=color:var(--tinta){% endif %}>Portada</a><span style="opacity:.35">|</span><a href="EL-JUEGO.html"{% if page.name == "EL-JUEGO.md" %} style=color:var(--tinta){% endif %}>El juego</a><a href="LAS-IMAGENES.html"{% if page.name == "LAS-IMAGENES.md" %} style=color:var(--tinta){% endif %}>Lo que el cartucho dibuja</a><a href="LA-MUSICA.html"{% if page.name == "LA-MUSICA.md" %} style=color:var(--tinta){% endif %}>La m&#250;sica</a><span style="opacity:.35">|</span><a href="CURIOSIDADES.html"{% if page.name == "CURIOSIDADES.md" %} style=color:var(--tinta){% endif %}>Curiosidades</a><span style="opacity:.35">|</span><a href="POR-DENTRO.html"{% if page.name == "POR-DENTRO.md" %} style=color:var(--tinta){% endif %}>Por dentro</a><a href="../{% case page.name %}{% when "EL-JUEGO.md" %}THE-GAME.html{% when "LAS-IMAGENES.md" %}THE-PICTURES.html{% when "LA-MUSICA.md" %}THE-MUSIC.html{% when "CURIOSIDADES.md" %}CURIOSITIES.html{% when "POR-DENTRO.md" %}UNDER-THE-HOOD.html{% else %}index.html{% endcase %}" style="margin-left:auto;color:var(--oro)">English</a></nav>
+{{ content }}
 <footer><p><em>Yie Ar Kung-Fu II: The Emperor Yie-Gah</em> lo publico Konami para MSX en 1985; su numero de catalogo es RC-737 y son 32 KB. Es la segunda parte de <em>Yie Ar Kung-Fu</em> (RC-725, 1985). Todos los derechos sobre el juego siguen siendo de sus titulares. Este trabajo es de preservacion, estudio y documentacion, y la imagen del cartucho no se distribuye.</p></footer></div>

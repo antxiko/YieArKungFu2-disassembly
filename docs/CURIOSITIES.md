@@ -1,6 +1,8 @@
-# Findings
+# Curiosities
 
-## The game checks Yie Ar Kung-Fu (RC-725) in the second slot
+## Findings
+
+### The game checks Yie Ar Kung-Fu (RC-725) in the second slot
 
 *The heading of this section is **[theNestruo](https://github.com/theNestruo)**'s,
 word for word: the old one was worse and he said so. And what follows - what the
@@ -50,7 +52,7 @@ device*. This is a game looking for **another game**. If Konami did it once it
 may be in more places, and the trail is a very early `call` out of INIT that
 touches `0xFCC1` and `ENASLT`.
 
-## The cartridge defends itself: copy protection
+### The cartridge defends itself: copy protection
 
 Two instructions in the start-up write inside the cartridge itself:
 
@@ -70,7 +72,7 @@ and another over the operand of a `jp`— turns up in nine cartridges of this se
 them in his disassembly of RC-727, where he named them `ReadKeys_AC` and
 `VRAM_writeAC`.
 
-## The soup: you must STRIKE a different spot in every round
+### The soup: you must STRIKE a different spot in every round
 
 *Asked by **[theNestruo](https://github.com/theNestruo)** in
 [issue #1](https://github.com/antxiko/YieArKungFu2-disassembly/issues/1), where
@@ -140,7 +142,7 @@ and `baja_la_invulnerabilidad` that are **not** that: they read `0xE181`, which
 is the **grab** counter. That is why it drops four at a time while the fire
 button is held: that is struggling free. They have been renamed.
 
-## Half the patterns and a mirror
+### Half the patterns and a mirror
 
 `0x597F` builds the fight screen from forty scripts pointed at by forty pointers
 spread over six contiguous tables, `0x592F` to `0x597E`. The mapping is exact
@@ -163,7 +165,7 @@ not just solid tiles, are 25, 10, 54 and 14. Sceneries 7-8 use the reversed
 tiles the least: 30 cells on the right half against 65 and 67 in 1-2 and 3-4.
 Pointed out by theNestruo in issue #2.
 
-## Two figure readers that look alike and are not
+### Two figure readers that look alike and are not
 
 `0x67F5` and `0x67A7` read the same format except for the `0xE0..0xEF` order,
 and there they differ in both ways at once: the first repeats the byte that
@@ -174,7 +176,7 @@ by two or three bytes per figure. What proves which is which is that the
 **thirty wave figures fit only the first** and the rivals' blocks only the
 second.
 
-## The eight rivals
+### The eight rivals
 
 Each scenery has its own, and they hang off two tables of eight indexed the same
 way: `0x6922` for the frames and `0x7FDB` for the behaviour. Each block is 22
@@ -185,7 +187,7 @@ The **odd frame is the even one facing the other way**: the `bit 0,a` at
 `0x677C` follows a two-byte pointer instead of reading a drawing, and the same
 bit negates x at `0x686A`.
 
-## The fighter is eight sprites, and half of him is computed
+### The fighter is eight sprites, and half of him is computed
 
 One LEE YOUNG frame is four HIT BOXES plus up to eight `[y][x][pattern]`
 triples, hanging off the twenty pointers at `0x6C83` — ten drawings in the even
@@ -211,7 +213,7 @@ reads like a tail belongs in front and is the VRAM destination `guion_rle`
 second route — the 34 script pointers carried by the player's frames all land on
 script starts computed independently.
 
-## A wave screen is four bytes
+### A wave screen is four bytes
 
 The strip at `0x5BE8` for that backdrop carries eight nibbles in four bytes;
 each one picks one of the thirty figures at `0x5C64`, and the eight are painted
@@ -231,13 +233,13 @@ different point, 3-4 and 1-2 just reorder theirs. Nothing scrolls within a
 screen: it is built once (`0x50D6`) and wiped for the next one by
 `barre_la_pantalla_desde_la_fila_5` (`0x50F6`).
 
-## Rounds wrap at eight, and the strip has ten
+### Rounds wrap at eight, and the strip has ten
 
 `0x44E4` fills `0xE2C0` with ten sceneries, 0 to 9 in order. But `0x430F`
 increments the round and `0x4311` compares it against 8, wrapping to zero. The
 last two entries of the strip are never read.
 
-## The lives trick
+### The lives trick
 
 `0x43B8` keeps the first ten key presses since power-on and compares them
 against the ten bytes at `0x43ED`:
@@ -247,20 +249,20 @@ against the ten bytes at `0x43ED`:
 With the PSG bit layout that reads **up once, left twice, down three times and
 right four**, a 1-2-3-4. If it matches, `(0xE055)` goes from 3 lives to `0x95`.
 
-## Two players: the second pad drives the rival
+### Two players: the second pad drives the rival
 
 The five bits of `(0xE052)` go straight into the table of 32 at `0x7DA2`,
 exactly the way the player's own go into `0x6990`. With one player, `0x7E7E`
 makes them up.
 
-## The seven entries per scenery are distance bands, not states
+### The seven entries per scenery are distance bands, not states
 
 `0x6E1D` subtracts the two x positions and sorts the result into seven bands
 with six cuts — three fixed and three read from the strip at `0x6E5F`. So each
 scenery has **its own reach**, and what looked like a state machine is a
 distance table.
 
-## One row higher than asked for
+### One row higher than asked for
 
 `pon_la_figura_en_la_pantalla` (`0x66F1`) steps down 32 tiles **`row - 1`**
 times, because of the `dec a` at `0x66FB`. A figure asked for at row 4 starts at
@@ -270,7 +272,7 @@ It is not a curiosity: without it the title logo lands four rows too low and
 three columns too far left, and the VRAM comparison says so — 165 tiles wrong
 before, 0 after.
 
-## The hidden mark, and the second header
+### The hidden mark, and the second header
 
 The last fifteen bytes, closing at `0xBFFF`, carry `RC-737` and the title in
 katakana written backwards. It is the mark **Manuel Pazos** found in Konami's
@@ -279,12 +281,12 @@ cartridges, and this one has it.
 There is also a second header at `0x4010`, `"AB" 07 37`, for the **Konami Game
 Master** in the other slot. The cartridge never reads it itself.
 
-## Code nobody calls
+### Code nobody calls
 
 Five routines — `0x47B0`, `0x4875`, `0x488A`, `0x544F` and `0x6EB5` — are named
 by no `call`, no `jp` and no table.
 
-## Two captions that were being read wrong
+### Two captions that were being read wrong
 
 - `0x447B` says **LEE YOUNG**, the fighter you control, and the eight at
   `0x4497` are the rivals' names. They had been read as one run of nine scripts,
@@ -292,3 +294,55 @@ by no `call`, no `jp` and no table.
   a script: it is the table of eight pointers plus the first name.
 - `0x572A` is not the pause caption: it says **PERFECT 5000**, and it is only
   painted when the round ends with the bar full (`0x5328` against `0x24`).
+
+## Open questions
+
+The listing is complete: 32,768 bytes, none unexplained. That does not mean
+everything about the cartridge is known. What is not, is here.
+
+### ~~What the first part actually gets you~~
+
+**CLOSED** on 2026-09-09, at theNestruo's request. It is a **drink** that
+refills the player's energy bar when both bars are nearly empty, and the sign at
+`0x7525` is its announcement. Measured in openMSX with `(0xE450) = 1`: the bars
+go from `(0x08, 0x0C)` to `(0x24, 0x0C)`. It is in the
+[findings](CURIOSITIES.html).
+
+### ~~Where the wave screens get their tiles~~
+
+**CLOSED** on 2026-09-24, at theNestruo's request (issue #2). From the fight
+screen's own bands: the twelve wave screens dump the same patterns and colours
+as the fights, byte for byte, in openMSX (`tools/omsx_oleadas.tcl`). What was
+wrong was the reader here — the nibbles backwards, and the curtain at `0x41D1`
+that wipes the title before a game starts was missing — not the cartridge. The
+twelve are in [the game](THE-GAME.html).
+
+### Is any other Konami cartridge doing the same?
+
+The slot scan at `0xBF6C` is a game looking for **another game**, which is not
+the Game Master mechanism. The obvious question is whether it appears anywhere
+else in the RC-7xx range. The trail to follow is a very early `call` out of INIT
+that touches `0xFCC1` and `ENASLT`.
+
+Not checked across the rest of the series yet.
+
+### What decides which build of the first part matters
+
+The scan tells the two builds of RC-725 apart, `5A 47` for the easy one and
+`23 70` for the hard one, and stores the same `1` in `(0xE450)` either way. So
+the cartridge goes to the trouble of recognising two builds separately and then
+does not distinguish them. Whether that is a leftover, a second table that was
+never used, or something read elsewhere, is not known.
+
+### The two unread sceneries
+
+`0x44E4` fills the strip at `0xE2C0` with ten sceneries, 0 to 9, but the round
+wraps at eight (`0x4311`). Entries 8 and 9 are never read. Whether that is a
+leftover from a longer game or just a round number is not known.
+
+### The endings
+
+Scene 6 (`0x425E`) handles the endings and `0x58F9` holds their captions, which
+read as a congratulation. They have not been reached in play here, so what the
+sequence looks like end to end is described from the code and not from having
+seen it.

@@ -531,7 +531,7 @@ class TestLasCifrasDeLaPortada(unittest.TestCase):
 
     def setUp(self):
         sys.path.insert(0, os.path.join(RAIZ, "tools"))
-        import make_web
+        import contenido_web as make_web
         self.w = make_web
 
     def test_la_suma_de_bytes_da_el_cartucho(self):
@@ -573,7 +573,7 @@ class TestLasCifrasDeLaPortada(unittest.TestCase):
                 sha = ln.split("=")[1].strip()
         self.assertIsNotNone(sha)
         for idioma in ("es", "en"):
-            ficha = " ".join(self.w.TXT[idioma]["ficha"])
+            ficha = " ".join(self.w.PORTADA[idioma]["ficha"])
             self.assertIn(sha[:8], ficha)
             self.assertIn("RC-737", ficha)
 
@@ -581,10 +581,8 @@ class TestLasCifrasDeLaPortada(unittest.TestCase):
 class TestLaWebEstaCompleta(unittest.TestCase):
     """Las siete paginas por idioma y las imagenes que citan."""
 
-    PAGINAS_EN = ("GETTING-STARTED", "THE-GAME", "THE-CARTRIDGE", "THE-CODE",
-                  "FINDINGS", "IN-THE-EMULATOR", "OPEN-QUESTIONS")
-    PAGINAS_ES = ("EMPEZAR", "EL-JUEGO", "EL-CARTUCHO", "EL-CODIGO",
-                  "HALLAZGOS", "EN-EL-EMULADOR", "PREGUNTAS-ABIERTAS")
+    PAGINAS_EN = ('THE-GAME', 'THE-PICTURES', 'THE-MUSIC', 'CURIOSITIES', 'UNDER-THE-HOOD',)
+    PAGINAS_ES = ('EL-JUEGO', 'LAS-IMAGENES', 'LA-MUSICA', 'CURIOSIDADES', 'POR-DENTRO',)
 
     def test_estan_las_siete_paginas_en_los_dos_idiomas(self):
         for p in self.PAGINAS_EN:

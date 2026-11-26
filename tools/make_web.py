@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
-"""Genera la portada de la web de Yie Ar Kung-Fu II, en los dos idiomas.
+"""Genera la portada de la web, en los dos idiomas.
 
-El diseno es el compartido por la serie (tools/estilo_web.py) y la pagina sale
-autocontenida, con las imagenes embebidas como data URI.
-
-Las imagenes NO son ilustraciones ni capturas: las dibuja tools/graficos.py a
-partir de los propios bytes de la ROM, ejecutando en Python el descompresor,
-el motor de figuras y el interprete de rotulos que corre el Z80. Ninguna se ha
-retocado, y todas estan cotejadas byte a byte contra la VRAM del emulador con
-tools/coteja_vram.py.
+La maquinaria no nombra ningun juego: el nombre, la cabecera, las cifras y
+la lista de paginas salen de tools/contenido_web.py. Aqui solo van los
+rotulos de la pagina. El diseno es el compartido por la serie
+(tools/estilo_web.py) y la pagina sale autocontenida, con las imagenes
+embebidas como data URI.
 
 Uso: make_web.py <docs/imagenes> <salida.html> <idioma>
 """
@@ -18,19 +15,19 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from estilo_web import ESTILO                                   # noqa: E402
+import contenido_web as CW                                      # noqa: E402
+from contenido_web import NOMBRE, PORTADA, PAGINAS, LOGOTIPO    # noqa: E402
 
-# Las cifras salen de contar sobre el listado generado, no de escribirlas a
-# ojo: 32768 = 13725 + 19043, que es lo que imprime tools/presupuesto.py
-# (make sanity). RUTINAS son los bloques con nombre que cuenta densidad.py y
-# DENSIDAD la proporcion de instrucciones comentadas, las dos de
-# tools/densidad.py (make densidad).
-CODIGO = 13725
-DATOS = 19043
-RUTINAS = 1027
-INSTRUCCIONES = 7142
-COMENTARIOS = 2923
-DENSIDAD = "40,9"
-DENSIDAD_EN = "40.9"
+# Las cifras y los rotulos que no ponga el juego (PORTADA puede traer su "cifras",
+# "nota_num" y "aviso") son los de la serie
+CODIGO = getattr(CW, "CODIGO", 0)
+DATOS = getattr(CW, "DATOS", 0)
+RUTINAS = getattr(CW, "RUTINAS", 0)
+densidad = getattr(CW, "densidad", lambda idioma: "")
+
+# El rotulo de la cifra de rutinas: el de la serie, o el que ponga el juego
+ROT_RUTINAS = getattr(CW, "RUTINAS_ROTULO", {"es": "rutinas y etiquetas",
+                                             "en": "routines and labels"})
 
 
 def mil(n, idioma):
@@ -39,105 +36,34 @@ def mil(n, idioma):
 
 TXT = {
     "es": dict(
-        titulo="Yie Ar Kung-Fu II - desensamblado comentado",
-        aviso="<b>Aqui no hay ninguna captura.</b> Todas las imagenes estan "
-              "<b>dibujadas desde los bytes de la ROM</b>, ejecutando en "
-              "Python los mismos guiones, espejos y lectores de figuras que "
-              "corre el Z80, y <b>cotejadas byte a byte contra la VRAM de "
-              "openMSX</b>: <b>nueve</b> pantallas volcadas del emulador dan "
-              "<b>cero</b> diferencias en color (6.144 bytes), patrones "
-              "(6.144) y patrones de sprite (1.792), y la del titulo cuadra "
-              "ademas <b>768 de 768 casillas</b>. El listado y las cifras se "
-              "reproducen con <code>make</code>, y el reensamblado devuelve "
-              "la ROM <b>byte a byte</b>.",
-        claim="<b>El juego busca el Yie Ar Kung-Fu (RC-725) en la segunda "
-              "ranura.</b> Antes de instalar el gancho de interrupcion rastrea "
-              "las cuatro ranuras, conmuta la pagina 1 de cada una y le toma "
-              "dos sumas de 16 bytes; si dan lo que espera, del nivel 3 en "
-              "adelante aparece un <b>refresco</b> que rellena la barra cuando "
-              "los dos luchadores estan bajo minimos. Y la <b>sopa</b> que "
-              "deja invulnerable no sale sola: hay que <b>pegar</b> en un "
-              "sitio distinto en cada ronda, los ocho de la tabla de "
-              "<code>0x507A</code>.",
-        ficha=["Konami - <b>(c) Konami 1985</b>",
-               "Cartucho <b>RC-737</b>, 32 KB",
-               "MSX1 - <b>paginas 1 y 2</b>", "Volcado <b>bcb41b35...</b>"],
-        nav=[("#numbers", "Las cifras"), ("#findings", "Hallazgos"),
-             ("#screens", "Lo que dibuja")],
-        docnav=[("EMPEZAR.html", "Empezar"), ("EL-JUEGO.html", "El juego"),
-                ("EL-CARTUCHO.html", "El cartucho"),
-                ("EL-CODIGO.html", "El codigo"),
-                ("LA-MUSICA.html", "La música"), ("HALLAZGOS.html", "Hallazgos"),
-                ("EN-EL-EMULADOR.html", "En el emulador"),
-                ("PREGUNTAS-ABIERTAS.html", "Preguntas abiertas")],
         otro=("../", "In English"),
-        h_num="El cartucho en cifras", h_find="Lo que aparecio al desmontarlo",
-        h_scr="Lo que el cartucho dibuja",
+        h_num="El cartucho en cifras", h_pag="Lo que hay dentro",
+        bloques=["El juego", "Curiosidades", "Por dentro"],
         cifras=[("100 %", "del binario explicado"),
-                (str(RUTINAS), "bloques de codigo medidos"),
-                (DENSIDAD + " %", "del listado comentado"),
-                (mil(CODIGO, "es"), "bytes de codigo"),
+                (mil(RUTINAS, "es"), ROT_RUTINAS["es"]),
+                (densidad("es") + " %", "del listado comentado"),
+                (mil(CODIGO, "es"), "bytes de código"),
                 (mil(DATOS, "es"), "bytes de datos"),
                 ("0", "bytes sin identificar")],
-        nota_scr="Debajo de cada imagen esta de donde sale y que se esta "
-                 "viendo.",
-        pie_leg="Esto es trabajo de documentacion y preservacion: el codigo y "
-                "los graficos siguen siendo de sus autores y de Konami, y la "
+        pie_leg="Esto es trabajo de documentación y preservación: el código y "
+                "los gráficos siguen siendo de sus autores y de Konami, y la "
                 "imagen del cartucho no se distribuye.",
     ),
     "en": dict(
-        titulo="Yie Ar Kung-Fu II - a commented disassembly",
-        aviso="<b>Not one capture here.</b> Every picture is <b>drawn from "
-              "the bytes of the ROM</b>, by running in Python the very same "
-              "scripts, mirrors and figure readers the Z80 runs, and then "
-              "<b>checked byte for byte against openMSX's VRAM</b>: "
-              "<b>nine</b> screens dumped from the emulator come out with "
-              "<b>zero</b> differences in colour (6,144 bytes), patterns "
-              "(6,144) and sprite patterns (1,792), and the title screen "
-              "matches <b>768 of 768 tiles</b> as well. The listing and the "
-              "numbers are reproducible with <code>make</code>, and "
-              "reassembling gives back the ROM <b>byte for byte</b>.",
-        claim="<b>The game checks Yie Ar Kung-Fu (RC-725) in the second "
-              "slot.</b> Before it even installs the interrupt hook it scans "
-              "the four slots, switches page 1 of each and takes two 16-byte "
-              "sums; if they come out right, from level 3 on a <b>drink</b> "
-              "shows up that refills your bar when both fighters are nearly "
-              "out. And the <b>soup</b> that makes you invulnerable does not "
-              "come out on its own: you have to <b>strike</b> at a different "
-              "spot in every round, the eight in the table at "
-              "<code>0x507A</code>.",
-        ficha=["Konami - <b>(c) Konami 1985</b>",
-               "An <b>RC-737</b> 32 KB cartridge",
-               "MSX1 - <b>pages 1 and 2</b>", "Dump <b>bcb41b35...</b>"],
-        nav=[("#numbers", "The numbers"), ("#findings", "What turned up"),
-             ("#screens", "What it draws")],
-        docnav=[("GETTING-STARTED.html", "Getting started"),
-                ("THE-GAME.html", "The game"),
-                ("THE-CARTRIDGE.html", "The cartridge"),
-                ("THE-CODE.html", "The code"),
-                ("THE-MUSIC.html", "The music"), ("FINDINGS.html", "Findings"),
-                ("IN-THE-EMULATOR.html", "In the emulator"),
-                ("OPEN-QUESTIONS.html", "Open questions")],
         otro=("es/", "En castellano"),
-        h_num="The cartridge in numbers",
-        h_find="What turned up when we took it apart",
-        h_scr="What the cartridge draws",
+        h_num="The cartridge in numbers", h_pag="What is inside",
+        bloques=["The game", "Curiosities", "Under the hood"],
         cifras=[("100%", "of the binary explained"),
-                (str(RUTINAS), "code blocks measured"),
-                (DENSIDAD_EN + "%", "of the listing commented"),
+                (mil(RUTINAS, "en"), ROT_RUTINAS["en"]),
+                (densidad("en") + "%", "of the listing commented"),
                 (mil(CODIGO, "en"), "bytes of code"),
                 (mil(DATOS, "en"), "bytes of data"),
                 ("0", "bytes unidentified")],
-        nota_scr="Under each picture is where it comes from and what is on it.",
         pie_leg="This is documentation and preservation work: the code and "
                 "artwork still belong to their authors and to Konami, and the "
                 "cartridge image is not distributed.",
     ),
 }
-
-# El contenido propio de este cartucho vive aparte, en contenido_web.py:
-# asi el generador no lleva dentro ni un texto del juego anterior.
-from contenido_web import HALLAZGOS, GALERIA        # noqa: E402
 
 
 def img64(ruta):
@@ -150,38 +76,37 @@ def main(argv):
         print(__doc__)
         return 2
     imgdir, salida, idioma = argv[1:4]
-    t = TXT[idioma]
+    t = dict(TXT[idioma], **PORTADA[idioma])
 
     # El "logotipo" de la cabecera no es un montaje ni una captura: es la
-    # pantalla de titulo que el propio cartucho pinta, dibujada desde la ROM
-    # por graficos.py. Si el PNG no esta, el trabajo NO esta hecho: se cae al
-    # texto, y eso se ve.
-    ruta_logo = os.path.join(imgdir, "rotulo.png")
-    cabecera = (f'<img src="{img64(ruta_logo)}" alt="Yie Ar Kung-Fu II">'
+    # pantalla de titulo que pinta el propio cartucho, dibujada desde la ROM
+    # (contenido_web.LOGOTIPO). Si el PNG no esta, el trabajo NO esta hecho: se
+    # cae al texto, y eso se ve.
+    ruta_logo = os.path.join(imgdir, LOGOTIPO)
+    cabecera = (f'<img src="{img64(ruta_logo)}" alt="{NOMBRE}">'
                 if os.path.exists(ruta_logo)
-                else "<h1>Yie Ar Kung-Fu II</h1>")
+                else f"<h1>{NOMBRE}</h1>")
 
-    nav = "".join(f'<a href="{h}">{x}</a>' for h, x in t["nav"])
-    nav += "".join(f'<a href="{h}">{x}</a>' for h, x in t["docnav"])
+    # el menu y la lista de paginas, en los tres bloques de PAGINAS
+    k_h, k_t, k_d = (0, 2, 4) if idioma == "en" else (1, 3, 5)
+    sep = '<span style="opacity:.35">|</span>'
+    nav = sep.join("".join(f'<a href="{p[k_h]}">{p[k_t]}</a>' for p in b) for b in PAGINAS)
     nav += (f'<a href="{t["otro"][0]}" style="margin-left:auto;color:var(--oro)">'
             f'{t["otro"][1]}</a>')
 
     cifras = "".join(f'<div class="cifra"><b>{v}</b><span>{e}</span></div>'
                      for v, e in t["cifras"])
-    halls = "".join(f'<div class="hall"><h3>{tit}</h3>{cuerpo}</div>'
-                    for tit, cuerpo in HALLAZGOS[idioma])
-    imgs = ""
-    faltan = []
-    for fich, es, en in GALERIA:
-        ruta = os.path.join(imgdir, fich)
-        if not os.path.exists(ruta):
-            faltan.append(fich)
-            continue
-        pie = es if idioma == "es" else en
-        imgs += (f'<figure><img src="{img64(ruta)}" alt="{pie}">'
-                 f'<figcaption>{pie}</figcaption></figure>')
-    if faltan:
-        print("  (faltan %d imagenes: %s)" % (len(faltan), " ".join(faltan)))
+    paginas = "".join(
+        f'<div class="hall"><h3>{tit}</h3><ul>'
+        + "".join(f'<li><a href="{p[k_h]}">{p[k_t]}</a>: {p[k_d]}.</li>' for p in b)
+        + "</ul></div>"
+        for tit, b in zip(t["bloques"], PAGINAS))
+
+    # el aviso y la nota de las cifras son opcionales: solo los que el juego trae
+    aviso = ('<p class="ficha" style="border:1px solid var(--oro);padding:.8em 1em;'
+             'margin:1.5em 0">\n%s</p>\n' % t["aviso"]) if t.get("aviso") else ""
+    nota_num = ('  <p class="n" style="margin-top:1.5rem;color:var(--suave)">%s</p>\n'
+                % t["nota_num"]) if t.get("nota_num") else ""
 
     html = f"""<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -192,19 +117,12 @@ def main(argv):
   <p class="claim">{t['claim']}</p>
   <p class="ficha">{' - '.join(t['ficha'])}</p>
 </header>
-<p class="ficha" style="border:1px solid var(--oro);padding:.8em 1em;margin:1.5em 0">
-{t['aviso']}</p>
-<nav>{nav}</nav>
+{aviso}<nav>{nav}</nav>
 <section id="numbers">
   <h2>{t['h_num']}</h2>
   <div class="cifras">{cifras}</div>
-</section>
-<section id="findings"><h2>{t['h_find']}</h2>{halls}</section>
-<section id="screens">
-  <h2>{t['h_scr']}</h2>
-  <p class="n">{t['nota_scr']}</p>
-  <div class="galeria">{imgs}</div>
-</section>
+{nota_num}</section>
+<section id="pages"><h2>{t['h_pag']}</h2>{paginas}</section>
 <footer><p>{t['pie_leg']}</p></footer>
 """
     with open(salida, "w", encoding="utf-8") as f:

@@ -67,9 +67,9 @@ tiles.
 - **The demo is a recorded game**: 33 key presses and their durations.
 
 The lot, with its measurements, in
-[Findings](https://antxiko.github.io/YieArKungFu2-disassembly/FINDINGS.html),
+[Findings](https://antxiko.github.io/YieArKungFu2-disassembly/CURIOSITIES.html),
 and what is *not* known in
-[Open questions](https://antxiko.github.io/YieArKungFu2-disassembly/OPEN-QUESTIONS.html).
+[Open questions](https://antxiko.github.io/YieArKungFu2-disassembly/CURIOSITIES.html).
 
 ## Licence and credit
 

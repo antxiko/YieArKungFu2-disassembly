@@ -1,6 +1,8 @@
-# Hallazgos
+# Curiosidades
 
-## El juego busca el Yie Ar Kung-Fu (RC-725) en la segunda ranura
+## Hallazgos
+
+### El juego busca el Yie Ar Kung-Fu (RC-725) en la segunda ranura
 
 *El titulo de esta seccion es de **[theNestruo](https://github.com/theNestruo)**,
 palabra por palabra: el de antes era peor y lo dijo. Y lo de abajo -que da la
@@ -49,7 +51,7 @@ Esto no es la cabecera del Game Master: aquello es un cartucho leyendo un
 hizo una vez puede estar en mas sitios, y la pista es un `call` muy temprano
 desde INIT que toca `0xFCC1` y ENASLT.
 
-## El cartucho se defiende: proteccion anticopia
+### El cartucho se defiende: proteccion anticopia
 
 Dos instrucciones del arranque escriben dentro del propio cartucho:
 
@@ -69,7 +71,7 @@ No es una idea suelta de este cartucho: el mismo par —una escritura sobre un
 Pazos** en su desensamblado del RC-727, donde las llamo `ReadKeys_AC` y
 `VRAM_writeAC`.
 
-## La sopa: hay que PEGAR en un sitio distinto en cada ronda
+### La sopa: hay que PEGAR en un sitio distinto en cada ronda
 
 *Esto lo pregunto **[theNestruo](https://github.com/theNestruo)** en el
 [issue #1](https://github.com/antxiko/YieArKungFu2-disassembly/issues/1), y de
@@ -138,7 +140,7 @@ De paso, el listado tenia dos rutinas llamadas `mira_la_invulnerabilidad` y
 del **agarre**. Por eso baja de cuatro en cuatro al pulsar disparo: es
 forcejear. Ya estan renombradas.
 
-## La mitad de los patrones y un espejo
+### La mitad de los patrones y un espejo
 
 `0x597F` monta la pantalla de combate con cuarenta guiones apuntados por
 cuarenta punteros repartidos en seis tablas contiguas, de `0x592F` a `0x597E`.
@@ -162,7 +164,7 @@ y no casillas macizas, son 25, 10, 54 y 14. El 7-8 es el que menos usa las
 volteadas: 30 casillas en la mitad derecha contra 65 y 67 en el 1-2 y el 3-4.
 Lo apunto theNestruo en el issue #2.
 
-## Dos lectores de figuras que se parecen y no son iguales
+### Dos lectores de figuras que se parecen y no son iguales
 
 `0x67F5` y `0x67A7` leen el mismo formato salvo en la orden `0xE0..0xEF`, y ahi
 cambian de las dos maneras a la vez: el primero repite el byte que viene detras
@@ -173,7 +175,7 @@ bytes por figura. Lo que demuestra cual es cual es que las **treinta figuras de
 las oleadas encajan solo con el primero** y los bloques de los rivales solo con
 el segundo.
 
-## Los ocho rivales
+### Los ocho rivales
 
 Cada escenario tiene el suyo, y cuelgan de dos tablas de ocho que se indexan
 igual: `0x6922` los fotogramas y `0x7FDB` el comportamiento. Cada bloque son 22
@@ -184,7 +186,7 @@ El **fotograma impar es el par mirando al otro lado**: el `bit 0,a` de `0x677C`
 sigue un puntero de dos bytes en vez de leer un dibujo, y el mismo bit niega la
 x en `0x686A`.
 
-## El muneco son ocho sprites, y la mitad se calcula
+### El muneco son ocho sprites, y la mitad se calcula
 
 Un fotograma de LEE YOUNG son cuatro CAJAS DE GOLPE mas hasta ocho trios
 `[y][x][patron]`, colgados de los veinte punteros de `0x6C83` -diez dibujos en
@@ -210,7 +212,7 @@ que se lee como cola va delante y es el destino de VRAM que consume `guion_rle`
 camino: los 34 punteros a guiones que llevan los fotogramas del jugador caen
 todos en inicios de guion calculados por separado.
 
-## Una pantalla de oleadas son cuatro bytes
+### Una pantalla de oleadas son cuatro bytes
 
 La tira de `0x5BE8` que le toca al decorado trae ocho nibbles en cuatro bytes;
 cada uno elige una de las treinta figuras de `0x5C64`, y las ocho se pintan en
@@ -230,13 +232,13 @@ cada pantalla, el 5-6 lee un bucle de seis tiras desde otro punto, el 3-4 y el
 una vez (`0x50D6`) y la barre `barre_la_pantalla_desde_la_fila_5` (`0x50F6`)
 para la siguiente.
 
-## Las rondas vuelven a empezar a las ocho, y la tira tiene diez
+### Las rondas vuelven a empezar a las ocho, y la tira tiene diez
 
 `0x44E4` llena `0xE2C0` con diez escenarios, del 0 al 9 en orden. Pero `0x430F`
 sube la ronda y `0x4311` la compara contra 8, volviendo a cero. Las dos ultimas
 entradas de la tira no se leen nunca.
 
-## El truco de las vidas
+### El truco de las vidas
 
 `0x43B8` guarda las diez primeras pulsaciones desde el encendido y las compara
 contra los diez bytes de `0x43ED`:
@@ -247,20 +249,20 @@ Con el reparto de bits del PSG eso es **arriba una vez, izquierda dos, abajo
 tres y derecha cuatro**, un 1-2-3-4. Si cuadra, `(0xE055)` pasa de 3 vidas a
 `0x95`.
 
-## Con dos jugadores, el segundo mando lleva al rival
+### Con dos jugadores, el segundo mando lleva al rival
 
 Los cinco bits de `(0xE052)` entran directos en la tabla de 32 de `0x7DA2`,
 exactamente igual que los del jugador en `0x6990`. Con un jugador se los inventa
 `0x7E7E`.
 
-## Las siete entradas por escenario son tramos de distancia, no estados
+### Las siete entradas por escenario son tramos de distancia, no estados
 
 `0x6E1D` resta las dos x y clasifica el resultado en siete tramos con seis
 cortes -tres fijos y tres leidos de la tira de `0x6E5F`-. O sea que cada
 escenario tiene **su propio alcance**, y lo que parecia una maquina de estados
 es una tabla de distancias.
 
-## Una fila mas arriba de la que se pide
+### Una fila mas arriba de la que se pide
 
 `pon_la_figura_en_la_pantalla` (`0x66F1`) baja 32 casillas **`fila - 1`** veces,
 por el `dec a` de `0x66FB`. Una figura pedida en la fila 4 empieza en la 3, y la
@@ -270,7 +272,7 @@ No es una curiosidad: sin eso el logotipo del titulo cae cuatro filas mas abajo
 y tres columnas mas a la izquierda de donde va, y el cotejo con la VRAM lo dice
 -165 casillas mal antes, 0 despues-.
 
-## La marca oculta y la segunda cabecera
+### La marca oculta y la segunda cabecera
 
 Los ultimos quince bytes, cerrando en `0xBFFF`, llevan `RC-737` y el titulo en
 katakana escrito del reves. Es la marca que **Manuel Pazos** descubrio en los
@@ -279,12 +281,12 @@ cartuchos de Konami, y este la lleva.
 Y hay una segunda cabecera en `0x4010`, `"AB" 07 37`, para el **Konami Game
 Master** de la otra ranura. El cartucho no la lee nunca.
 
-## Codigo que no llama nadie
+### Codigo que no llama nadie
 
 Cinco rutinas -`0x47B0`, `0x4875`, `0x488A`, `0x544F` y `0x6EB5`- no las nombra
 ni un `call`, ni un `jp`, ni ninguna tabla.
 
-## Dos rotulos que se estaban leyendo mal
+### Dos rotulos que se estaban leyendo mal
 
 - `0x447B` dice **LEE YOUNG**, el que se maneja, y los ocho de `0x4497` son los
   nombres de los rivales. Se habian leido como nueve guiones seguidos, que
@@ -292,3 +294,56 @@ ni un `call`, ni un `jp`, ni ninguna tabla.
   guion: es la tabla de ocho punteros mas el primer nombre.
 - `0x572A` no es el rotulo de la pausa: dice **PERFECT 5000**, y solo se pinta
   cuando la fase acaba con la barra llena (`0x5328` contra `0x24`).
+
+## Preguntas abiertas
+
+El listado esta completo: 32.768 bytes, ninguno sin explicar. Eso no quiere
+decir que se sepa todo del cartucho. Lo que no, esta aqui.
+
+### ~~Que da de verdad la primera parte~~
+
+**CERRADA** el 2026-09-09, a peticion de theNestruo. Es un **refresco** que
+rellena la barra del jugador cuando las dos barras estan bajo minimos, y el
+cartel de `0x7525` es su aviso. Medido en openMSX poniendo `(0xE450) = 1`: las
+barras pasan de `(0x08, 0x0C)` a `(0x24, 0x0C)`. Esta en los
+[hallazgos](CURIOSIDADES.html).
+
+### ~~De donde sacan sus casillas las pantallas de oleadas~~
+
+**CERRADA** el 2026-09-24, a peticion de theNestruo (issue #2). De las bandas
+de la propia pantalla de combate: las doce pantallas de oleadas vuelcan los
+mismos patrones y colores que los combates, byte a byte, en openMSX
+(`tools/omsx_oleadas.tcl`). Lo que estaba mal era el lector de aqui -los
+nibbles al reves, y faltaba la cortina de `0x41D1` que borra el titulo antes de
+empezar la partida-, no el cartucho. Las doce estan en [el juego](EL-JUEGO.html).
+
+### Hay algun otro cartucho de Konami haciendo lo mismo?
+
+El rastreo de `0xBF6C` es un juego buscando a **otro juego**, que no es el
+mecanismo del Game Master. La pregunta obvia es si aparece en algun otro RC-7xx.
+La pista a seguir es un `call` muy temprano desde INIT que toque `0xFCC1` y
+ENASLT.
+
+Todavia sin comprobar en el resto de la serie.
+
+### Que decide cual de las dos compilaciones importa
+
+El rastreo distingue las dos compilaciones del RC-725, `5A 47` la facil y
+`23 70` la dificil, y guarda el mismo `1` en `(0xE450)` en los dos casos. O sea
+que el cartucho se toma el trabajo de reconocer dos compilaciones por separado y
+luego no las distingue. Si eso es un resto, una segunda tabla que nunca se uso,
+o algo que se lee en otro sitio, no se sabe.
+
+### Los dos escenarios que no se leen
+
+`0x44E4` llena la tira de `0xE2C0` con diez escenarios, del 0 al 9, pero la
+ronda vuelve a empezar a las ocho (`0x4311`). Las entradas 8 y 9 no se leen
+nunca. Si es un resto de un juego mas largo o simplemente un numero redondo, no
+se sabe.
+
+### Los finales
+
+La escena 6 (`0x425E`) lleva los finales y `0x58F9` sus rotulos, que se leen
+como una felicitacion. Aqui no se ha llegado a ellos jugando, asi que como es la
+secuencia de principio a fin esta descrito desde el codigo y no de haberlo
+visto.
